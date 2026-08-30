@@ -1,0 +1,133 @@
+{
+  "name": "terminal-theme-import",
+  "displayName": "Terminal Theme Import",
+  "description": "Read the color schemes already installed for Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal and Xresources, and apply them to the VS Code integrated terminal.",
+  "version": "0.1.0",
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "extensionKind": [
+    "ui"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Texarkanine/vscode-terminal-themes.git"
+  },
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "keywords": [
+    "terminal",
+    "theme",
+    "ghostty",
+    "kitty",
+    "alacritty"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "terminalThemeImport.import",
+        "title": "Import Terminal Theme\u2026",
+        "category": "Terminal Theme"
+      },
+      {
+        "command": "terminalThemeImport.importGlobal",
+        "title": "Import Terminal Theme to User Settings\u2026",
+        "category": "Terminal Theme"
+      },
+      {
+        "command": "terminalThemeImport.importWorkspace",
+        "title": "Import Terminal Theme to Workspace Settings\u2026",
+        "category": "Terminal Theme"
+      },
+      {
+        "command": "terminalThemeImport.mirror",
+        "title": "Mirror Active Terminal Theme",
+        "category": "Terminal Theme"
+      },
+      {
+        "command": "terminalThemeImport.remove",
+        "title": "Remove Imported Terminal Theme",
+        "category": "Terminal Theme"
+      }
+    ],
+    "configuration": {
+      "title": "Terminal Theme Import",
+      "properties": {
+        "terminalThemeImport.target": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "global",
+            "workspace"
+          ],
+          "default": "ask",
+          "markdownDescription": "Where to write the imported palette. `ask` prompts each time; with no folder open it always uses user settings."
+        },
+        "terminalThemeImport.sources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "ghostty",
+              "kitty",
+              "alacritty",
+              "wezterm",
+              "iterm2",
+              "windows-terminal",
+              "xresources"
+            ]
+          },
+          "default": [],
+          "description": "Emulators to scan. Empty means all of them."
+        },
+        "terminalThemeImport.extraDirectories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional directories to sweep for theme files, e.g. a dotfiles checkout."
+        },
+        "terminalThemeImport.scopeToActiveTheme": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Nest the colors under `[Your Theme Name]` so they only apply while that workbench theme is active. Off by default, so the terminal palette survives theme switching."
+        },
+        "terminalThemeImport.setMinimumContrastRatio": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Also set `#terminal.integrated.minimumContrastRatio#` to 1. Without this, VS Code adjusts foreground colors toward a contrast target and the palette will not render as authored."
+        },
+        "terminalThemeImport.includeSelectionForeground": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Write `terminal.selectionForeground`. Off by default: setting it disables the behavior where selected text keeps its own color."
+        },
+        "terminalThemeImport.livePreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Apply each theme as you arrow through the list, and restore your previous colors if you cancel. Turn off if the settings.json churn is disruptive."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p . --noEmit && esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "test:parsers": "tsx test/parsers.test.ts"
+  },
+  "dependencies": {
+    "smol-toml": "^1.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.75.0",
+    "esbuild": "^0.21.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0"
+  }
+}
