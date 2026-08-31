@@ -30,3 +30,15 @@ Attach a packaged `.vsix` to GitHub Releases cut by release-please, add a local 
 * Insights
     - Job currently never checkouts; upload path must add checkout + Node
     - `*.vsix` already gitignored
+
+## 2026-08-31 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the plan against codebase reality: TDD ordering, conventions, dependency impact, conflicts, completeness
+    - Verified plan's factual claims (`.gitignore`, `.vscodeignore`, `ci` test section, README Development section, package.json clean slate)
+* Decisions made
+    - Result: PASS WITH ADVISORY (first line of `.preflight-status`)
+    - Kept the negative "no Marketplace publish" workflow assertion: judged a policy gate on executable config, not a prose change-detector
+* Insights
+    - Advisory: upload the CI-built `.vsix` as a workflow artifact so every PR is sideload-installable
+    - Advisory: CI will compile twice (explicit step + `prepackage`); harmless redundancy

@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: vsix-github-releases
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
 
 ## What Was Done
 - Level 2 plan: contract tests in `test/parsers.test.ts` `ci` section; pin `@vscode/vsce`; `npm run package`; release-please follow-on upload; CI smoke; README + techContext. Publisher `texarkanine`. No Marketplace. No launch.json.
