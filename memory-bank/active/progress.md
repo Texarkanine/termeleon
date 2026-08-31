@@ -66,3 +66,13 @@ Add Node/`tsx` tests that drive `discoverThemes` against a fixture `$HOME` / `$X
     - Stop at reflect per operator; no archive, no PR.
 * Insights
     - Module-load HOME/XDG snapshots are the thing that made fixture-home tests impossible; scan-time reads plus origin assertions are the durable pattern.
+
+## 2026-08-31 - PR #16 REVIEW FIX
+
+* Work completed
+    - Ghostty find case asserts `active === false` when no `theme =` is planted.
+    - Ghostty active case plants a second usable theme (`Other`) that config does not name and asserts true vs false.
+* Decisions made
+    - Parent adjudicated cursor[bot] `discussion_r3896632267` as fix in this PR.
+* Insights
+    - Kitty already had the true/false pair; Ghostty needed the same shape or always-on `active` would stay green.

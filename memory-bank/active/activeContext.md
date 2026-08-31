@@ -1,11 +1,11 @@
 # Active Context
 
 ## Current Task: discover-fixture-tests
-**Phase:** REFLECT COMPLETE
+**Phase:** REFLECT COMPLETE (PR #16 review fix)
 
 ## What Was Done
-- Level 2 issue #5: fixture-home `discoverThemes` tests, scan-time HOME/XDG reads, `test:parsers` runs both suites. Preflight PASS WITH ADVISORY, build to plan, QA PASS, reflection written.
-- Persistent reconcile: `techContext.md` now records the origin-path test oracle; `productContext.md` and `systemPatterns.md` unchanged at reflect (systemPatterns already had scan-time reads from build).
+- Level 2 issue #5 shipped; PR #16 is open against `initialdev`.
+- cursor[bot] `discussion_r3896632267` (parent: fix in this PR): Ghostty-active now has an inactive control. The no-config find case asserts `active === false`. The config case plants Broadcast (named) plus Other (same palette, not named) and asserts true vs false, matching kitty.
 
 ## Next Step
-- Operator: `/niko-archive` when ready. Do not open a PR from this worker.
+- Do not `/niko-archive` yet. Parent/operator will archive after review.

@@ -83,19 +83,26 @@ test('finds a usable Ghostty theme under XDG', () => {
     assert.ok(found, `expected a ghostty theme at ${origin}`);
     assert.strictEqual(found.source, 'ghostty');
     assert.ok(isUsable(found.palette), 'palette should have all 16 ANSI slots');
+    assert.strictEqual(found.active, false);
   });
 });
 
 test('marks a Ghostty theme active from config', () => {
   withFixtureHome((xdg) => {
     writeGhosttyTheme(xdg, 'Broadcast', 'Broadcast');
+    writeGhosttyTheme(xdg, 'Other', 'Broadcast');
     fs.mkdirSync(path.join(xdg, 'ghostty'), { recursive: true });
     fs.writeFileSync(path.join(xdg, 'ghostty', 'config'), 'theme = Broadcast\n');
   }, (xdg) => {
-    const origin = path.join(xdg, 'ghostty', 'themes', 'Broadcast');
-    const found = discoverThemes({ sources: ['ghostty'] }).find((t) => t.origin === origin);
-    assert.ok(found, `expected a ghostty theme at ${origin}`);
-    assert.strictEqual(found.active, true);
+    const named = path.join(xdg, 'ghostty', 'themes', 'Broadcast');
+    const other = path.join(xdg, 'ghostty', 'themes', 'Other');
+    const results = discoverThemes({ sources: ['ghostty'] });
+    const active = results.find((t) => t.origin === named);
+    const listed = results.find((t) => t.origin === other);
+    assert.ok(active, `expected a ghostty theme at ${named}`);
+    assert.ok(listed, `expected a ghostty theme at ${other}`);
+    assert.strictEqual(active.active, true);
+    assert.strictEqual(listed.active, false);
   });
 });
 
