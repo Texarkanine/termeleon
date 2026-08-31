@@ -1,0 +1,1 @@
+Ghostty dark/light pairs apply as workbench.colorCustomizations scoped to preferredDarkColorTheme and preferredLightColorTheme (what window.autoDetectColorScheme switches), not [*Dark*] wildcards.

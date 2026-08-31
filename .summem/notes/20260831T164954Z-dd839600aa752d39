@@ -1,0 +1,1 @@
+test/discover.test.ts covers discoverThemes via tmp HOME and XDG_CONFIG_HOME (not ~/.config); npm run test:parsers is tsx parsers then tsx discover

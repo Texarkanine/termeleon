@@ -37,11 +37,11 @@ Violating the vscode-free boundary (importing `vscode` into a parser or into dis
 
 ## vscode-Free Core
 
-`discover.ts`, `palette.ts`, and `src/parsers/*` use Node `fs` / `os` / `path` only. `extension.ts` and `apply.ts` are the vscode-importing surface. Parser tests in `test/parsers.test.ts` import the core directly and run with `tsx`; there is no extension-host test harness.
+`discover.ts`, `palette.ts`, and `src/parsers/*` use Node `fs` / `os` / `path` only. `extension.ts` and `apply.ts` are the vscode-importing surface. Parser tests in `test/parsers.test.ts` and discovery tests in `test/discover.test.ts` import the core directly and run with `tsx`; there is no extension-host test harness. Discovery reads `$HOME` / `$XDG_CONFIG_HOME` at scan time so those tests can point at a fixture tree.
 
 ## Surgical Settings Ownership
 
-`applyPalette` merges into `workbench.colorCustomizations` at exactly one `ConfigurationTarget` (read via `inspect`, not the merged value) and records the keys it wrote in `terminalThemeImport.ownedKeys` on `globalState` or `workspaceState` to match that target. `removeApplied` deletes only those keys. Empty owned state plus `allowFallback` sweeps `managedKeys()` and, in fallback, also inside theme-scoped `[Theme Name]` blocks.
+`applyPalette` and `applyPalettePair` merge into `workbench.colorCustomizations` at exactly one `ConfigurationTarget` (read via `inspect`, not the merged value). Both strip previously owned keys before merging, then record the keys they wrote in `terminalThemeImport.ownedKeys` on `globalState` or `workspaceState` to match that target. Skipping the strip leaves untracked `[Theme]` blocks: theme-scoped customizations outrank unscoped keys, so leftovers hide a later flat import and `removeApplied` cannot see them without the destructive fallback. `removeApplied` deletes only the tracked keys. Empty owned state plus `allowFallback` sweeps `managedKeys()` and, in fallback, also inside theme-scoped `[Theme Name]` blocks.
 
 ## Live Preview Is Real Writes
 
@@ -53,4 +53,4 @@ The picker does not use a scratch overlay. Arrowing through items calls `applyPa
 
 ## Best-Effort Discovery
 
-`discoverThemes` wraps each source in try/catch. Walks are capped (`MAX_DEPTH`, `MAX_FILES_PER_SOURCE`) so a huge directory cannot stall the picker. Active themes sort first; within a source, names are alphabetical. Active-theme detection is per-emulator and incomplete by design (WezTerm, iTerm2, Windows Terminal, Xresources do not all report "in use").
+`discoverThemes` wraps each source in try/catch. Walks are capped (`MAX_DEPTH`, `MAX_FILES_PER_SOURCE`) so a huge directory cannot stall the picker. Active themes sort first; within a source, names are alphabetical. Active-theme detection is per-emulator and incomplete by design (WezTerm, iTerm2, and Xresources do not all report "in use"). Windows Terminal marks the scheme named by `profiles.defaults.colorScheme` or the default profile.

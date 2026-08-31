@@ -118,7 +118,7 @@
   },
   "scripts": {
     "compile": "tsc -p . --noEmit && esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
-    "test:parsers": "tsx test/parsers.test.ts"
+    "test:parsers": "tsx test/parsers.test.ts && tsx test/discover.test.ts"
   },
   "dependencies": {
     "smol-toml": "^1.3.0"

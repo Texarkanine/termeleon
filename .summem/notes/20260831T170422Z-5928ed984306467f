@@ -1,0 +1,1 @@
+applyPalette and applyPalettePair both strip previously owned keys before merging, so a later single import cannot leave untracked [theme] blocks that shadow the new palette.
