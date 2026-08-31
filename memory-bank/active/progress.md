@@ -18,6 +18,8 @@ Fix removal and preview cancellation so `terminal.integrated.minimumContrastRati
     - Added failing host tests covering `removeApplied` clearing `minimumContrastRatio: 1`, non-1 preservation, and `LivePreview.cancel` restoring previous `minimumContrastRatio`
     - Added parser unit test for `restoreApplySnapshot` with `minimumContrastRatio`
     - Implemented snapshot, restore, and removal logic in `src/apply.ts` and `src/palette.ts`
+    - Extracted `writeContrastRatioAt` helper in `src/apply.ts`
+    - Documented `minimumContrastRatio` cleanup on removal in `README.md`
     - Ran full test suite (parsers + discover + host harness): all 45 parser tests, 5 discovery tests, and 26 host tests passing
 * Decisions made
     - If `minimumContrastRatio` is set to 1 at the target, `removeApplied` clears it (updates to `undefined`), but if the user explicitly set a non-1 value, it is preserved

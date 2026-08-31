@@ -34,6 +34,11 @@ function readContrastRatioAt(target: Target): number | undefined {
   return target === 'global' ? inspected?.globalValue : inspected?.workspaceValue;
 }
 
+async function writeContrastRatioAt(target: Target, value: number | undefined): Promise<void> {
+  await vscode.workspace.getConfiguration('terminal.integrated')
+    .update('minimumContrastRatio', value, configTarget(target));
+}
+
 function activeThemeName(): string | undefined {
   return vscode.workspace.getConfiguration('workbench').get<string>('colorTheme');
 }
@@ -76,8 +81,7 @@ export async function applyPalette(
   if (opts.setMinimumContrastRatio) {
     // Without this, VS Code nudges foreground colors toward a contrast target
     // and the applied palette does not render as authored.
-    await vscode.workspace.getConfiguration('terminal.integrated')
-      .update('minimumContrastRatio', 1, configTarget(opts.target));
+    await writeContrastRatioAt(opts.target, 1);
   }
 }
 
@@ -112,8 +116,7 @@ export async function applyPalettePair(
   await setOwnedKeys(ctx, opts.target, owned);
 
   if (opts.setMinimumContrastRatio) {
-    await vscode.workspace.getConfiguration('terminal.integrated')
-      .update('minimumContrastRatio', 1, configTarget(opts.target));
+    await writeContrastRatioAt(opts.target, 1);
   }
 }
 
@@ -147,8 +150,7 @@ export async function restoreApply(
   const restored = restoreApplySnapshot(captured);
   await restoreSnapshot(target, restored.colors);
   await setOwnedKeys(ctx, target, restored.ownedKeys);
-  await vscode.workspace.getConfiguration('terminal.integrated')
-    .update('minimumContrastRatio', restored.minimumContrastRatio, configTarget(target));
+  await writeContrastRatioAt(target, restored.minimumContrastRatio);
 }
 
 export interface RemoveResult {
@@ -208,8 +210,7 @@ export async function removeApplied(
   await setOwnedKeys(ctx, target, []);
 
   if (readContrastRatioAt(target) === 1) {
-    await vscode.workspace.getConfiguration('terminal.integrated')
-      .update('minimumContrastRatio', undefined, configTarget(target));
+    await writeContrastRatioAt(target, undefined);
   }
 
   return { removed, usedFallback };

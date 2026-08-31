@@ -216,7 +216,7 @@ export interface ApplySnapshot {
 }
 
 /**
- * Live-preview cancel must put both colorCustomizations, the owned-key
+ * Live-preview cancel must put colorCustomizations, the owned-key
  * list, and minimumContrastRatio back. Restoring colors alone leaves a prior
  * pair's scopes in settings with a flat owned-key list, so the next strip misses them.
  */

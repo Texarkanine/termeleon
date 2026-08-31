@@ -63,8 +63,10 @@ accessibility adjustment back.
 where selected text keeps its own color. Opt in with `includeSelectionForeground`.
 
 **Removal is surgical.** The extension records exactly which keys it wrote and
-removes only those. If that record is gone (new machine, cleared storage) it asks
-before falling back to clearing all terminal color keys.
+removes only those. If `terminal.integrated.minimumContrastRatio` was set to 1 at
+that target, it is also reset so no stray settings are left behind. If that record
+is gone (new machine, cleared storage) it asks before falling back to clearing all
+terminal color keys.
 
 **Live preview writes real settings.** Arrowing through the list applies each theme
 so you can see it, and the pre-picker value is restored if you cancel. If the

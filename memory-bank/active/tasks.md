@@ -11,8 +11,11 @@
     - `snapshotApply` captures current target's `minimumContrastRatio`.
     - `restoreApply` restores the captured `minimumContrastRatio` to the target.
     - `removeApplied` checks if `minimumContrastRatio` is 1 at target and resets it to `undefined` (in both tracked and fallback modes).
+    - Extracted `writeContrastRatioAt` helper for unified configuration updates.
+  - Documented `minimumContrastRatio` cleanup behavior in `README.md`.
   - Added test coverage in `test/host/apply.test.ts`, `test/host/preview.test.ts`, and `test/parsers.test.ts`.
 - **Files affected:**
+  - `README.md`
   - `src/palette.ts`
   - `src/apply.ts`
   - `test/parsers.test.ts`
