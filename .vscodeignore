@@ -11,5 +11,13 @@ tsconfig.test.json
 **/*.map
 **/*.ts
 .github/**
+.cursor/**
+.summem/**
+memory-bank/**
+AGENTS.md
+CLAUDE.md
+ai-rizz.skbd
+.ai-rizz/**
+.nvmrc
 release-please-config.json
 .release-please-manifest.json

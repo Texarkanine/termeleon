@@ -1,5 +1,6 @@
 {
   "name": "terminal-theme-import",
+  "publisher": "texarkanine",
   "displayName": "Terminal Theme Import",
   "description": "Read the color schemes already installed for Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal and Xresources, and apply them to the VS Code integrated terminal.",
   "version": "0.1.0",
@@ -118,6 +119,8 @@
   },
   "scripts": {
     "compile": "tsc -p . --noEmit && esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "prepackage": "npm run compile",
+    "package": "vsce package --no-dependencies",
     "compile-tests": "tsc -p tsconfig.test.json",
     "pretest:host": "npm run compile && npm run compile-tests",
     "test:host": "vscode-test",
@@ -133,6 +136,7 @@
     "@types/vscode": "^1.75.0",
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^3.9.2",
     "esbuild": "^0.21.0",
     "tsx": "^4.0.0",
     "typescript": "^5.4.0"

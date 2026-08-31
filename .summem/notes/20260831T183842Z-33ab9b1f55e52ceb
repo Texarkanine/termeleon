@@ -1,0 +1,1 @@
+vsce package includes everything not in .vscodeignore; first pack shipped .cursor, .summem, and memory-bank until those globs were added

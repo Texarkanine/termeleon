@@ -106,10 +106,13 @@ npm ci
 npm run test:parsers   # no VS Code needed; parsers plus discovery against a fake HOME/XDG tree
 npm run test:host      # Extension Development Host; downloads VS Code on first run
 npm run compile
+npm run package        # writes terminal-theme-import-<version>.vsix (runs compile first)
 ```
+
+Iterate with `test:parsers` / `compile` (and `test:host` when you touch apply or live preview). Sideload into the editor you actually use with `npm run package`, then **Install from VSIX…** (or `code --install-extension terminal-theme-import-*.vsix` / `cursor --install-extension …`). That is how you try the unpublished extension; there is no Marketplace listing yet.
 
 `test:host` launches a throwaway VS Code (not your installed app) with a short temporary `--user-data-dir`. That isolation is required on macOS: the default path under this repo is too long for unix-domain sockets. It does not write your real user `settings.json`.
 
-GitHub Actions runs `npm ci`, `npm run test:parsers`, and `npm run compile` on pull requests and on push to `initialdev` or `main`.
+GitHub Actions runs `npm ci`, `npm run test:parsers`, `npm run compile`, and `npm run package` on pull requests and on push to `initialdev` or `main`. A tagged GitHub Release from release-please also gets that VSIX attached; it is not published to the Marketplace.
 
 The parsers and discovery are plain Node with no `vscode` import, so they're testable outside the extension host and reusable as a CLI if you ever want the dotfiles-build-time version. `npm test` runs the parser suite first, then the host suite.
