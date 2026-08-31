@@ -31,17 +31,17 @@
     "commands": [
       {
         "command": "terminalThemeImport.import",
-        "title": "Import Terminal Theme\u2026",
+        "title": "Import Terminal Theme…",
         "category": "Terminal Theme"
       },
       {
         "command": "terminalThemeImport.importGlobal",
-        "title": "Import Terminal Theme to User Settings\u2026",
+        "title": "Import Terminal Theme to User Settings…",
         "category": "Terminal Theme"
       },
       {
         "command": "terminalThemeImport.importWorkspace",
-        "title": "Import Terminal Theme to Workspace Settings\u2026",
+        "title": "Import Terminal Theme to Workspace Settings…",
         "category": "Terminal Theme"
       },
       {
@@ -124,8 +124,11 @@
     "smol-toml": "^1.3.0"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.75.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
     "esbuild": "^0.21.0",
     "tsx": "^4.0.0",
     "typescript": "^5.4.0"

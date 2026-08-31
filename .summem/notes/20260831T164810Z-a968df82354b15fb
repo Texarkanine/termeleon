@@ -1,0 +1,1 @@
+Host tests must pass --user-data-dir under os.tmpdir(); worktree .vscode-test/user-data exceeds macOS ~103-char unix socket limit (EINVAL on 1.13-main.sock).

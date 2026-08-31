@@ -1,4 +1,7 @@
 node_modules/
 dist/
+out/
+.vscode-test/
 *.vsix
 **/.summem/__pycache__/
+test/host/fixtures/workspace/.vscode/
