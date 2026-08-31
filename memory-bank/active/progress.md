@@ -56,3 +56,13 @@ Add Node/`tsx` tests that drive `discoverThemes` against a fixture `$HOME` / `$X
     - QA status: PASS. Code strictly matches the approved Level 2 TDD plan and preserves the vscode-free boundary.
 * Insights
     - Per-test temporary HOME and non-standard XDG_CONFIG_HOME trees effectively isolate discovery from developer host machine environments without public API changes.
+
+## 2026-08-31 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-5-discover-fixture-tests.md`.
+    - Reconciled persistent files: origin-path oracle in `techContext.md`.
+* Decisions made
+    - Stop at reflect per operator; no archive, no PR.
+* Insights
+    - Module-load HOME/XDG snapshots are the thing that made fixture-home tests impossible; scan-time reads plus origin assertions are the durable pattern.
