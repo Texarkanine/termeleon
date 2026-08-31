@@ -1,0 +1,10 @@
+PASS
+
+Semantic review passes all criteria:
+- KISS: Replaced static module-level environment/home paths with scan-time helper functions (homeDir, xdgConfigDir, xdgDataDirectories) without introducing complex abstractions.
+- DRY: Leveraged existing fixture files (Broadcast, tomorrow-night.conf) and test conventions without duplicate logic.
+- YAGNI: Preserved the public discoverThemes/DiscoverOptions signature without speculative injection layers.
+- Completeness: Implemented all five issue #5 behaviors (find usable theme, Ghostty active flag from config, kitty active flag for current-theme.conf, skip incomplete palettes under 16 ANSI slots, and missing source directories return [] without throwing).
+- Regression: Maintained the vscode-free boundary in the core parser/discovery modules. All 16 tests pass across both suites; TypeScript and esbuild compilation passes without errors.
+- Integrity: Tests isolate environment state with try/finally cleanup of HOME, XDG_CONFIG_HOME, XDG_DATA_DIRS, LOCALAPPDATA, and temp directories. Assertions test exact fixture paths to avoid false positives from host-installed themes.
+- Documentation: Updated README.md, memory-bank/techContext.md, and memory-bank/systemPatterns.md to reflect discovery test additions and multi-process test:parsers execution.
