@@ -1,27 +1,12 @@
 # Active Context
 
 ## Current Task: issue-6-extension-host-tests
-**Phase:** BUILD - COMPLETE
+**Phase:** REFLECT COMPLETE
 
 ## What Was Done
-- Host harness scripts: `test`, `test:host`, `pretest:host`, `compile-tests`.
-- Characterization tests in `test/host/apply.test.ts` (14 cases) against existing apply/remove/snapshot — all green without product changes.
-- Extracted `LivePreview` in `src/apply.ts` (TDD red then green). `pickAndApply` in `src/extension.ts` uses it.
-- Host suite 17 passing; parser suite 11 passing.
-
-## Files
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-6-extension-host-tests/src/apply.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-6-extension-host-tests/src/extension.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-6-extension-host-tests/test/host/apply.test.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-6-extension-host-tests/test/host/preview.test.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-6-extension-host-tests/test/host/helpers.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-6-extension-host-tests/package.json`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-6-extension-host-tests/.vscodeignore`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-6-extension-host-tests/README.md`
-
-## Key decisions
-- Characterization tests for existing apply APIs; TDD only for `LivePreview`.
-- Did not adopt the preflight data-table suggestion for `apply.test.ts`.
+- Host tests for apply, remove, and LivePreview cancel/debounce. `npm test`: parsers 11, host 17.
+- `Fixes #6` is in commit `5e24efc`.
+- Reconciled `systemPatterns.md` and `techContext.md` (host harness now exists; lockfile exists). `productContext.md` unchanged.
 
 ## Next Step
-- Spawn QA subagent.
+- Operator: run `/niko-archive` to archive. Do not open a PR from this worker.

@@ -37,7 +37,7 @@ Violating the vscode-free boundary (importing `vscode` into a parser or into dis
 
 ## vscode-Free Core
 
-`discover.ts`, `palette.ts`, and `src/parsers/*` use Node `fs` / `os` / `path` only. `extension.ts` and `apply.ts` are the vscode-importing surface. Parser tests in `test/parsers.test.ts` import the core directly and run with `tsx`; there is no extension-host test harness.
+`discover.ts`, `palette.ts`, and `src/parsers/*` use Node `fs` / `os` / `path` only. `extension.ts` and `apply.ts` are the vscode-importing surface. Parser tests in `test/parsers.test.ts` import the core directly and run with `tsx`. vscode-bound apply, remove, and live-preview behavior is covered by Mocha tests under `test/host/` in an Extension Development Host.
 
 ## Surgical Settings Ownership
 
@@ -45,7 +45,7 @@ Violating the vscode-free boundary (importing `vscode` into a parser or into dis
 
 ## Live Preview Is Real Writes
 
-The picker does not use a scratch overlay. Arrowing through items calls `applyPalette`; cancel restores the snapshot taken before the picker opened. Accepting leaves the last applied value in place and records owned keys. Turning `livePreview` off skips the write-on-arrow path.
+The picker does not use a scratch overlay. Arrowing through items schedules `LivePreview` (`src/apply.ts`), which debounces real `applyPalette` writes; cancel restores the snapshot taken when the session started. Accepting leaves the last applied value in place and records owned keys. Turning `livePreview` off skips the write-on-arrow path. Host tests drive `LivePreview` directly; they do not automate the QuickPick.
 
 ## UI-Kind Local Filesystem
 

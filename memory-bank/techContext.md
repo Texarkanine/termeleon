@@ -4,18 +4,21 @@ VS Code extension (`terminal-theme-import`) written in TypeScript, bundled to a 
 
 ## Environment Setup
 
-Using the extension requires VS Code 1.75+ on a local desktop (not vscode.dev / browser-only Codespaces). Developing it requires Node and npm: `npm install` at the repo root. There is no `package-lock.json` in the tree today.
+Using the extension requires VS Code 1.75+ on a local desktop (not vscode.dev / browser-only Codespaces). Developing it requires Node and npm: `npm install` at the repo root. `package-lock.json` pins the host-test runner versions.
 
 The project is licensed AGPL-3.0-or-later via the root `LICENSE` file (`license` in `package.json` matches). No per-file SPDX / REUSE inventory.
 
 ## Build Tools
 
-- TypeScript project: `tsconfig.json` (`strict`, CommonJS, ES2021). `include` is `src/**/*.ts` only — tests are not part of the `tsc` program.
+- TypeScript project: `tsconfig.json` (`strict`, CommonJS, ES2021). `include` is `src/**/*.ts` only — the parser suite is not part of this `tsc` program. Host tests compile via `tsconfig.test.json`.
 - Bundle and typecheck: `compile` in `package.json` (`tsc --noEmit` then esbuild of `src/extension.ts`, `vscode` external, Node platform).
 - Packaging ignore list: `.vscodeignore` (source, tests, and TypeScript stay out of the VSIX).
 
 ## Testing Process
 
-Parser and palette tests are a small Node assert harness in `test/parsers.test.ts`, run with `tsx` via `test:parsers` in `package.json`. Fixtures live under `test/fixtures/`. This suite does not load `vscode` and does not cover `apply.ts` or `extension.ts`.
+Two suites, both wired from `package.json`:
 
-Executable-behavior changes follow TDD as in `.cursor/rules/shared/always-tdd.mdc`. How to run tests while iterating is in `.cursor/rules/shared/test-running-practices.mdc`.
+- Parser and palette tests: Node assert harness in `test/parsers.test.ts`, run with `tsx` via `test:parsers`. Fixtures live under `test/fixtures/`. This suite does not load `vscode`.
+- Extension-host tests: Mocha TDD under `test/host/`, launched by `vscode-test` as configured in `.vscode-test.mjs`. They cover `apply.ts` (including `LivePreview`) against real `workbench.colorCustomizations` via `inspect` at one target. `.vscode-test.mjs` passes a short `--user-data-dir` under `os.tmpdir()` because macOS unix-socket paths cap around 103 characters; the default `.vscode-test/user-data` under a long worktree path fails with `EINVAL`.
+
+`npm test` runs parsers then host. Executable-behavior changes follow TDD as in `.cursor/rules/shared/always-tdd.mdc`. How to run tests while iterating is in `.cursor/rules/shared/test-running-practices.mdc`.

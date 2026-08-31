@@ -56,3 +56,30 @@ Add an Extension Development Host test suite so apply, surgical remove, and live
 * Insights
     - Isolated user-data-dir lets global-target tests run without touching the operator's settings
     - First apply/remove run was green, as planned for characterization tests
+
+## 2026-08-31 - QA - COMPLETE
+
+* Result: `PASS` (first line of `.qa-validation-status`), with six non-blocking advisories
+* Work completed
+    - Reviewed the build-phase diff (`2a8a11d..5e24efc`) against the plan for KISS/DRY/YAGNI, completeness, regression, integrity, and documentation
+    - Re-ran `npm test` independently: exit 0, parser suite green, host suite 17 passing
+    - Confirmed the suite leaves no dirty tree (`out/`, `.vscode-test/`, fixture `.vscode/` all ignored)
+* Advisories recorded (non-blocking)
+    - `LivePreview` no longer clears the debounce timer on the accept path; a pending apply stays armed after Enter (idempotent, untested)
+    - `systemPatterns.md` and `techContext.md` still deny the existence of a host harness; Reflect/Archive owes that update
+    - Acceptance criterion `Fixes #6` still needs to land in the final commit
+    - Minor test-hygiene nits in `preview.test.ts` (opaque `ansi()` helper, redundant assertion)
+* Insights
+    - Extracting a timer into a class silently loses the "clear without restore" case unless the class exposes one; worth a `commit()` next time
+
+## 2026-08-31 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-6-extension-host-tests.md`
+    - Updated `systemPatterns.md` and `techContext.md` for the host suite and lockfile
+    - Confirmed `Fixes #6` already landed in `5e24efc` (QA advisory was wrong)
+* Decisions made
+    - Left the accept-path pending timer as a documented advisory, not a post-QA code change
+* Insights
+    - Characterization tests for existing vscode-bound APIs; TDD for new units only
+    - vscode-test needs a short `--user-data-dir` on macOS in this worktree layout

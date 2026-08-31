@@ -110,7 +110,18 @@ Config already in tree: `.vscode-test.mjs`, `tsconfig.test.json`, `test/host/smo
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA — PASS with advisories
+
+### QA Findings (2026-08-31)
+
+Result: PASS (see `memory-bank/active/.qa-validation-status`). Verified `npm test` exit 0 — parser suite green, host suite 17 passing. Coverage matches the planned behavior list; no stubs, debris, or dead exports.
+
+Advisories carried forward:
+
+1. `LivePreview` extraction dropped the accept-path `clearTimeout`, so a pending debounced apply stays armed after Enter. Idempotent in practice and untested; recommend a `commit()`/`stop()` that clears the timer without restoring.
+2. `systemPatterns.md` ("there is no extension-host test harness") and `techContext.md` (parser harness only) are now false — Reflect/Archive must update them.
+3. Acceptance criterion 4 (`Fixes #6`) still unmet; carry into the final commit.
+4. Test-hygiene nits in `test/host/preview.test.ts`: opaque `ansi()` helper, redundant `notStrictEqual`.
 
 ### 1. Host harness scripts and packaging — prose/policy — done
 
