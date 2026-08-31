@@ -23,3 +23,13 @@ Fix `parseKitty` so trailing inline comments are stripped and hex values that st
     - Strip comments at whitespace-then-`#` only, so the hex's leading `#` is not treated as a comment delimiter.
 * Insights
     - `normalizeColor` rejecting the unstripped rest is why the slot vanished instead of parsing as a wrong color.
+
+## 2026-08-31 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Semantic review of `src/parsers/kitty.ts` and `test/parsers.test.ts` against the brief and plan; no blocking findings.
+    - Re-ran `npm run test:parsers`: 12 passed.
+* Decisions made
+    - Accepted as-is. `parseXresources` deliberately not given the same strip: its comment marker is `!`, so a trailing `#` there is not a comment.
+* Insights
+    - Requiring whitespace before `#` is what makes the fix safe; kitty's syntax guarantees it, so a bare `#hex#comment` form is out of spec rather than unhandled.

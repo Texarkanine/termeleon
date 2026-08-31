@@ -8,3 +8,11 @@
 - **Why:** `split('#').length > 1 && !startsWith('#')` was meant to choose a strip vs keep path, but neither path stripped.
 - **What changed:** Replace the ternary with `.replace(/\s+#.*$/, '').trim()` so a whitespace-then-`#` comment is removed and a leading hex `#` is kept.
 - **Files:** `src/parsers/kitty.ts`, `test/parsers.test.ts`
+
+## QA
+
+**Result:** PASS (2026-08-31)
+
+- No blocking findings across KISS / DRY / YAGNI / completeness / regression / integrity / documentation.
+- All three requirements and all acceptance criteria met; `npm run test:parsers` 12 passed.
+- Advisory: the strip requires whitespace before `#` (correct per kitty's own syntax); untracked `package-lock.json` is pre-existing and unrelated.
