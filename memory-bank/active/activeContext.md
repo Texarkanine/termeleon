@@ -1,12 +1,12 @@
 # Active Context
 
 ## Current Task: changelog-release-please
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Operator assigned https://github.com/Texarkanine/vscode-terminal-themes/issues/7 with standing approval to skip intent-clarification wait.
-- Persistent memory-bank files already existed; ephemeral files were absent (fresh standalone task).
-- Classified Level 2: adding CHANGELOG + release-please plumbing is a self-contained enhancement (not a bug fix, not multi-subsystem architecture). Follows sibling repo patterns; no change to the vscode-free core or apply path.
+- Classified Level 2 for issue #7.
+- Planned CHANGELOG + release-please config/manifest + helper-app workflow.
+- Decisions: `release-type: node` with no VS Code exception; no extra-files; no AMO/CWS/Marketplace jobs; `HELPER_APP_ID` as `client-id` per tab-yeet; `bump-minor-pre-major: true` for 0.x; tags without component prefix; no new tests (prose/policy).
 
 ## Next Step
-- Load Level 2 workflow and execute the Plan phase.
+- Preflight validation of the plan.

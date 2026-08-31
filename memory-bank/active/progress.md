@@ -14,3 +14,19 @@ Add CHANGELOG.md and release-please (config + workflow) so main can cut tagged r
     - Stay Level 2 rather than L3: design choice is "copy tab-yeet node type unless exception," which is research during plan, not a new architecture.
 * Insights
     - This worktree has no `.github/` yet and `package.json` is at `0.1.0`.
+
+## 2026-08-31 - PLAN - COMPLETE
+
+* Work completed
+    - Compared tab-yeet, stockroom, SumMem, slobac, and a16n release-please configs/workflows.
+    - Wrote Level 2 plan: CHANGELOG bootstrap, node release-type config, helper-app workflow only, vscodeignore, techContext note.
+* Decisions made
+    - No VS Code exception: `release-type: node` because vsce already uses `package.json` version.
+    - Omit tab-yeet `extra-files` / AMO / CWS / VSIX attach jobs.
+    - Token: `vars.HELPER_APP_ID` as `client-id` and `secrets.HELPER_APP_PRIVATE_KEY` (tab-yeet).
+    - `bump-minor-pre-major: true` from 0.x siblings so feat does not jump 0.1.0 → 1.0.0.
+    - `include-component-in-tag: false` so tags are `v0.x.y`.
+    - No new tests (prose/policy; no change-detectors).
+* Insights
+    - Siblings disagree on `app-id` vs `client-id` for the same HELPER_APP_ID var; first main run is the real check.
+    - Parallel issue-3 may also add `.github/workflows/`; this task adds only `release-please.yaml`.
