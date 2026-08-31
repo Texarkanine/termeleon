@@ -12,8 +12,9 @@ The project is licensed AGPL-3.0-or-later via the root `LICENSE` file (`license`
 
 - TypeScript project: `tsconfig.json` (`strict`, CommonJS, ES2021). `include` is `src/**/*.ts` only — the parser suite is not part of this `tsc` program. Host tests compile via `tsconfig.test.json`.
 - Bundle and typecheck: `compile` in `package.json` (`tsc --noEmit` then esbuild of `src/extension.ts`, `vscode` external, Node platform).
-- Packaging ignore list: `.vscodeignore` (source, tests, TypeScript, `.github/`, and release-please config/manifest stay out of the VSIX).
-- CI: `.github/workflows/ci.yaml` on `pull_request` and `push` to `initialdev` and `main`. Job uses `actions/setup-node` with `.nvmrc` and npm cache, then `npm ci`, `npm run test:parsers`, `npm run compile`. No REUSE lint, Codecov, or `vsce package`.
+- Packaging ignore list: `.vscodeignore` (source, tests, TypeScript, `.github/`, agent/memory-bank trees, and release-please config/manifest stay out of the VSIX).
+- Package: `package` in `package.json` (`prepackage` compiles, then `vsce package --no-dependencies`). Publisher id is `texarkanine` so vsce can emit a VSIX; it is not a Marketplace login.
+- CI: `.github/workflows/ci.yaml` on `pull_request` and `push` to `initialdev` and `main`. Job uses `actions/setup-node` with `.nvmrc` and npm cache, then `npm ci`, `npm run test:parsers`, `npm run compile`, `npm run package`. No REUSE lint, Codecov, or Marketplace publish.
 
 ## Testing Process
 
@@ -26,4 +27,4 @@ Two suites, both wired from `package.json`:
 
 ## Releases
 
-Tagged GitHub releases are cut from conventional commits on `main` by release-please (`release-please-config.json`, `.github/workflows/release-please.yaml`). The version it bumps is `package.json` `version` (`release-type: node`). The workflow sets `target-branch` to `${{ github.ref_name }}` because the GitHub default branch is still `initialdev`; without that, release-please would open the release PR against `initialdev`. The workflow mints a GitHub App token from org `HELPER_APP_ID` (passed as `client-id`) and `HELPER_APP_PRIVATE_KEY`; do not invent extra secrets. There is no VS Marketplace, AMO, or Chrome Web Store publish job.
+Tagged GitHub releases are cut from conventional commits on `main` by release-please (`release-please-config.json`, `.github/workflows/release-please.yaml`). The version it bumps is `package.json` `version` (`release-type: node`). The workflow sets `target-branch` to `${{ github.ref_name }}` because the GitHub default branch is still `initialdev`; without that, release-please would open the release PR against `initialdev`. The workflow mints a GitHub App token from org `HELPER_APP_ID` (passed as `client-id`) and `HELPER_APP_PRIVATE_KEY`; do not invent extra secrets. When a release is created, the same job packages a VSIX and `gh release upload`s it using that token. There is no VS Marketplace, AMO, or Chrome Web Store publish job.

@@ -347,6 +347,55 @@ test('workflow contract', () => {
   assert.ok(wf.includes('npm ci'), 'must install with npm ci');
   assert.ok(wf.includes('npm run test:parsers'), 'must run parser tests');
   assert.ok(wf.includes('npm run compile'), 'must typecheck/bundle');
+  assert.ok(wf.includes('npm run package'), 'must package a VSIX so vsce failures fail the PR');
+});
+
+test('publisher present', () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ) as { publisher?: string };
+  assert.ok(typeof pkg.publisher === 'string' && pkg.publisher.length > 0, 'publisher is required for vsce package');
+  assert.match(pkg.publisher, /^[a-z0-9][a-z0-9-]*$/);
+});
+test('package script invokes vsce', () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ) as { scripts?: Record<string, string> };
+  const script = pkg.scripts?.package ?? '';
+  assert.ok(script.includes('vsce package'), 'scripts.package must invoke vsce package');
+});
+test('vsce is a pinned devDependency', () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ) as { devDependencies?: Record<string, string> };
+  assert.ok(
+    pkg.devDependencies?.['@vscode/vsce'],
+    '@vscode/vsce must be a devDependency so npm ci installs it',
+  );
+});
+test('release-please attaches a vsix when a release is created', () => {
+  const wf = fs.readFileSync(
+    path.join(repoRoot, '.github', 'workflows', 'release-please.yaml'),
+    'utf8',
+  );
+  assert.ok(/id:\s*release\b/.test(wf), 'release-please step must have id: release');
+  assert.ok(wf.includes('release_created'), 'upload must gate on release_created');
+  assert.ok(wf.includes('gh release upload'), 'must upload with gh');
+  assert.ok(wf.includes('.vsix'), 'must upload a vsix');
+});
+test('release-please does not publish to the Marketplace', () => {
+  const wf = fs.readFileSync(
+    path.join(repoRoot, '.github', 'workflows', 'release-please.yaml'),
+    'utf8',
+  );
+  assert.ok(!wf.includes('vsce publish'), 'must not vsce publish');
+  assert.ok(!wf.includes('VSCE_PAT'), 'must not use a Marketplace PAT');
+});
+test('vscodeignore keeps agent trees out of the vsix', () => {
+  const ignore = fs.readFileSync(path.join(repoRoot, '.vscodeignore'), 'utf8');
+  assert.ok(ignore.includes('.cursor/**'), 'must not ship Cursor agent rules/skills');
+  assert.ok(ignore.includes('.summem/**'), 'must not ship SumMem store');
+  assert.ok(ignore.includes('memory-bank/**'), 'must not ship the memory bank');
 });
 
 console.log('\nghostty pair');

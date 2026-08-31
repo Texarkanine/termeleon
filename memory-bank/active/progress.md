@@ -42,3 +42,16 @@ Attach a packaged `.vsix` to GitHub Releases cut by release-please, add a local 
 * Insights
     - Advisory: upload the CI-built `.vsix` as a workflow artifact so every PR is sideload-installable
     - Advisory: CI will compile twice (explicit step + `prepackage`); harmless redundancy
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Contract tests in `test/parsers.test.ts` `ci` section; `@vscode/vsce` ^3.9.2; `publisher` + `package` script; CI `npm run package`; release-please upload
+    - README development loop; techContext Releases/CI
+    - Full suite: parsers 45 + discover 5; host 18 passing
+    - Local VSIX is `dist/extension.js` plus README/LICENSE/CHANGELOG/package.json
+* Decisions made
+    - `.vscodeignore` also excludes `.cursor/**`, `.summem/**`, `memory-bank/**`, agent markdown
+    - Negative Marketplace test is `vsce publish` / `VSCE_PAT`, not the word Marketplace
+* Insights
+    - Default vsce include list is "everything not ignored"; agent trees must be named in `.vscodeignore`

@@ -85,6 +85,6 @@ New dependency: `@vscode/vsce`. Proof-of-concept: `npx --yes @vscode/vsce --vers
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA

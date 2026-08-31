@@ -1,10 +1,13 @@
 # Active Context
 
 ## Current Task: vsix-github-releases
-**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Level 2 plan: contract tests in `test/parsers.test.ts` `ci` section; pin `@vscode/vsce`; `npm run package`; release-please follow-on upload; CI smoke; README + techContext. Publisher `texarkanine`. No Marketplace. No launch.json.
+- Files: `/Users/tex/git/vscode-terminal-themes/test/parsers.test.ts`, `package.json`, `package-lock.json`, `.github/workflows/ci.yaml`, `.github/workflows/release-please.yaml`, `.vscodeignore`, `README.md`, `memory-bank/techContext.md`
+- Publisher `texarkanine`; `npm run package` → `vsce package --no-dependencies`; CI and release-please follow-on
+- Tightened `.vscodeignore` after the first `vsce package` shipped `.cursor/`, `.summem/`, and `memory-bank/` (not in the plan)
+- Marketplace-word test narrowed to `vsce publish` / `VSCE_PAT` because the workflow comment already says "Marketplace"
 
 ## Next Step
-- Preflight validation (subagent).
+- QA review (subagent)

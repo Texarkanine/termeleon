@@ -26,3 +26,5 @@ jobs:
         run: npm run test:parsers
       - name: Compile
         run: npm run compile
+      - name: Package VSIX
+        run: npm run package
