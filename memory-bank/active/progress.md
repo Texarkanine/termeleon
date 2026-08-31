@@ -67,3 +67,16 @@ Add GitHub Actions CI that runs `npm ci`, `npm run test:parsers`, and `npm run c
     - Accepted the implementation as-is; preflight's optional VSIX-hygiene and `npm run ci` suggestions remain out of scope.
 * Findings
     - No blocking or advisory findings. The implementation is complete, minimal, and consistent with established repository patterns.
+
+## 2026-08-31 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-github-actions-ci.md`.
+    - Reconciled `techContext.md`: lockfile-from-clean-tree invariant; `.nvmrc` as pointer rather than a pinned major.
+* Decisions made
+    - productContext: skip — CI is not a product-user change.
+    - systemPatterns: skip — CI contract tests are documented in techContext; no new architectural pattern.
+    - Stop at REFLECT COMPLETE per operator; no archive, no PR.
+* Insights
+    - npm 10 lockfile generation with `node_modules` present is the load-bearing gotcha for linux CI.
+
