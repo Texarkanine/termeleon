@@ -120,3 +120,15 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
 * Next step
     - Proceed to Reflect per the Level 2 workflow
 
+## 2026-08-31 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-ghostty-autodetect-pairs.md`
+    - Reconciled persistent files: updated `systemPatterns.md` Surgical Settings Ownership; skipped productContext and techContext
+* Decisions made
+    - Strip-before-merge is a system-wide apply contract, not a pair-path detail
+* Insights
+    - Theme-scoped colorCustomizations outrank unscoped keys; a new apply path that forgets to strip orphans the previous write
+    - `read(key)` spies make settings-key choice testable without an extension host
+
+

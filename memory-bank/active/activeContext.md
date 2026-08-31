@@ -1,13 +1,12 @@
 # Active Context
 
 ## Current Task: ghostty-autodetect-pairs
-**Phase:** QA - COMPLETE (PASS)
+**Phase:** REFLECT COMPLETE
 
 ## What Was Done
-- QA FAIL (fixable) rebuild: `applyPalette` now strips previously owned keys the same way `applyPalettePair` does (`stripOwnedKeys` lives in vscode-free `palette.ts` and is tested).
-- README now says scopes are the *values* of the preferred dark/light theme settings (e.g. `[One Dark Pro]`), not the setting ids.
-- Advisory: inline Ghostty fallback uses a `hasInline` boolean instead of re-scanning entries.
-- Tests: 21 passing.
+- Reflected on Ghostty dark/light pair apply. Standing contract update: strip-before-merge on every apply path (`systemPatterns.md`).
+- productContext: skip — pairing constraint already matches shipped behavior.
+- techContext: skip — still the same `test:parsers` harness; apply.ts/extension.ts remain untested in the extension host.
 
 ## Next Step
-- Re-run QA.
+- Operator: `/niko-archive` to archive this standalone task. Do not open a PR from this worker.

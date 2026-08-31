@@ -41,7 +41,7 @@ Violating the vscode-free boundary (importing `vscode` into a parser or into dis
 
 ## Surgical Settings Ownership
 
-`applyPalette` merges into `workbench.colorCustomizations` at exactly one `ConfigurationTarget` (read via `inspect`, not the merged value) and records the keys it wrote in `terminalThemeImport.ownedKeys` on `globalState` or `workspaceState` to match that target. `removeApplied` deletes only those keys. Empty owned state plus `allowFallback` sweeps `managedKeys()` and, in fallback, also inside theme-scoped `[Theme Name]` blocks.
+`applyPalette` and `applyPalettePair` merge into `workbench.colorCustomizations` at exactly one `ConfigurationTarget` (read via `inspect`, not the merged value). Both strip previously owned keys before merging, then record the keys they wrote in `terminalThemeImport.ownedKeys` on `globalState` or `workspaceState` to match that target. Skipping the strip leaves untracked `[Theme]` blocks: theme-scoped customizations outrank unscoped keys, so leftovers hide a later flat import and `removeApplied` cannot see them without the destructive fallback. `removeApplied` deletes only the tracked keys. Empty owned state plus `allowFallback` sweeps `managedKeys()` and, in fallback, also inside theme-scoped `[Theme Name]` blocks.
 
 ## Live Preview Is Real Writes
 
