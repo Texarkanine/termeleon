@@ -42,7 +42,7 @@ rather than installing and silently doing nothing.
 | Alacritty | `~/.config/alacritty/**/*.toml` | `alacritty.toml` assumed active |
 | WezTerm | `~/.config/wezterm/colors/*.toml` | no |
 | iTerm2 | `*.itermcolors` under iTerm2 app support | no |
-| Windows Terminal | every entry in the `schemes` array of `settings.json` | no |
+| Windows Terminal | every entry in the `schemes` array of `settings.json` | yes, via `profiles.defaults.colorScheme` or the default profile |
 | Xresources | `~/.Xresources`, `~/.Xdefaults` | assumed active |
 
 Add anything else (a dotfiles checkout, a downloaded theme pack) via

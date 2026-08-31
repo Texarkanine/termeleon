@@ -87,17 +87,39 @@ interface WtScheme {
   [key: string]: any;
 }
 
+/** JSON.parse of Windows Terminal JSONC, or `undefined` if the document is unusable. */
+function parseWindowsTerminalSettings(text: string): any | undefined {
+  try {
+    return JSON.parse(stripJsonComments(text));
+  } catch {
+    return undefined;
+  }
+}
+
+function wtColorSchemeName(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function wtProfileList(profiles: unknown): any[] {
+  if (Array.isArray(profiles)) { return profiles; }
+  if (profiles && typeof profiles === 'object' && Array.isArray((profiles as any).list)) {
+    return (profiles as any).list;
+  }
+  return [];
+}
+
+function wtDefaultsScheme(profiles: unknown): string | undefined {
+  if (!profiles || typeof profiles !== 'object' || Array.isArray(profiles)) { return undefined; }
+  return wtColorSchemeName((profiles as any).defaults?.colorScheme);
+}
+
 /**
  * Windows Terminal keeps every scheme in one settings.json under `schemes`,
  * so this returns many palettes from a single file.
  */
 export function parseWindowsTerminal(text: string): { name: string; palette: Palette }[] {
-  let doc: any;
-  try {
-    doc = JSON.parse(stripJsonComments(text));
-  } catch {
-    return [];
-  }
+  const doc = parseWindowsTerminalSettings(text);
+  if (!doc) { return []; }
   const schemes: WtScheme[] = Array.isArray(doc?.schemes) ? doc.schemes : [];
 
   const order = [
@@ -120,4 +142,33 @@ export function parseWindowsTerminal(text: string): { name: string; palette: Pal
       p.selectionBackground = normalizeColor(s.selectionBackground);
       return { name: s.name as string, palette: p };
     });
+}
+
+/**
+ * Reads the color scheme Windows Terminal would apply to a new default-profile
+ * tab: the default profile's `colorScheme` if set, otherwise
+ * `profiles.defaults.colorScheme`.
+ *
+ * Per-profile schemes on non-default profiles are ignored. GUID comparison
+ * against `defaultProfile` is case-insensitive. `profiles` may be the modern
+ * `{ defaults, list }` object or a legacy array.
+ */
+export function activeWindowsTerminalScheme(text: string): string | undefined {
+  const doc = parseWindowsTerminalSettings(text);
+  if (!doc) { return undefined; }
+
+  const profiles = doc.profiles;
+  const defaultGuid = typeof doc.defaultProfile === 'string'
+    ? doc.defaultProfile.toLowerCase()
+    : undefined;
+
+  if (defaultGuid) {
+    const def = wtProfileList(profiles).find(
+      (p) => typeof p?.guid === 'string' && p.guid.toLowerCase() === defaultGuid,
+    );
+    const fromProfile = wtColorSchemeName(def?.colorScheme);
+    if (fromProfile !== undefined) { return fromProfile; }
+  }
+
+  return wtDefaultsScheme(profiles);
 }

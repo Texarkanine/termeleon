@@ -6,7 +6,7 @@ import { DiscoveredTheme, Palette, isUsable } from './palette';
 import { parseGhostty, activeGhosttyThemes } from './parsers/ghostty';
 import { parseKitty, parseXresources } from './parsers/kitty';
 import { parseAlacritty, parseWezterm, weztermSchemeName } from './parsers/toml';
-import { parseItermColors, parseWindowsTerminal } from './parsers/iterm2';
+import { parseItermColors, parseWindowsTerminal, activeWindowsTerminalScheme } from './parsers/iterm2';
 
 /** Hard ceilings so a pathological directory can't stall the picker. */
 const MAX_DEPTH = 3;
@@ -220,9 +220,10 @@ function discoverWindowsTerminal(): DiscoveredTheme[] {
   for (const file of candidates) {
     const text = readText(file);
     if (!text) { continue; }
+    const activeName = activeWindowsTerminalScheme(text);
     for (const { name, palette } of parseWindowsTerminal(text)) {
       if (!isUsable(palette)) { continue; }
-      out.push({ name, source: 'windows-terminal', origin: file, active: false, palette });
+      out.push({ name, source: 'windows-terminal', origin: file, active: name === activeName, palette });
     }
   }
   return out;
