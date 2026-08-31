@@ -82,8 +82,9 @@ function ghosttyDirs(): { themes: string[]; configs: string[] } {
   return { themes, configs };
 }
 
-function discoverGhostty(): DiscoveredTheme[] {
+function discoverGhostty(extraDirs: string[]): DiscoveredTheme[] {
   const { themes, configs } = ghosttyDirs();
+  themes.push(...extraDirs);
 
   let active: ReturnType<typeof activeGhosttyThemes> = {};
   for (const c of configs) {
@@ -126,7 +127,7 @@ function discoverGhostty(): DiscoveredTheme[] {
   return toGhosttyDiscovered(entries, active);
 }
 
-function discoverKitty(): DiscoveredTheme[] {
+function discoverKitty(extraDirs: string[]): DiscoveredTheme[] {
   const base = path.join(xdgConfigDir(), 'kitty');
   const out: DiscoveredTheme[] = [];
   const currentTheme = path.join(base, 'current-theme.conf');
@@ -135,6 +136,7 @@ function discoverKitty(): DiscoveredTheme[] {
     ...walk(path.join(base, 'themes'), ['.conf']),
     ...(exists(currentTheme) ? [currentTheme] : []),
     ...(exists(path.join(base, 'kitty.conf')) ? [path.join(base, 'kitty.conf')] : []),
+    ...extraDirs.flatMap((dir) => walk(dir, ['.conf'])),
   ];
 
   for (const file of files) {
@@ -153,10 +155,11 @@ function discoverKitty(): DiscoveredTheme[] {
   return out;
 }
 
-function discoverAlacritty(): DiscoveredTheme[] {
+function discoverAlacritty(extraDirs: string[]): DiscoveredTheme[] {
   const bases = [
     path.join(xdgConfigDir(), 'alacritty'),
     path.join(homeDir(), '.alacritty'),
+    ...extraDirs,
   ];
   const out: DiscoveredTheme[] = [];
 
@@ -179,11 +182,12 @@ function discoverAlacritty(): DiscoveredTheme[] {
   return out;
 }
 
-function discoverWezterm(): DiscoveredTheme[] {
+function discoverWezterm(extraDirs: string[]): DiscoveredTheme[] {
   const base = path.join(xdgConfigDir(), 'wezterm');
   const out: DiscoveredTheme[] = [];
+  const dirs = [path.join(base, 'colors'), base, ...extraDirs];
 
-  for (const file of [...walk(path.join(base, 'colors'), ['.toml']), ...walk(base, ['.toml'])]) {
+  for (const file of dirs.flatMap((dir) => walk(dir, ['.toml']))) {
     const text = readText(file);
     if (!text) { continue; }
     let palette: Palette;
@@ -318,7 +322,7 @@ export function mirrorCandidates(themes: DiscoveredTheme[]): MirrorCandidate[] {
 export interface DiscoverOptions {
   /** Emulators to scan. Omit to scan all. */
   sources?: string[];
-  /** Extra directories to sweep for .itermcolors and other loose theme files. */
+  /** Extra directories to sweep for walkable theme files (not only .itermcolors). */
   extraDirs?: string[];
 }
 
@@ -338,11 +342,12 @@ export function discoverThemes(opts: DiscoverOptions = {}): DiscoveredTheme[] {
     try { results.push(...fn()); } catch { /* a broken source is not fatal */ }
   };
 
-  run('ghostty', discoverGhostty);
-  run('kitty', discoverKitty);
-  run('alacritty', discoverAlacritty);
-  run('wezterm', discoverWezterm);
-  run('iterm2', () => discoverIterm2(opts.extraDirs ?? []));
+  const extraDirs = opts.extraDirs ?? [];
+  run('ghostty', () => discoverGhostty(extraDirs));
+  run('kitty', () => discoverKitty(extraDirs));
+  run('alacritty', () => discoverAlacritty(extraDirs));
+  run('wezterm', () => discoverWezterm(extraDirs));
+  run('iterm2', () => discoverIterm2(extraDirs));
   run('windows-terminal', discoverWindowsTerminal);
   run('xresources', discoverXresources);
 
