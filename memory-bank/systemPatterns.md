@@ -53,4 +53,4 @@ The picker does not use a scratch overlay. Arrowing through items calls `applyPa
 
 ## Best-Effort Discovery
 
-`discoverThemes` wraps each source in try/catch. Walks are capped (`MAX_DEPTH`, `MAX_FILES_PER_SOURCE`) so a huge directory cannot stall the picker. Active themes sort first; within a source, names are alphabetical. Active-theme detection is per-emulator and incomplete by design (WezTerm, iTerm2, Windows Terminal, Xresources do not all report "in use").
+`discoverThemes` wraps each source in try/catch. Walks are capped (`MAX_DEPTH`, `MAX_FILES_PER_SOURCE`) so a huge directory cannot stall the picker. Active themes sort first; within a source, names are alphabetical. Active-theme detection is per-emulator and incomplete by design (WezTerm, iTerm2, and Xresources do not all report "in use"). Windows Terminal marks the scheme named by `profiles.defaults.colorScheme` or the default profile.
