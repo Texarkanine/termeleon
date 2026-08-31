@@ -15,3 +15,17 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
 * Insights
     - Mirror currently treats two active Ghostty names as "several terminals" and applies only one palette
     - `applyPalette` writes either flat keys or a single `[active workbench theme]` block; neither follows auto-detect
+
+## 2026-08-31 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote Level 2 plan in `tasks.md`: pair identity, paired merge/apply, docs
+    - Mapped tests onto existing `test/parsers.test.ts` harness (no vscode import)
+* Decisions made
+    - Scope to `preferredDarkColorTheme` / `preferredLightColorTheme`, not `[*Dark*]` wildcards
+    - Do not set `window.autoDetectColorScheme`
+    - Import picker stays single-theme; Mirror collapses a Ghostty pair into one candidate
+    - Extract vscode-free `mergeColors` / `mergePairedColors` so tests can observe written keys
+* Insights
+    - Existing `removeApplied` scoped-key regex already supports `[Theme].terminal.*` owned keys
+    - VS Code theme-specific colorCustomizations overlay the active workbench theme, which auto-detect sets from the preferred light/dark names
