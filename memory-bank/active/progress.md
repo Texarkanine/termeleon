@@ -29,3 +29,12 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
 * Insights
     - Existing `removeApplied` scoped-key regex already supports `[Theme].terminal.*` owned keys
     - VS Code theme-specific colorCustomizations overlay the active workbench theme, which auto-detect sets from the preferred light/dark names
+
+## 2026-08-31 - PREFLIGHT - COMPLETE
+
+* Result: `FAIL (fixable)`
+* Findings
+    - The TDD plan does not make Ghostty appearance stamping observable: constructed-theme tests cannot exercise `discoverGhostty`.
+    - The scope merge tests inject names and therefore do not prove `applyPalettePair` reads the preferred dark/light workbench settings rather than the active theme or a wildcard.
+* Next step
+    - Return to planning to add testable seams and red tests for both wiring behaviors before Build.

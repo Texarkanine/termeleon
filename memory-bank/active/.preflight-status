@@ -1,0 +1,12 @@
+FAIL (fixable)
+
+## Findings
+
+- **Blocking TDD coverage gap:** Pair-identity tests construct `DiscoveredTheme` values, so they can validate `activeGhosttyPair` but cannot fail when `discoverGhostty` fails to stamp `appearance` from `activeGhosttyThemes`. The plan needs a vscode-free, testable discovery seam or helper and an explicit red test for the stamping behavior.
+- **Blocking acceptance-coverage gap:** The planned merge tests inject `[Dark]` and `[Light]` scope names. They cannot fail if `applyPalettePair` reads `workbench.colorTheme` or wildcard scopes instead of `workbench.preferredDarkColorTheme` and `workbench.preferredLightColorTheme`. The plan needs a testable settings-to-scope seam or an extension-host/mock test that proves the pair path writes under the two preferred-theme names.
+- **Convention and dependency checks passed:** The proposed vscode-free helpers belong in `src/discover.ts` and `src/palette.ts`; `apply.ts` remains the configuration-only mutation boundary. The plan preserves `removeApplied`'s existing scoped-owned-key format and does not re-parse Ghostty configuration during apply.
+- **No overlap conflict found:** `activeGhosttyThemes`, `toColorCustomizations`, and the scoped-key removal regex are reusable foundations rather than competing implementations.
+
+## Advisory
+
+- Extract a small pure `pairScopes(preferredDarkTheme, preferredLightTheme)` helper alongside the palette merge helpers. It gives one contract for validation, brackets names once, and prevents future pair callers from recreating scope construction.
