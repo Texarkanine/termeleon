@@ -92,5 +92,5 @@ No new npm dependencies. Workflow uses `actions/checkout@v7` and `actions/setup-
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA

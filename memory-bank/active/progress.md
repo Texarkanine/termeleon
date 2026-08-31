@@ -41,3 +41,18 @@ Add GitHub Actions CI that runs `npm ci`, `npm run test:parsers`, and `npm run c
 * Insights
     - Advisory: `.vscodeignore` does not exclude the new root files (`.github/`, `.nvmrc`, `package-lock.json`), so they would ship in a VSIX.
     - Advisory: a single `npm run ci` script would make "CI runs what contributors run" true by construction.
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Contract tests in `test/parsers.test.ts` went red (missing lockfile/nvmrc/workflow) then green.
+    - Added `.nvmrc` (`22`), tab-yeet-shaped `.github/workflows/ci.yaml`, committed `package-lock.json`.
+    - Regenerated lockfile from a clean `node_modules` so all esbuild platform optional packages (including linux-x64) are present.
+    - Updated README Development and `techContext.md`.
+    - Local `npm run test:parsers` (14 passed) and `npm run compile` succeeded on Node 22.23.2.
+    - Committed `feat(ci): run parser tests and compile on GitHub Actions` with `Fixes #3`.
+* Decisions made
+    - Did not add `.vscodeignore` entries or an `npm run ci` script (preflight advisories).
+    - Lockfile must be generated with `node_modules` absent; generating with it present pruned non-darwin esbuild binaries.
+* Insights
+    - Rancher Docker CLI is installed but the daemon was not running, so linux `npm ci` was not container-verified; the lockfile now contains `@esbuild/linux-x64` and other platform entries.
