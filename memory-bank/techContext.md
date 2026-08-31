@@ -16,7 +16,7 @@ The project is licensed AGPL-3.0-or-later via the root `LICENSE` file (`license`
 
 ## Testing Process
 
-Parser, palette, and discovery tests are a small Node assert harness in `test/parsers.test.ts` and `test/discover.test.ts`, run with `tsx` via `test:parsers` in `package.json` (two processes). Fixtures live under `test/fixtures/`. Discovery tests build a throwaway `$HOME` / `$XDG_CONFIG_HOME` tree and assert on `origin` paths under that tree — not on result length or theme name, because Darwin still walks `/Applications/Ghostty.app`. This suite does not load `vscode` and does not cover `apply.ts` or `extension.ts`.
+Parser, palette, and discovery tests are a small Node assert harness in `test/parsers.test.ts` and `test/discover.test.ts`, run with `tsx` via `test:parsers` in `package.json` (two processes). Fixtures live under `test/fixtures/`. Discovery tests build a throwaway `$HOME` / `$XDG_CONFIG_HOME` tree and assert on `origin` paths under that tree — not on result length or theme name, because Darwin still walks `/Applications/Ghostty.app`. Extra-directory tests pass `extraDirs` and filter `origin` under the fixture directory. This suite does not load `vscode` and does not cover `apply.ts` or `extension.ts`.
 
 Executable-behavior changes follow TDD as in `.cursor/rules/shared/always-tdd.mdc`. How to run tests while iterating is in `.cursor/rules/shared/test-running-practices.mdc`.
 

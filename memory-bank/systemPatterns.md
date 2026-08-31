@@ -49,8 +49,8 @@ The picker does not use a scratch overlay. Arrowing through items calls `applyPa
 
 ## UI-Kind Local Filesystem
 
-`package.json` sets `extensionKind` to `["ui"]` so the extension always runs on the local machine. Discovery paths are home, XDG, and (on macOS) Application Support / app-bundle theme directories. A remote extension host would scan a machine that does not have the user's emulator configs.
+`package.json` sets `extensionKind` to `["ui"]` so the extension always runs on the local machine. Discovery paths are home, XDG, (on macOS) Application Support / app-bundle theme directories, and any extra directories the user configured. A remote extension host would scan a machine that does not have the user's emulator configs.
 
 ## Best-Effort Discovery
 
-`discoverThemes` wraps each source in try/catch. Walks are capped (`MAX_DEPTH`, `MAX_FILES_PER_SOURCE`) so a huge directory cannot stall the picker. Active themes sort first; within a source, names are alphabetical. Active-theme detection is per-emulator and incomplete by design (WezTerm, iTerm2, and Xresources do not all report "in use"). Windows Terminal marks the scheme named by `profiles.defaults.colorScheme` or the default profile.
+`discoverThemes` wraps each source in try/catch. Walks are capped (`MAX_DEPTH`, `MAX_FILES_PER_SOURCE`) so a huge directory cannot stall the picker. Active themes sort first; within a source, names are alphabetical. Active-theme detection is per-emulator and incomplete by design (WezTerm, iTerm2, and Xresources do not all report "in use"). Windows Terminal marks the scheme named by `profiles.defaults.colorScheme` or the default profile. `extraDirs` are extra theme-directory roots for every walkable format (Ghostty, kitty, Alacritty, WezTerm, iTerm2); Windows Terminal and Xresources stay on their fixed files. A new walkable format must take `extraDirs` the same way, or `extraDirectories` will silently omit it.
