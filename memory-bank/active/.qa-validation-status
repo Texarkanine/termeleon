@@ -1,0 +1,13 @@
+PASS
+
+QA - clean-up-minimum-contrast-ratio - 2026-08-31
+
+Blocking findings: none.
+
+Advisories (non-blocking, no rework required):
+1. `removeApplied` identifies the setting to clear by value (`=== 1`), not by ownership. A user who set `minimumContrastRatio: 1` by hand and never imported a theme will have it cleared by Remove. This is exactly what projectbrief requirement 1 specifies, so it is not a plan violation, but ownership tracking (as done for color keys) would be exact. Worth revisiting only if a user reports it.
+2. The `keys.length === 0 && !allowFallback` early return in `removeApplied` skips the contrast-ratio cleanup. Defensible ("no record, touch nothing") and the extension re-prompts for fallback, but it means declining the fallback prompt leaves `minimumContrastRatio: 1` in place.
+3. The user story mentions "empty `.vscode/settings.json`". VS Code's configuration API removes the key but leaves the file as `{}`; it cannot delete the file. Pre-existing for `colorCustomizations` removal, so not a regression, and not fixable through the config API.
+4. `readContrastRatioAt` repeats the `target === 'global' ? globalValue : workspaceValue` selection already in `readAt`. Two instances only; extracting a helper is not yet warranted.
+5. New host tests capture `getConfiguration('terminal.integrated')` once and call `.inspect()` on it after later `update()` calls, unlike `helpers.inspectColors` which re-fetches. Tests pass, and staleness would fail loud rather than pass wrongly, so this is style drift rather than a defect.
+6. `memory-bank/systemPatterns.md` "Surgical Settings Ownership" states `removeApplied` deletes only tracked keys. Read in context that section is about color keys, so it is not wrong, but a developer could be surprised that removal now also clears one untracked, value-sniffed key. Optional one-line clarification.
