@@ -188,6 +188,7 @@ test('workflow contract', () => {
   );
   assert.ok(wf.includes('pull_request'), 'must trigger on pull_request');
   assert.ok(wf.includes('push'), 'must trigger on push');
+  assert.ok(/\binitialdev\b/.test(wf), 'must target initialdev');
   assert.ok(/\bmain\b/.test(wf), 'must target main');
   assert.ok(wf.includes('node-version-file'), 'setup-node must read .nvmrc');
   assert.ok(wf.includes('.nvmrc'), 'node-version-file must be .nvmrc');

@@ -13,7 +13,7 @@ The project is licensed AGPL-3.0-or-later via the root `LICENSE` file (`license`
 - TypeScript project: `tsconfig.json` (`strict`, CommonJS, ES2021). `include` is `src/**/*.ts` only — tests are not part of the `tsc` program.
 - Bundle and typecheck: `compile` in `package.json` (`tsc --noEmit` then esbuild of `src/extension.ts`, `vscode` external, Node platform).
 - Packaging ignore list: `.vscodeignore` (source, tests, and TypeScript stay out of the VSIX).
-- CI: `.github/workflows/ci.yaml` on `pull_request` and `push` to `main`. Job uses `actions/setup-node` with `.nvmrc` and npm cache, then `npm ci`, `npm run test:parsers`, `npm run compile`. No REUSE lint, Codecov, or `vsce package`.
+- CI: `.github/workflows/ci.yaml` on `pull_request` and `push` to `initialdev` and `main`. Job uses `actions/setup-node` with `.nvmrc` and npm cache, then `npm ci`, `npm run test:parsers`, `npm run compile`. No REUSE lint, Codecov, or `vsce package`.
 
 ## Testing Process
 

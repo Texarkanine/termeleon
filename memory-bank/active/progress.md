@@ -80,3 +80,13 @@ Add GitHub Actions CI that runs `npm ci`, `npm run test:parsers`, and `npm run c
 * Insights
     - npm 10 lockfile generation with `node_modules` present is the load-bearing gotcha for linux CI.
 
+## 2026-08-31 - PR REVIEW - IN-PROGRESS
+
+* Work completed
+    - discussion_r3896567069: workflow `pull_request` and `push` now list `initialdev` and `main`.
+    - Contract test requires both branch names; README and `techContext.md` updated.
+    - `npm run test:parsers` (14 passed) and `npm run compile` on Node 22.23.2.
+* Decisions made
+    - Do not replace `main` with only `initialdev`; keep both so CI runs on this repo now and still matches house shape when `main` exists.
+
+

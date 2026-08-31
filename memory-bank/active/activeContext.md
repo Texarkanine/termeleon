@@ -1,14 +1,13 @@
 # Active Context
 
 ## Current Task: GitHub Actions CI
-**Phase:** REFLECT COMPLETE
+**Phase:** REFLECT COMPLETE - applying PR review
 
 ## What Was Done
 
-- Implemented and QA-passed GitHub Actions CI for issue #3.
-- Reflected: lockfile must be generated from a clean tree; contract tests stayed in `test:parsers`.
-- Reconciled `techContext.md` with the lockfile-from-clean-tree invariant.
+- Implemented and QA-passed GitHub Actions CI for issue #3; PR #15 opened.
+- Review fix (discussion_r3896567069): `pull_request`/`push` now list both `initialdev` and `main`. Contract test requires both names. README and `techContext.md` match.
 
 ## Next Step
 
-- Standalone task: operator may run `/niko-archive`. Do not archive in this session (operator asked to stop at REFLECT COMPLETE). Do not open a PR.
+- Do not `/niko-archive` until the operator asks. PR: https://github.com/Texarkanine/vscode-terminal-themes/pull/15

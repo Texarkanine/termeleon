@@ -102,7 +102,7 @@ npm run test:parsers   # no VS Code needed, runs against fixtures
 npm run compile
 ```
 
-GitHub Actions runs those same commands on pull requests and on push to `main`.
+GitHub Actions runs those same commands on pull requests and on push to `initialdev` or `main`.
 
 The parsers and discovery are plain Node with no `vscode` import, so they're
 testable outside the extension host and reusable as a CLI if you ever want the

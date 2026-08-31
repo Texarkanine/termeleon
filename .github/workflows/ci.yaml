@@ -3,9 +3,11 @@ name: "CI"
 on:
   pull_request:
     branches:
+      - initialdev
       - main
   push:
     branches:
+      - initialdev
       - main
 
 jobs:

@@ -2,7 +2,7 @@
 
 ## User Story
 
-As a contributor, I want pull requests and pushes to `main` to run the same parser tests and typecheck I run locally after `npm ci`, so a change that breaks a parser test or compile fails CI before merge.
+As a contributor, I want pull requests and pushes to `initialdev` or `main` to run the same parser tests and typecheck I run locally after `npm ci`, so a change that breaks a parser test or compile fails CI before merge.
 
 Authoritative spec: https://github.com/Texarkanine/vscode-terminal-themes/issues/3
 
@@ -14,11 +14,11 @@ A pull request that breaks `npm run test:parsers` or `npm run compile` fails Git
 
 ### Use-Case 2
 
-A green run on `main` is `npm ci`, then `npm run test:parsers`, then `npm run compile`, with Node taken from `.nvmrc` and dependencies from a committed `package-lock.json`.
+A green run on `initialdev` or `main` is `npm ci`, then `npm run test:parsers`, then `npm run compile`, with Node taken from `.nvmrc` and dependencies from a committed `package-lock.json`.
 
 ## Requirements
 
-1. Workflow on `pull_request` and `push` to `main`.
+1. Workflow on `pull_request` and `push` to `initialdev` and `main` (this repo's integration branch now; house-shape `main` when it exists).
 2. Shape matches other Texarkanine Node repos, closest being tab-yeet (`npm` + `actions/setup-node` with npm cache) and a16n (`.nvmrc` + lockfile install).
 3. `.nvmrc` plus `actions/setup-node` with npm cache.
 4. Committed `package-lock.json` so CI can `npm ci`.
@@ -34,4 +34,4 @@ A green run on `main` is `npm ci`, then `npm run test:parsers`, then `npm run co
 ## Acceptance Criteria
 
 1. A PR that breaks a parser test or typecheck fails CI.
-2. A green `main` run is the same commands a contributor runs locally after `npm ci`.
+2. A green `initialdev` or `main` run is the same commands a contributor runs locally after `npm ci`.
