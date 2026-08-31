@@ -11,6 +11,8 @@ import { parseItermColors, parseWindowsTerminal } from '../src/parsers/iterm2';
 const fix = (name: string) =>
   fs.readFileSync(path.join(__dirname, 'fixtures', name), 'utf8');
 
+const repoRoot = path.join(__dirname, '..');
+
 let passed = 0;
 function test(name: string, fn: () => void) {
   try {
@@ -161,6 +163,38 @@ test('parses XParseColor rgb: form', () => {
   assert.ok(isUsable(p));
   assert.strictEqual(p.background, '#1d1f21');
   assert.strictEqual(p.ansi[3], '#000003');
+});
+
+console.log('\nci');
+test('lockfile present', () => {
+  assert.ok(
+    fs.existsSync(path.join(repoRoot, 'package-lock.json')),
+    'package-lock.json must exist so npm ci can run',
+  );
+});
+test('.nvmrc pin', () => {
+  const text = fs.readFileSync(path.join(repoRoot, '.nvmrc'), 'utf8');
+  const line = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .find((l) => l && !l.startsWith('#'));
+  assert.ok(line, '.nvmrc must have a non-comment version line');
+  assert.match(line!, /^\d+(\.\d+)*$/);
+});
+test('workflow contract', () => {
+  const wf = fs.readFileSync(
+    path.join(repoRoot, '.github', 'workflows', 'ci.yaml'),
+    'utf8',
+  );
+  assert.ok(wf.includes('pull_request'), 'must trigger on pull_request');
+  assert.ok(wf.includes('push'), 'must trigger on push');
+  assert.ok(/\bmain\b/.test(wf), 'must target main');
+  assert.ok(wf.includes('node-version-file'), 'setup-node must read .nvmrc');
+  assert.ok(wf.includes('.nvmrc'), 'node-version-file must be .nvmrc');
+  assert.ok(/cache:\s*"?npm"?/.test(wf), 'setup-node must cache npm');
+  assert.ok(wf.includes('npm ci'), 'must install with npm ci');
+  assert.ok(wf.includes('npm run test:parsers'), 'must run parser tests');
+  assert.ok(wf.includes('npm run compile'), 'must typecheck/bundle');
 });
 
 console.log(`\n${passed} passed\n`);
