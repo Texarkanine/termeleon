@@ -79,9 +79,7 @@ function discoverGhostty(): DiscoveredTheme[] {
     const text = readText(c);
     if (text) { active = { ...active, ...activeGhosttyThemes(text) }; }
   }
-  const activeNames = new Set(
-    [active.single, active.dark, active.light].filter(Boolean) as string[],
-  );
+  const hasThemeLine = !!(active.single || active.dark || active.light);
 
   const entries: { name: string; origin: string; palette: Palette }[] = [];
   const seen = new Set<string>();
@@ -100,16 +98,17 @@ function discoverGhostty(): DiscoveredTheme[] {
   }
 
   // A config with inline palette lines and no `theme =` is itself a theme.
-  if (activeNames.size === 0) {
+  if (!hasThemeLine) {
+    let hasInline = false;
     for (const c of configs) {
       const text = readText(c);
       if (!text) { continue; }
       const palette = parseGhostty(text);
       if (isUsable(palette)) {
         entries.push({ name: 'Ghostty config (inline)', origin: c, palette });
+        hasInline = true;
       }
     }
-    const hasInline = entries.some((e) => e.name === 'Ghostty config (inline)');
     return toGhosttyDiscovered(entries, hasInline ? { single: 'Ghostty config (inline)' } : {});
   }
 

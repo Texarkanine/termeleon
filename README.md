@@ -71,11 +71,12 @@ so you can see it, and the pre-picker value is restored if you cancel. If the
 `settings.json` churn bothers you, set `livePreview` to false.
 
 **Ghostty dark/light pairs follow auto-detect.** Mirror of
-`theme = dark:X,light:Y` writes both palettes under
-`[workbench.preferredDarkColorTheme]` and `[workbench.preferredLightColorTheme]`,
-which is what `window.autoDetectColorScheme` switches between. The extension does
-not turn auto-detect on for you. The import picker still applies one theme at a
-time.
+`theme = dark:X,light:Y` writes both palettes as theme-scoped blocks named after
+your preferred dark and light workbench themes (the values of
+`workbench.preferredDarkColorTheme` and `workbench.preferredLightColorTheme`,
+for example `[One Dark Pro]` and `[GitHub Light]`). Those are the themes
+`window.autoDetectColorScheme` switches between. The extension does not turn
+auto-detect on for you. The import picker still applies one theme at a time.
 
 ## Semantic mismatches this handles
 

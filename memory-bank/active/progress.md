@@ -91,3 +91,17 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
     - Inline-config branch re-scans `entries`; local `activeNames` set used only for a size check
 * Next step
     - Rerun Build for the two blocking findings, then QA again
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Symmetric owned-key stripping on both apply paths; `stripOwnedKeys` exported from `palette.ts` with a pair-then-flat test
+    - README corrected to name the written theme scopes (preferred-theme *values*)
+    - Inline Ghostty fallback uses `hasInline` instead of re-scanning entries
+    - 21 parser tests passing; compile clean
+* Decisions made
+    - Shared `stripOwnedKeys` in the vscode-free palette module so tests can observe pair-then-single behavior
+    - Left `removeApplied`'s fallback sweep in apply.ts (it also walks unowned scoped blocks)
+* Insights
+    - Theme-scoped colorCustomizations outrank unscoped keys, so leftover pair scopes would hide a later flat import
+

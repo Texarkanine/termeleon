@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as assert from 'assert';
 
-import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeColor, pairScopes, preferredPairScopes, mergeColors, mergePairedColors } from '../src/palette';
+import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeColor, pairScopes, preferredPairScopes, mergeColors, mergePairedColors, stripOwnedKeys } from '../src/palette';
 import { toGhosttyDiscovered, activeGhosttyPair, mirrorCandidates } from '../src/discover';
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
@@ -318,6 +318,24 @@ test('mergePairedColors writes both scopes and no unscoped terminal keys', () =>
   assert.ok(ownedKeys.includes(`${lightScope}.terminal.foreground`));
   assert.ok(ownedKeys.every((k) => OWNED_SCOPED.test(k)));
   assert.ok(!ownedKeys.some((k) => k.includes('*Dark*') || k.includes('*Light*')));
+});
+
+test('stripOwnedKeys clears a prior pair so a later flat merge is not shadowed', () => {
+  const { darkScope, lightScope } = pairScopes('One Dark Pro', 'GitHub Light');
+  const paired = mergePairedColors(
+    {},
+    { 'terminal.background': '#111' },
+    { 'terminal.background': '#fafafa' },
+    darkScope,
+    lightScope,
+  );
+  const stripped = stripOwnedKeys(paired.next, paired.ownedKeys);
+  assert.ok(!(darkScope in stripped));
+  assert.ok(!(lightScope in stripped));
+  const flat = mergeColors(stripped, { 'terminal.background': '#222' });
+  assert.strictEqual(flat.next['terminal.background'], '#222');
+  assert.ok(!(darkScope in flat.next));
+  assert.ok(!(lightScope in flat.next));
 });
 
 console.log(`\n${passed} passed\n`);

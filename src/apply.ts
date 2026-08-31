@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Palette, toColorCustomizations, managedKeys, mergeColors, mergePairedColors, preferredPairScopes } from './palette';
+import { Palette, toColorCustomizations, managedKeys, mergeColors, mergePairedColors, preferredPairScopes, stripOwnedKeys } from './palette';
 
 export type Target = 'global' | 'workspace';
 
@@ -58,7 +58,7 @@ export async function applyPalette(
     includeSelectionForeground: opts.includeSelectionForeground,
   });
 
-  const current = readAt(opts.target);
+  const current = stripOwnedKeys(readAt(opts.target), ownedKeys(ctx, opts.target));
   const scopeKey = opts.scopeToActiveTheme ? `[${activeThemeName()}]` : undefined;
   const { next, ownedKeys: owned } = mergeColors(current, colors, scopeKey);
 
@@ -109,24 +109,6 @@ export async function applyPalettePair(
     await vscode.workspace.getConfiguration('terminal.integrated')
       .update('minimumContrastRatio', 1, configTarget(opts.target));
   }
-}
-
-/** Drops previously owned keys from a colorCustomizations object. */
-function stripOwnedKeys(current: Record<string, any>, keys: string[]): Record<string, any> {
-  const next = JSON.parse(JSON.stringify(current));
-  for (const key of keys) {
-    const scoped = /^(\[[^\]]+\])\.(.+)$/.exec(key);
-    if (scoped) {
-      const [, scope, inner] = scoped;
-      if (next[scope] && inner in next[scope]) {
-        delete next[scope][inner];
-        if (Object.keys(next[scope]).length === 0) { delete next[scope]; }
-      }
-    } else if (key in next) {
-      delete next[key];
-    }
-  }
-  return next;
 }
 
 /** Restores a previously captured raw colorCustomizations value verbatim. */

@@ -1,27 +1,13 @@
 # Active Context
 
 ## Current Task: ghostty-autodetect-pairs
-**Phase:** QA - COMPLETE (FAIL)
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Pair identity: `toGhosttyDiscovered`, `activeGhosttyPair`, `mirrorCandidates`; `discoverGhostty` stamps appearance only through `toGhosttyDiscovered`, including the inline-config fallback.
-- Merge/apply: `pairScopes`, `preferredPairScopes`, `mergeColors`, `mergePairedColors`; `applyPalette` uses `mergeColors`; `applyPalettePair` reads preferred dark/light via `preferredPairScopes` and strips previously owned keys.
-- Mirror uses `MirrorCandidate` (`theme` | `pair`) and calls `applyPalettePair` for a Ghostty pair.
-- README and productContext: pairing is documented as Mirror behavior, not a known limit.
-- Tests: 20 passing in `test/parsers.test.ts` (9 new). Compile clean.
-
-## Files modified
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/src/palette.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/src/discover.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/src/apply.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/src/extension.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/test/parsers.test.ts`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/README.md`
-- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/memory-bank/productContext.md`
-
-## Key decisions
-- Inline Ghostty config-as-theme goes through `toGhosttyDiscovered` with `{ single: 'Ghostty config (inline)' }`.
-- Preflight "bind any two themes" idea was not implemented.
+- QA FAIL (fixable) rebuild: `applyPalette` now strips previously owned keys the same way `applyPalettePair` does (`stripOwnedKeys` lives in vscode-free `palette.ts` and is tested).
+- README now says scopes are the *values* of the preferred dark/light theme settings (e.g. `[One Dark Pro]`), not the setting ids.
+- Advisory: inline Ghostty fallback uses a `hasInline` boolean instead of re-scanning entries.
+- Tests: 21 passing.
 
 ## Next Step
-- QA returned FAIL. Rerun Build for the two blocking findings in `tasks.md` (asymmetric owned-key stripping in `applyPalette`; README naming the settings keys instead of the scopes written), then QA again.
+- Re-run QA.

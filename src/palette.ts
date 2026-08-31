@@ -187,3 +187,24 @@ export function mergePairedColors(
   const light = mergeColors(dark.next, lightColors, lightScope);
   return { next: light.next, ownedKeys: [...dark.ownedKeys, ...light.ownedKeys] };
 }
+
+/**
+ * Removes previously owned keys from a colorCustomizations object so a later
+ * apply cannot leave untracked scoped (or unscoped) leftovers.
+ */
+export function stripOwnedKeys(current: Record<string, any>, keys: string[]): Record<string, any> {
+  const next = JSON.parse(JSON.stringify(current));
+  for (const key of keys) {
+    const scoped = /^(\[[^\]]+\])\.(.+)$/.exec(key);
+    if (scoped) {
+      const [, scope, inner] = scoped;
+      if (next[scope] && inner in next[scope]) {
+        delete next[scope][inner];
+        if (Object.keys(next[scope]).length === 0) { delete next[scope]; }
+      }
+    } else if (key in next) {
+      delete next[key];
+    }
+  }
+  return next;
+}
