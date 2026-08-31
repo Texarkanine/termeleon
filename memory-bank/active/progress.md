@@ -42,3 +42,16 @@ Add CHANGELOG.md and release-please (config + workflow) so main can cut tagged r
 * Insights
     - Advisory: a `build-vsix` job attaching the .vsix to the GitHub Release would make releases distributable without a Marketplace publisher.
     - Advisory: no `package-lock.json` exists, so any future CI build job cannot use `npm ci` until one is committed.
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Added CHANGELOG.md, release-please config/manifest, and `.github/workflows/release-please.yaml` (helper-app token, no publish jobs).
+    - Updated `.vscodeignore` and `memory-bank/techContext.md`.
+    - Commit `cabf8aa` (`chore: add CHANGELOG and release-please`) includes `Fixes #7`.
+    - `npm run test:parsers`: 11 passed. `npm run compile`: succeeded.
+* Decisions made
+    - Left preflight advisories out of scope (no VSIX attach, no package-lock.json).
+    - Deleted the `package-lock.json` that `npm install` created in this worktree so it would not be committed.
+* Insights
+    - `package.json` remains `0.1.0`; release-please will bump it on main.

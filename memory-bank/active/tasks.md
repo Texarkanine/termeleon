@@ -75,7 +75,7 @@ Existing parser tests in `test/parsers.test.ts` must still pass after the change
 - Files: (commit message only)
 - No tests: prose/policy artifact
 
-1. [ ] The build-phase implementation commit that adds the files above includes `Fixes #7` in the body. Niko `chore: saving work before …` commits do not.
+1. [x] The build-phase implementation commit that adds the files above includes `Fixes #7` in the body. Niko `chore: saving work before …` commits do not.
 
 ## Technology Validation
 
@@ -107,6 +107,6 @@ No new runtime, build, or npm dependency. release-please runs in GitHub Actions 
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA
