@@ -2,7 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as assert from 'assert';
 
-import { toColorCustomizations, isUsable, normalizeColor } from '../src/palette';
+import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeColor, pairScopes, preferredPairScopes, mergeColors, mergePairedColors, stripOwnedKeys, restoreApplySnapshot } from '../src/palette';
+import { toGhosttyDiscovered, activeGhosttyPair, mirrorCandidates } from '../src/discover';
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
 import { parseAlacritty } from '../src/parsers/toml';
@@ -170,6 +171,206 @@ test('parses XParseColor rgb: form', () => {
   assert.ok(isUsable(p));
   assert.strictEqual(p.background, '#1d1f21');
   assert.strictEqual(p.ansi[3], '#000003');
+});
+
+console.log('\nghostty pair');
+const dummyPalette = (): Palette => ({ ansi: Array.from({ length: 16 }, () => '#000000') });
+const ghosttyEntry = (name: string) => ({ name, origin: `/themes/${name}`, palette: dummyPalette() });
+function ghosttyTheme(
+  name: string,
+  extra: Partial<DiscoveredTheme> = {},
+): DiscoveredTheme {
+  return {
+    name,
+    source: 'ghostty',
+    origin: `/themes/${name}`,
+    active: false,
+    palette: dummyPalette(),
+    ...extra,
+  };
+}
+
+test('stamps dark/light appearance from split active names', () => {
+  const themes = toGhosttyDiscovered(
+    [ghosttyEntry('Broadcast'), ghosttyEntry('Ayu Light'), ghosttyEntry('Other')],
+    { dark: 'Broadcast', light: 'Ayu Light' },
+  );
+  const byName = Object.fromEntries(themes.map((t) => [t.name, t]));
+  assert.strictEqual(byName['Broadcast'].appearance, 'dark');
+  assert.strictEqual(byName['Broadcast'].active, true);
+  assert.strictEqual(byName['Broadcast'].source, 'ghostty');
+  assert.strictEqual(byName['Ayu Light'].appearance, 'light');
+  assert.strictEqual(byName['Ayu Light'].active, true);
+  assert.strictEqual(byName['Other'].appearance, undefined);
+  assert.strictEqual(byName['Other'].active, false);
+});
+
+test('a single theme = name is active with no appearance', () => {
+  const themes = toGhosttyDiscovered(
+    [ghosttyEntry('Broadcast')],
+    { single: 'Broadcast' },
+  );
+  assert.strictEqual(themes[0].active, true);
+  assert.strictEqual(themes[0].appearance, undefined);
+});
+
+test('activeGhosttyPair returns both halves and rejects incomplete pairs', () => {
+  const dark = ghosttyTheme('Broadcast', { active: true, appearance: 'dark' });
+  const light = ghosttyTheme('Ayu Light', { active: true, appearance: 'light' });
+  const pair = activeGhosttyPair([dark, light]);
+  assert.ok(pair);
+  assert.strictEqual(pair.dark.name, 'Broadcast');
+  assert.strictEqual(pair.light.name, 'Ayu Light');
+
+  assert.strictEqual(activeGhosttyPair([dark]), undefined);
+  assert.strictEqual(
+    activeGhosttyPair([ghosttyTheme('Broadcast', { active: true })]),
+    undefined,
+  );
+  const kitty: DiscoveredTheme = {
+    name: 'Tomorrow',
+    source: 'kitty',
+    origin: '/kitty/Tomorrow',
+    active: true,
+    palette: dummyPalette(),
+  };
+  assert.strictEqual(activeGhosttyPair([dark, kitty]), undefined);
+});
+
+test('mirrorCandidates collapses a Ghostty pair into one unit', () => {
+  const dark = ghosttyTheme('Broadcast', { active: true, appearance: 'dark' });
+  const light = ghosttyTheme('Ayu Light', { active: true, appearance: 'light' });
+  const kitty: DiscoveredTheme = {
+    name: 'Tomorrow',
+    source: 'kitty',
+    origin: '/kitty/Tomorrow',
+    active: true,
+    palette: dummyPalette(),
+  };
+
+  const justPair = mirrorCandidates([dark, light]);
+  assert.strictEqual(justPair.length, 1);
+  assert.strictEqual(justPair[0].kind, 'pair');
+  if (justPair[0].kind === 'pair') {
+    assert.strictEqual(justPair[0].dark.name, 'Broadcast');
+    assert.strictEqual(justPair[0].light.name, 'Ayu Light');
+  }
+
+  const mixed = mirrorCandidates([dark, light, kitty]);
+  assert.strictEqual(mixed.length, 2, 'pair plus kitty is two candidates, not three');
+  assert.ok(mixed.some((c) => c.kind === 'pair'));
+  assert.ok(mixed.some((c) => c.kind === 'theme' && c.theme.name === 'Tomorrow'));
+  assert.ok(!mixed.some((c) => c.kind === 'theme' && c.theme.name === 'Broadcast'));
+});
+
+console.log('\ncolorCustomizations merge');
+const OWNED_SCOPED = /^(\[[^\]]+\])\.(.+)$/;
+
+test('pairScopes brackets preferred theme names', () => {
+  assert.deepStrictEqual(pairScopes('One Dark Pro', 'GitHub Light'), {
+    darkScope: '[One Dark Pro]',
+    lightScope: '[GitHub Light]',
+  });
+});
+
+test('preferredPairScopes reads only the preferred dark/light settings', () => {
+  const seen: string[] = [];
+  const scopes = preferredPairScopes((key) => {
+    seen.push(key);
+    if (key === 'preferredDarkColorTheme') { return 'One Dark Pro'; }
+    if (key === 'preferredLightColorTheme') { return 'GitHub Light'; }
+    if (key === 'colorTheme') { throw new Error('must not read colorTheme'); }
+    return undefined;
+  });
+  assert.deepStrictEqual(seen, ['preferredDarkColorTheme', 'preferredLightColorTheme']);
+  assert.deepStrictEqual(scopes, pairScopes('One Dark Pro', 'GitHub Light'));
+});
+
+test('mergeColors writes unscoped keys and preserves neighbors', () => {
+  const { next, ownedKeys } = mergeColors(
+    { 'editor.background': '#fff' },
+    { 'terminal.background': '#111', 'terminal.foreground': '#eee' },
+  );
+  assert.strictEqual(next['editor.background'], '#fff');
+  assert.strictEqual(next['terminal.background'], '#111');
+  assert.deepStrictEqual(ownedKeys, ['terminal.background', 'terminal.foreground']);
+  assert.ok(ownedKeys.every((k) => !OWNED_SCOPED.test(k)));
+});
+
+test('mergeColors nests a single scope without flattening', () => {
+  const { next, ownedKeys } = mergeColors(
+    { 'editor.background': '#fff' },
+    { 'terminal.background': '#111' },
+    '[Monokai]',
+  );
+  assert.strictEqual(next['editor.background'], '#fff');
+  assert.ok(!('terminal.background' in next));
+  assert.deepStrictEqual(next['[Monokai]'], { 'terminal.background': '#111' });
+  assert.deepStrictEqual(ownedKeys, ['[Monokai].terminal.background']);
+  assert.ok(OWNED_SCOPED.test(ownedKeys[0]));
+});
+
+test('mergePairedColors writes both scopes and no unscoped terminal keys', () => {
+  const { darkScope, lightScope } = pairScopes('One Dark Pro', 'GitHub Light');
+  const { next, ownedKeys } = mergePairedColors(
+    { 'editor.background': '#fff' },
+    { 'terminal.background': '#111', 'terminal.foreground': '#eee' },
+    { 'terminal.background': '#fafafa', 'terminal.foreground': '#222' },
+    darkScope,
+    lightScope,
+  );
+  assert.strictEqual(next['editor.background'], '#fff');
+  assert.ok(!Object.keys(next).some((k) => k.startsWith('terminal.')));
+  assert.deepStrictEqual(next[darkScope]['terminal.background'], '#111');
+  assert.deepStrictEqual(next[lightScope]['terminal.background'], '#fafafa');
+  assert.ok(ownedKeys.includes(`${darkScope}.terminal.background`));
+  assert.ok(ownedKeys.includes(`${lightScope}.terminal.foreground`));
+  assert.ok(ownedKeys.every((k) => OWNED_SCOPED.test(k)));
+  assert.ok(!ownedKeys.some((k) => k.includes('*Dark*') || k.includes('*Light*')));
+});
+
+test('stripOwnedKeys clears a prior pair so a later flat merge is not shadowed', () => {
+  const { darkScope, lightScope } = pairScopes('One Dark Pro', 'GitHub Light');
+  const paired = mergePairedColors(
+    {},
+    { 'terminal.background': '#111' },
+    { 'terminal.background': '#fafafa' },
+    darkScope,
+    lightScope,
+  );
+  const stripped = stripOwnedKeys(paired.next, paired.ownedKeys);
+  assert.ok(!(darkScope in stripped));
+  assert.ok(!(lightScope in stripped));
+  const flat = mergeColors(stripped, { 'terminal.background': '#222' });
+  assert.strictEqual(flat.next['terminal.background'], '#222');
+  assert.ok(!(darkScope in flat.next));
+  assert.ok(!(lightScope in flat.next));
+});
+
+test('preview cancel restores owned keys with colors so the next strip clears pair scopes', () => {
+  const { darkScope, lightScope } = pairScopes('One Dark Pro', 'GitHub Light');
+  const paired = mergePairedColors(
+    {},
+    { 'terminal.background': '#111' },
+    { 'terminal.background': '#fafafa' },
+    darkScope,
+    lightScope,
+  );
+  const snap = { colors: paired.next, ownedKeys: paired.ownedKeys };
+  const previewed = mergeColors(
+    stripOwnedKeys(snap.colors, snap.ownedKeys),
+    { 'terminal.background': '#222' },
+  );
+  const leaked = stripOwnedKeys(snap.colors, previewed.ownedKeys);
+  assert.ok(darkScope in leaked, 'restoring colors alone leaves pair scopes unstrippable');
+
+  const afterCancel = restoreApplySnapshot(snap);
+  assert.deepStrictEqual(afterCancel.colors, snap.colors);
+  assert.deepStrictEqual(afterCancel.ownedKeys, snap.ownedKeys);
+  assert.notDeepStrictEqual(afterCancel.ownedKeys, previewed.ownedKeys);
+  const next = stripOwnedKeys(afterCancel.colors, afterCancel.ownedKeys);
+  assert.ok(!(darkScope in next));
+  assert.ok(!(lightScope in next));
 });
 
 console.log(`\n${passed} passed\n`);

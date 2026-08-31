@@ -70,6 +70,14 @@ before falling back to clearing all terminal color keys.
 so you can see it, and the pre-picker value is restored if you cancel. If the
 `settings.json` churn bothers you, set `livePreview` to false.
 
+**Ghostty dark/light pairs follow auto-detect.** Mirror of
+`theme = dark:X,light:Y` writes both palettes as theme-scoped blocks named after
+your preferred dark and light workbench themes (the values of
+`workbench.preferredDarkColorTheme` and `workbench.preferredLightColorTheme`,
+for example `[One Dark Pro]` and `[GitHub Light]`). Those are the themes
+`window.autoDetectColorScheme` switches between. The extension does not turn
+auto-detect on for you. The import picker still applies one theme at a time.
+
 ## Semantic mismatches this handles
 
 Emulators disagree about what to call the same pixel:
@@ -88,9 +96,6 @@ Emulators disagree about what to call the same pixel:
   user scheme files are found.
 - **iTerm2 color spaces.** Entries tagged `Calibrated` rather than `sRGB` are read
   as sRGB. Slightly wrong, and the same approximation every porting tool makes.
-- **No light/dark pairing yet.** Ghostty's `theme = dark:X,light:Y` is parsed and
-  both themes appear in the picker, but nothing yet writes paired scoped blocks
-  keyed to `window.autoDetectColorScheme`.
 - **256-color slots are ignored.** kitty and others define `color16`–`color255`;
   VS Code derives those from the base 16.
 

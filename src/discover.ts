@@ -79,11 +79,9 @@ function discoverGhostty(): DiscoveredTheme[] {
     const text = readText(c);
     if (text) { active = { ...active, ...activeGhosttyThemes(text) }; }
   }
-  const activeNames = new Set(
-    [active.single, active.dark, active.light].filter(Boolean) as string[],
-  );
+  const hasThemeLine = !!(active.single || active.dark || active.light);
 
-  const out: DiscoveredTheme[] = [];
+  const entries: { name: string; origin: string; palette: Palette }[] = [];
   const seen = new Set<string>();
 
   for (const dir of themes) {
@@ -95,22 +93,26 @@ function discoverGhostty(): DiscoveredTheme[] {
       const palette = parseGhostty(text);
       if (!isUsable(palette)) { continue; }
       seen.add(name);
-      out.push({ name, source: 'ghostty', origin: file, active: activeNames.has(name), palette });
+      entries.push({ name, origin: file, palette });
     }
   }
 
   // A config with inline palette lines and no `theme =` is itself a theme.
-  if (activeNames.size === 0) {
+  if (!hasThemeLine) {
+    let hasInline = false;
     for (const c of configs) {
       const text = readText(c);
       if (!text) { continue; }
       const palette = parseGhostty(text);
       if (isUsable(palette)) {
-        out.push({ name: 'Ghostty config (inline)', source: 'ghostty', origin: c, active: true, palette });
+        entries.push({ name: 'Ghostty config (inline)', origin: c, palette });
+        hasInline = true;
       }
     }
+    return toGhosttyDiscovered(entries, hasInline ? { single: 'Ghostty config (inline)' } : {});
   }
-  return out;
+
+  return toGhosttyDiscovered(entries, active);
 }
 
 function discoverKitty(): DiscoveredTheme[] {
@@ -236,6 +238,61 @@ function discoverXresources(): DiscoveredTheme[] {
     const palette = parseXresources(text);
     if (!isUsable(palette)) { continue; }
     out.push({ name: path.basename(file), source: 'xresources', origin: file, active: true, palette });
+  }
+  return out;
+}
+
+export type MirrorCandidate =
+  | { kind: 'pair'; dark: DiscoveredTheme; light: DiscoveredTheme }
+  | { kind: 'theme'; theme: DiscoveredTheme };
+
+/**
+ * Stamps `active` and `appearance` onto parsed Ghostty theme files using the
+ * names from `activeGhosttyThemes`. `discoverGhostty` must call this rather
+ * than setting those fields inline.
+ */
+export function toGhosttyDiscovered(
+  entries: { name: string; origin: string; palette: Palette }[],
+  active: { dark?: string; light?: string; single?: string },
+): DiscoveredTheme[] {
+  const activeNames = new Set(
+    [active.single, active.dark, active.light].filter(Boolean) as string[],
+  );
+  return entries.map((e) => ({
+    name: e.name,
+    source: 'ghostty',
+    origin: e.origin,
+    active: activeNames.has(e.name),
+    appearance: e.name === active.dark ? 'dark' : e.name === active.light ? 'light' : undefined,
+    palette: e.palette,
+  }));
+}
+
+/** Both halves of a Ghostty split theme, or undefined if this is not a pair. */
+export function activeGhosttyPair(
+  themes: DiscoveredTheme[],
+): { dark: DiscoveredTheme; light: DiscoveredTheme } | undefined {
+  const dark = themes.find((t) => t.source === 'ghostty' && t.active && t.appearance === 'dark');
+  const light = themes.find((t) => t.source === 'ghostty' && t.active && t.appearance === 'light');
+  if (!dark || !light) { return undefined; }
+  return { dark, light };
+}
+
+/**
+ * Mirror choices: a Ghostty dark/light pair is one candidate, never two.
+ * Other emulators' active themes stay as individual candidates.
+ */
+export function mirrorCandidates(themes: DiscoveredTheme[]): MirrorCandidate[] {
+  const pair = activeGhosttyPair(themes);
+  const out: MirrorCandidate[] = [];
+  if (pair) {
+    out.push({ kind: 'pair', dark: pair.dark, light: pair.light });
+  }
+  const skip = pair ? new Set([pair.dark.name, pair.light.name]) : new Set<string>();
+  for (const t of themes) {
+    if (!t.active) { continue; }
+    if (pair && t.source === 'ghostty' && skip.has(t.name)) { continue; }
+    out.push({ kind: 'theme', theme: t });
   }
   return out;
 }

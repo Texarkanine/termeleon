@@ -26,6 +26,11 @@ export interface DiscoveredTheme {
   origin: string;
   /** True if this is the theme the emulator is currently configured to use. */
   active: boolean;
+  /**
+   * Dark or light half of a Ghostty `theme = dark:X,light:Y` line.
+   * Absent for a single `theme = X` or a theme that is not currently selected.
+   */
+  appearance?: 'dark' | 'light';
   palette: Palette;
 }
 
@@ -134,4 +139,89 @@ export function managedKeys(): string[] {
 /** True if at least the 16 ANSI slots are populated. */
 export function isUsable(p: Palette): boolean {
   return p.ansi.filter(Boolean).length >= 16;
+}
+
+/** Bracketed `workbench.colorCustomizations` keys for a dark/light workbench pair. */
+export function pairScopes(darkTheme: string, lightTheme: string): { darkScope: string; lightScope: string } {
+  return { darkScope: `[${darkTheme}]`, lightScope: `[${lightTheme}]` };
+}
+
+/**
+ * Resolves pair scopes from a settings reader.
+ * Must request `preferredDarkColorTheme` and `preferredLightColorTheme` only.
+ */
+export function preferredPairScopes(
+  read: (key: string) => string | undefined,
+): { darkScope: string; lightScope: string } {
+  return pairScopes(
+    read('preferredDarkColorTheme') ?? '',
+    read('preferredLightColorTheme') ?? '',
+  );
+}
+
+export function mergeColors(
+  current: Record<string, any>,
+  colors: Record<string, string>,
+  scopeKey?: string,
+): { next: Record<string, any>; ownedKeys: string[] } {
+  const next = { ...current };
+  if (scopeKey) {
+    next[scopeKey] = { ...(current[scopeKey] ?? {}), ...colors };
+    return {
+      next,
+      ownedKeys: Object.keys(colors).map((k) => `${scopeKey}.${k}`),
+    };
+  }
+  Object.assign(next, colors);
+  return { next, ownedKeys: Object.keys(colors) };
+}
+
+export function mergePairedColors(
+  current: Record<string, any>,
+  darkColors: Record<string, string>,
+  lightColors: Record<string, string>,
+  darkScope: string,
+  lightScope: string,
+): { next: Record<string, any>; ownedKeys: string[] } {
+  const dark = mergeColors(current, darkColors, darkScope);
+  const light = mergeColors(dark.next, lightColors, lightScope);
+  return { next: light.next, ownedKeys: [...dark.ownedKeys, ...light.ownedKeys] };
+}
+
+/**
+ * Removes previously owned keys from a colorCustomizations object so a later
+ * apply cannot leave untracked scoped (or unscoped) leftovers.
+ */
+export function stripOwnedKeys(current: Record<string, any>, keys: string[]): Record<string, any> {
+  const next = JSON.parse(JSON.stringify(current));
+  for (const key of keys) {
+    const scoped = /^(\[[^\]]+\])\.(.+)$/.exec(key);
+    if (scoped) {
+      const [, scope, inner] = scoped;
+      if (next[scope] && inner in next[scope]) {
+        delete next[scope][inner];
+        if (Object.keys(next[scope]).length === 0) { delete next[scope]; }
+      }
+    } else if (key in next) {
+      delete next[key];
+    }
+  }
+  return next;
+}
+
+export interface ApplySnapshot {
+  colors: Record<string, any>;
+  ownedKeys: string[];
+}
+
+/**
+ * Live-preview cancel must put both colorCustomizations and the owned-key
+ * list back. Restoring colors alone leaves a prior pair's scopes in settings
+ * with a flat owned-key list, so the next strip misses them.
+ */
+export function restoreApplySnapshot(snapshot: ApplySnapshot): ApplySnapshot {
+  return {
+    colors: snapshot.colors,
+    ownedKeys: [...snapshot.ownedKeys],
+  };
 }

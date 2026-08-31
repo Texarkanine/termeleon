@@ -1,0 +1,1 @@
+Live-preview cancel must restore owned keys with colorCustomizations; otherwise a pair Mirror plus Import Esc leaves scoped blocks and a flat owned-key list.
