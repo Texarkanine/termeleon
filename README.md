@@ -102,10 +102,12 @@ Emulators disagree about what to call the same pixel:
 ## Development
 
 ```sh
-npm install
+npm ci
 npm run test:parsers   # no VS Code needed; parsers plus discovery against a fake HOME/XDG tree
 npm run compile
 ```
+
+GitHub Actions runs those same commands on pull requests and on push to `initialdev` or `main`.
 
 The parsers and discovery are plain Node with no `vscode` import, so they're
 testable outside the extension host and reusable as a CLI if you ever want the
