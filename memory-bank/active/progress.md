@@ -65,3 +65,14 @@ Add CHANGELOG.md and release-please (config + workflow) so main can cut tagged r
     - PASS: no build or plan changes are required.
 * Insights
     - The workflow is deliberately release-please-only; it introduces no Marketplace, AMO, Chrome Web Store, or VSIX publishing job.
+
+## 2026-08-31 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-changelog-release-please.md`.
+    - Reconciled persistent files: productContext skip, systemPatterns skip, techContext surgical (helper-app token names; vscodeignore contents).
+* Decisions made
+    - Stop at REFLECT COMPLETE per operator; do not archive or open a PR.
+* Insights
+    - VS Code extensions can use node `release-type` without extra-files.
+    - Sibling helper-app workflows disagree on `client-id` vs `app-id`; first main run is the check.
