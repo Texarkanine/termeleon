@@ -1,12 +1,12 @@
 # Active Context
 
 ## Current Task: issue-2-extra-directories
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Operator assigned https://github.com/Texarkanine/vscode-terminal-themes/issues/2; intent treated as approved.
-- Classified Level 1: bug, single component (`discover.ts`). `discoverThemes` only passes `extraDirs` into `discoverIterm2`.
-- Level 1 skips plan, creative, preflight, and reflect.
+- Failing discovery test against `test/fixtures/extra/` (Ghostty, kitty, Alacritty, WezTerm, iTerm2).
+- Threaded `extraDirs` into `discoverGhostty`, `discoverKitty`, `discoverAlacritty`, and `discoverWezterm`. iTerm2 already accepted extra dirs.
+- `npm run test:parsers`: 12 passed. `npm run compile`: passed.
 
 ## Next Step
-- Load Level 1 workflow and enter BUILD.
+- Level 1 QA subagent (`/niko-qa`).
