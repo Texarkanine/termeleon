@@ -1,0 +1,1 @@
+Generate package-lock.json from a clean tree (no node_modules); npm 10 otherwise prunes non-current-platform esbuild optional packages and linux CI cannot npm ci.
