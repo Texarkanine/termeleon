@@ -14,3 +14,14 @@ Add Node/`tsx` tests that drive `discoverThemes` against a fixture `$HOME` / `$X
     - Not Level 1: this is new coverage, not a bug fix. Not Level 3: no multi-component feature or architecture work.
 * Insights
     - `src/discover.ts` currently captures `home` / `xdgConfig` / `xdgDataDirs` at module load; fixture-home tests must set env before first import or discovery must read those values at scan time.
+
+## 2026-08-31 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote Level 2 TDD plan: five issue behaviors plus origin-prefix and env-restore edges; `test/discover.test.ts`; scan-time path helpers; docs touch-up.
+* Decisions made
+    - Fake XDG dir is not `~/.config`, so tests fail if `$XDG_CONFIG_HOME` is ignored.
+    - `test:parsers` stays the Node/`tsx` entry and runs parsers then discover in two processes.
+    - Do not add extraDirs / Windows Terminal / iTerm2 cases; issue #5 does not ask for them.
+* Insights
+    - `/Applications/Ghostty.app` theme files are outside `$HOME` on Darwin; length assertions on `discoverThemes({ sources: ['ghostty'] })` would be machine-dependent.

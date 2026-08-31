@@ -1,11 +1,11 @@
 # Active Context
 
 ## Current Task: discover-fixture-tests
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Operator assigned [issue #5](https://github.com/Texarkanine/vscode-terminal-themes/issues/5) as the task; intent wait skipped by instruction.
-- Classified **Level 2 (Simple Enhancement)**: add Node/`tsx` coverage for one existing vscode-free module (`discover.ts`) plus whatever tiny testability tweak path-resolution needs. Not a bug fix; not a multi-component feature.
+- Level 2 plan for issue #5: new `test/discover.test.ts` (same Node/`tsx` harness as parsers), per-test tmp HOME + non-default `$XDG_CONFIG_HOME`, origin-prefix assertions, scan-time path helpers in `src/discover.ts`, `test:parsers` runs both files in separate processes.
+- Production API unchanged (`discoverThemes` / `DiscoverOptions`). No new dependencies.
 
 ## Next Step
-- Load the Level 2 workflow and execute Plan.
+- Preflight validation of the plan.
