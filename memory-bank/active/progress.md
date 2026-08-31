@@ -67,3 +67,12 @@ Flag the Windows Terminal scheme named by `profiles.defaults.colorScheme` (or th
     - Stub `undefined` greens absence tests before implementation; only positive-path tests enforce TDD red.
     - House style is Ghostty-like split helpers sharing one parse, not a combined `{ schemes, activeName }` return.
 
+## 2026-08-31 - BUILD - PR 13 review fixes
+
+* Work completed
+    - `{ dark, light }` colorScheme on defaults or the default profile flags both names; a present non-string does not inherit defaults.
+    - `isWindowsTerminalSchemeActive` case-folds scheme names for `discoverWindowsTerminal`.
+    - Parser tests 23/23; `npm run compile` succeeded.
+* Decisions made
+    - Helper returns `string[]` (empty when none) so split themes match Ghostty's both-sides flag without a dark/light object return.
+

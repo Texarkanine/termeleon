@@ -6,7 +6,7 @@ import { toColorCustomizations, isUsable, normalizeColor } from '../src/palette'
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
 import { parseAlacritty } from '../src/parsers/toml';
-import { parseItermColors, parseWindowsTerminal, activeWindowsTerminalScheme } from '../src/parsers/iterm2';
+import { parseItermColors, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from '../src/parsers/iterm2';
 
 const fix = (name: string) =>
   fs.readFileSync(path.join(__dirname, 'fixtures', name), 'utf8');
@@ -161,7 +161,7 @@ test('defaults.colorScheme is the active scheme when the default profile has non
     },
     schemes: [{ name: 'Campbell' }, { name: 'One Half Dark' }],
   });
-  assert.strictEqual(activeWindowsTerminalScheme(doc), 'One Half Dark');
+  assert.deepStrictEqual(activeWindowsTerminalScheme(doc), ['One Half Dark']);
 });
 
 test('default profile colorScheme wins over profiles.defaults', () => {
@@ -172,7 +172,7 @@ test('default profile colorScheme wins over profiles.defaults', () => {
       list: [{ guid: '{aaaa}', name: 'PowerShell', colorScheme: 'Campbell' }],
     },
   });
-  assert.strictEqual(activeWindowsTerminalScheme(doc), 'Campbell');
+  assert.deepStrictEqual(activeWindowsTerminalScheme(doc), ['Campbell']);
 });
 
 test('default profile without colorScheme inherits profiles.defaults', () => {
@@ -183,22 +183,22 @@ test('default profile without colorScheme inherits profiles.defaults', () => {
       list: [{ guid: '{aaaa}', name: 'PowerShell' }, { guid: '{bbbb}', colorScheme: 'Tango Dark' }],
     },
   });
-  assert.strictEqual(activeWindowsTerminalScheme(doc), 'Campbell');
+  assert.deepStrictEqual(activeWindowsTerminalScheme(doc), ['Campbell']);
 });
 
-test('returns undefined when no colorScheme is configured', () => {
+test('returns no names when no colorScheme is configured', () => {
   const doc = JSON.stringify({
     defaultProfile: '{aaaa}',
     profiles: { defaults: {}, list: [{ guid: '{aaaa}', name: 'PowerShell' }] },
     schemes: [{ name: 'Campbell' }],
   });
-  assert.strictEqual(activeWindowsTerminalScheme(doc), undefined);
+  assert.deepStrictEqual(activeWindowsTerminalScheme(doc), []);
 });
 
-test('returns undefined for empty or unparseable settings', () => {
-  assert.strictEqual(activeWindowsTerminalScheme(''), undefined);
-  assert.strictEqual(activeWindowsTerminalScheme('{'), undefined);
-  assert.strictEqual(activeWindowsTerminalScheme('{"profiles": }'), undefined);
+test('returns no names for empty or unparseable settings', () => {
+  assert.deepStrictEqual(activeWindowsTerminalScheme(''), []);
+  assert.deepStrictEqual(activeWindowsTerminalScheme('{'), []);
+  assert.deepStrictEqual(activeWindowsTerminalScheme('{"profiles": }'), []);
 });
 
 test('legacy profiles array still finds the default profile scheme', () => {
@@ -209,7 +209,7 @@ test('legacy profiles array still finds the default profile scheme', () => {
       { guid: '{aaaa}', name: 'PowerShell', colorScheme: 'Campbell' },
     ],
   });
-  assert.strictEqual(activeWindowsTerminalScheme(doc), 'Campbell');
+  assert.deepStrictEqual(activeWindowsTerminalScheme(doc), ['Campbell']);
 });
 
 test('defaultProfile GUID match is case-insensitive', () => {
@@ -220,14 +220,62 @@ test('defaultProfile GUID match is case-insensitive', () => {
       list: [{ guid: '{aa-bb}', colorScheme: 'Campbell' }],
     },
   });
-  assert.strictEqual(activeWindowsTerminalScheme(doc), 'Campbell');
+  assert.deepStrictEqual(activeWindowsTerminalScheme(doc), ['Campbell']);
 });
 
 test('fixture settings.json names the in-use scheme and still parses every scheme', () => {
   const text = fix('windows-terminal-settings.json');
-  assert.strictEqual(activeWindowsTerminalScheme(text), 'Campbell');
+  assert.deepStrictEqual(activeWindowsTerminalScheme(text), ['Campbell']);
   const schemes = parseWindowsTerminal(text);
   assert.deepStrictEqual(schemes.map((s) => s.name), ['Campbell', 'One Half Dark']);
+});
+
+test('dark/light colorScheme on the default profile flags both names and does not inherit defaults', () => {
+  const doc = JSON.stringify({
+    defaultProfile: '{aaaa}',
+    profiles: {
+      defaults: { colorScheme: 'Campbell' },
+      list: [{
+        guid: '{aaaa}',
+        colorScheme: { dark: 'One Half Dark', light: 'One Half Light' },
+      }],
+    },
+  });
+  assert.deepStrictEqual(
+    activeWindowsTerminalScheme(doc),
+    ['One Half Dark', 'One Half Light'],
+  );
+});
+
+test('dark/light colorScheme on profiles.defaults flags both names', () => {
+  const doc = JSON.stringify({
+    defaultProfile: '{aaaa}',
+    profiles: {
+      defaults: { colorScheme: { dark: 'One Half Dark', light: 'One Half Light' } },
+      list: [{ guid: '{aaaa}', name: 'PowerShell' }],
+    },
+  });
+  assert.deepStrictEqual(
+    activeWindowsTerminalScheme(doc),
+    ['One Half Dark', 'One Half Light'],
+  );
+});
+
+test('colorScheme present but not a string does not inherit defaults', () => {
+  const doc = JSON.stringify({
+    defaultProfile: '{aaaa}',
+    profiles: {
+      defaults: { colorScheme: 'Campbell' },
+      list: [{ guid: '{aaaa}', colorScheme: {} }],
+    },
+  });
+  assert.deepStrictEqual(activeWindowsTerminalScheme(doc), []);
+});
+
+test('scheme name match for active is case-insensitive', () => {
+  assert.ok(isWindowsTerminalSchemeActive('Campbell', ['campbell']));
+  assert.ok(isWindowsTerminalSchemeActive('campbell', ['Campbell']));
+  assert.ok(!isWindowsTerminalSchemeActive('Tango Dark', ['Campbell']));
 });
 
 console.log('\nxresources');

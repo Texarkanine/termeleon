@@ -35,3 +35,10 @@ The import picker lists Windows Terminal schemes as today, but the defaults-name
 1. When `settings.json` names a scheme via defaults or the default profile, that scheme's `DiscoveredTheme.active` is `true` and others from the same file remain `false`.
 2. A test in the existing parser harness fails without the helper and passes with it, using a representative settings document (fixture).
 3. README's Windows Terminal "Active theme detected" cell is no longer `no`.
+
+## Review (PR 13)
+
+Operator accepted both cursor[bot] findings as in-scope for this PR:
+
+1. A `{ dark, light }` `colorScheme` object is not treated as unset; both names are flagged; a present non-string does not inherit `profiles.defaults`.
+2. Scheme names are compared case-insensitively when setting `active`.
