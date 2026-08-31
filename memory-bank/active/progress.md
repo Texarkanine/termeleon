@@ -31,3 +31,14 @@ Add an Extension Development Host test suite so apply, surgical remove, and live
 * Insights
     - Default `.vscode-test/user-data` is unusable in this worktree path (103-char socket limit)
     - `extensionDevelopmentPath` still loads this extension when `--disable-extensions` is set
+
+## 2026-08-31 - PREFLIGHT - COMPLETE
+
+* Result: `PASS WITH ADVISORY` (first line of `.preflight-status`)
+* Work completed
+    - Verified TDD Plan Encoding for all three implementation-plan units (test-before-code ordering; Unit 1 correctly exempt as prose/policy; no change-detectors in the 14 planned behaviors)
+    - Checked convention compliance, dependency impact, conflict detection, and completeness against `systemPatterns.md`, `techContext.md`, and the current `src/apply.ts` / `src/extension.ts`
+* Advisories recorded (non-blocking)
+    - `systemPatterns.md` / `techContext.md` will need a Reflect/Archive update once the host suite lands
+    - Acceptance criterion "commit message includes `Fixes #6`" has no implementation-plan step; carry it into Build's final commit
+    - Radical-innovation idea recorded for a data-table-driven `apply.test.ts` (not applied to the plan)
