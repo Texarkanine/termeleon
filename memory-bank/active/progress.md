@@ -22,3 +22,13 @@ Remove misleading uncolored block glyphs from Quick Pick items and reveal an int
     - All parser, discover, and host tests passing (22 host tests, 50 parser/discover tests)
 * Decisions made
     - Revealed terminal using `preserveFocus: true` so the user remains focused on the Quick Pick
+
+## 2026-08-31 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Reviewed `src/extension.ts` diff and `test/host/picker.test.ts` against `projectbrief.md` requirements and acceptance criteria
+    - Re-ran `npm run test:parsers` (50 passing) and `npm run test:host` (22 passing) to confirm the claimed test results
+* Decisions made
+    - Accepted the fix as-is: no KISS/DRY/YAGNI/completeness/regression/integrity violations found
+* Insights
+    - Two non-blocking advisories recorded in `.qa-validation-status` (untested reuse-vs-create branch in `ensureTerminalVisible`; unused interface exports) — neither warrants a Build rerun

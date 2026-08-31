@@ -12,3 +12,9 @@
 - **Files Affected**:
   - `src/extension.ts`
   - `test/host/picker.test.ts`
+
+## QA Result: ✅ PASS
+
+- Verified all 3 requirements met against `projectbrief.md`: swatch glyphs removed from both `toItem` and `toMirrorItem`, detail lines are plain origin paths, `ensureTerminalVisible()` wired into the import picker's `pickAndApply()`.
+- Re-ran `npm run test:parsers` (50 passing) and `npm run test:host` (22 passing, including the 4 new picker tests) — all green.
+- Two non-blocking advisories logged in `.qa-validation-status`: `ensureTerminalVisible`'s reuse-vs-create branches aren't separately tested; `ThemeItem`/`MirrorItem` were exported without being needed by the new tests. Neither blocks acceptance.
