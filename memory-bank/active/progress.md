@@ -63,3 +63,16 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
     - Radical Innovation (advisory, not applied): generalize `applyPalettePair`/`mergePairedColors` into a cross-emulator "Bind light/dark pair" command later.
 * Next step
     - Proceed to Build.
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Implemented pair identity, paired merge/apply, Mirror wiring, and docs
+    - 20 parser tests passing (9 new); `npm run compile` clean
+* Decisions made
+    - Inline Ghostty fallback routes through `toGhosttyDiscovered` with `{ single: 'Ghostty config (inline)' }`
+    - `MirrorCandidate` is a `theme` | `pair` discriminated union
+    - Did not add a cross-emulator "bind any two themes" command (preflight radical innovation)
+* Insights
+    - Existing `removeApplied` scoped-key regex needed no change
+    - `preferredPairScopes` spy is what makes the preferred-theme setting choice testable without an extension host

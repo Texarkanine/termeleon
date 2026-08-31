@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Palette, toColorCustomizations, managedKeys } from './palette';
+import { Palette, toColorCustomizations, managedKeys, mergeColors, mergePairedColors, preferredPairScopes } from './palette';
 
 export type Target = 'global' | 'workspace';
 
@@ -60,21 +60,12 @@ export async function applyPalette(
 
   const current = readAt(opts.target);
   const scopeKey = opts.scopeToActiveTheme ? `[${activeThemeName()}]` : undefined;
-
-  if (scopeKey) {
-    current[scopeKey] = { ...(current[scopeKey] ?? {}), ...colors };
-  } else {
-    Object.assign(current, colors);
-  }
+  const { next, ownedKeys: owned } = mergeColors(current, colors, scopeKey);
 
   const config = vscode.workspace.getConfiguration(SECTION);
-  await config.update(KEY, current, configTarget(opts.target));
+  await config.update(KEY, next, configTarget(opts.target));
 
-  await setOwnedKeys(
-    ctx,
-    opts.target,
-    Object.keys(colors).map((k) => (scopeKey ? `${scopeKey}.${k}` : k)),
-  );
+  await setOwnedKeys(ctx, opts.target, owned);
 
   if (opts.setMinimumContrastRatio) {
     // Without this, VS Code nudges foreground colors toward a contrast target
@@ -82,6 +73,60 @@ export async function applyPalette(
     await vscode.workspace.getConfiguration('terminal.integrated')
       .update('minimumContrastRatio', 1, configTarget(opts.target));
   }
+}
+
+/**
+ * Writes a Ghostty dark/light pair under the user's preferred dark and light
+ * workbench themes so `window.autoDetectColorScheme` can switch them.
+ *
+ * Ignores `scopeToActiveTheme`: the pair is already scoped.
+ */
+export async function applyPalettePair(
+  ctx: vscode.ExtensionContext,
+  dark: Palette,
+  light: Palette,
+  opts: ApplyOptions,
+): Promise<void> {
+  const mapping = { includeSelectionForeground: opts.includeSelectionForeground };
+  const darkColors = toColorCustomizations(dark, mapping);
+  const lightColors = toColorCustomizations(light, mapping);
+
+  const workbench = vscode.workspace.getConfiguration('workbench');
+  const { darkScope, lightScope } = preferredPairScopes(
+    (key) => workbench.get<string>(key),
+  );
+
+  const stripped = stripOwnedKeys(readAt(opts.target), ownedKeys(ctx, opts.target));
+  const { next, ownedKeys: owned } = mergePairedColors(
+    stripped, darkColors, lightColors, darkScope, lightScope,
+  );
+
+  const config = vscode.workspace.getConfiguration(SECTION);
+  await config.update(KEY, next, configTarget(opts.target));
+  await setOwnedKeys(ctx, opts.target, owned);
+
+  if (opts.setMinimumContrastRatio) {
+    await vscode.workspace.getConfiguration('terminal.integrated')
+      .update('minimumContrastRatio', 1, configTarget(opts.target));
+  }
+}
+
+/** Drops previously owned keys from a colorCustomizations object. */
+function stripOwnedKeys(current: Record<string, any>, keys: string[]): Record<string, any> {
+  const next = JSON.parse(JSON.stringify(current));
+  for (const key of keys) {
+    const scoped = /^(\[[^\]]+\])\.(.+)$/.exec(key);
+    if (scoped) {
+      const [, scope, inner] = scoped;
+      if (next[scope] && inner in next[scope]) {
+        delete next[scope][inner];
+        if (Object.keys(next[scope]).length === 0) { delete next[scope]; }
+      }
+    } else if (key in next) {
+      delete next[key];
+    }
+  }
+  return next;
 }
 
 /** Restores a previously captured raw colorCustomizations value verbatim. */

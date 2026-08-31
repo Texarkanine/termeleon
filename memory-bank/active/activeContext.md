@@ -1,13 +1,27 @@
 # Active Context
 
 ## Current Task: ghostty-autodetect-pairs
-**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Replanned after preflight FAIL (fixable).
-- Added vscode-free seams: `toGhosttyDiscovered` (appearance stamping) and `preferredPairScopes` (must read `preferredDarkColorTheme` / `preferredLightColorTheme`, not `colorTheme`). Adopted `pairScopes` from the preflight advisory.
-- Mirror still collapses a Ghostty pair via `mirrorCandidates`. Import picker stays single-theme. Do not flip `window.autoDetectColorScheme`.
-- Re-ran preflight: `PASS WITH ADVISORY`. Both prior FAIL (fixable) findings resolved. Advisories recorded for Build: add a direct single-scope `mergeColors` test, confirm `discoverGhostty`'s inline-config fallback's stamping path, and give the pair-candidate QuickPick row a concrete discriminated type.
+- Pair identity: `toGhosttyDiscovered`, `activeGhosttyPair`, `mirrorCandidates`; `discoverGhostty` stamps appearance only through `toGhosttyDiscovered`, including the inline-config fallback.
+- Merge/apply: `pairScopes`, `preferredPairScopes`, `mergeColors`, `mergePairedColors`; `applyPalette` uses `mergeColors`; `applyPalettePair` reads preferred dark/light via `preferredPairScopes` and strips previously owned keys.
+- Mirror uses `MirrorCandidate` (`theme` | `pair`) and calls `applyPalettePair` for a Ghostty pair.
+- README and productContext: pairing is documented as Mirror behavior, not a known limit.
+- Tests: 20 passing in `test/parsers.test.ts` (9 new). Compile clean.
+
+## Files modified
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/src/palette.ts`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/src/discover.ts`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/src/apply.ts`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/src/extension.ts`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/test/parsers.test.ts`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/README.md`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-9-ghostty-autodetect/memory-bank/productContext.md`
+
+## Key decisions
+- Inline Ghostty config-as-theme goes through `toGhosttyDiscovered` with `{ single: 'Ghostty config (inline)' }`.
+- Preflight "bind any two themes" idea was not implemented.
 
 ## Next Step
-- Proceed to Build.
+- QA review.
