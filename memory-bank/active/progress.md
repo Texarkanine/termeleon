@@ -57,3 +57,13 @@ Flag the Windows Terminal scheme named by `profiles.defaults.colorScheme` (or th
     - Shared `parseWindowsTerminalSettings` avoids duplicate JSONC parsing, per preflight advisory.
     - README and `systemPatterns.md` updates match the plan exactly.
     - No findings block acceptance.
+
+## 2026-08-31 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-issue-10.md`.
+    - Reconciled persistent files (one already updated in build; two skipped).
+* Insights
+    - Stub `undefined` greens absence tests before implementation; only positive-path tests enforce TDD red.
+    - House style is Ghostty-like split helpers sharing one parse, not a combined `{ schemes, activeName }` return.
+
