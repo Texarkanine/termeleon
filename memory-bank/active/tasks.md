@@ -96,4 +96,13 @@ No new technology - validation not required
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA
+
+## QA Results
+
+* Result: PASS
+* 19/19 parser tests pass; `npm run compile` succeeds.
+* All 9 planned test behaviors present; existing Campbell regression test untouched.
+* Shared `parseWindowsTerminalSettings` keeps parse and active helpers DRY (preflight advisory applied).
+* README and `systemPatterns.md` doc updates match the plan exactly.
+* No findings block acceptance.

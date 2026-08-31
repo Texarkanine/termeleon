@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: Detect Windows Terminal's active colorScheme
-**Phase:** BUILD - COMPLETE
+**Phase:** QA - COMPLETE (PASS)
 
 ## What Was Done
 - Added `activeWindowsTerminalScheme` in `src/parsers/iterm2.ts` and wired `discoverWindowsTerminal` to set `active` from it.
@@ -22,4 +22,4 @@
 - Shared private `parseWindowsTerminalSettings` used by both parse and active helpers (preflight advisory).
 
 ## Next Step
-- QA via a subagent running `/niko-qa`.
+- QA passed. Ready for reflect/archive.
