@@ -28,54 +28,54 @@ Existing parser tests in `test/parsers.test.ts` must still pass after the change
 - Files: `CHANGELOG.md`
 - No tests: prose/policy artifact
 
-1. Create `CHANGELOG.md` with heading `# Changelog` only (sibling bootstrap; release-please appends version sections on release PRs).
-2. Do not add SPDX comments (markdown is licensed via root LICENSE only).
+1. [x] Create `CHANGELOG.md` with heading `# Changelog` only (sibling bootstrap; release-please appends version sections on release PRs).
+2. [x] Do not add SPDX comments (markdown is licensed via root LICENSE only).
 
 ### 2. release-please config and manifest — prose/policy
 
 - Files: `release-please-config.json`, `.release-please-manifest.json`
 - No tests: prose/policy artifact
 
-1. Add `release-please-config.json` for a single root package:
+1. [x] Add `release-please-config.json` for a single root package:
     - `"release-type": "node"` on `packages["."]` (tab-yeet; no VS Code exception — vsce reads `package.json` `version`, which node type already bumps).
     - No `extra-files` (tab-yeet lists `manifest.json` for the browser extension; this repo has no second version field).
     - `"pull-request-header": ":service_dog: I have created a release \\*bark\\* \\*woof\\"` (sibling house style).
     - Top-level `"bump-minor-pre-major": true` and `"bump-patch-for-minor-pre-major": false` (0.x siblings stockroom/SumMem/slobac/a16n; package is `0.1.0` so a `feat` must not jump to `1.0.0`).
     - `"include-component-in-tag": false` (single-package siblings; tags `v0.x.y`, not `terminal-theme-import-v0.x.y`).
     - `$schema` pointing at googleapis/release-please config schema (a16n style; optional but keeps editors honest).
-2. Add `.release-please-manifest.json` as `{ ".": "0.1.0" }` matching current `package.json` `version`. Do not bump `package.json` in this task — release-please owns later bumps.
+2. [x] Add `.release-please-manifest.json` as `{ ".": "0.1.0" }` matching current `package.json` `version`. Do not bump `package.json` in this task — release-please owns later bumps.
 
 ### 3. Release Please workflow — prose/policy
 
 - Files: `.github/workflows/release-please.yaml`
 - No tests: prose/policy artifact
 
-1. Create `.github/workflows/release-please.yaml` with only the `release-please` job (copy the helper-app + action shape from stockroom/SumMem/tab-yeet; omit tab-yeet `build-release` / AMO / CWS jobs entirely).
-2. Trigger: `push` to `main`. Permissions: `contents: write`, `pull-requests: write`, `issues: write`. Concurrency group per workflow+ref, `cancel-in-progress: false`.
-3. Token: `actions/create-github-app-token@v3` with `client-id: ${{ vars.HELPER_APP_ID }}` and `private-key: ${{ secrets.HELPER_APP_PRIVATE_KEY }}` (tab-yeet's helper-app pattern; do not invent secrets; do not use `DOGGO_BOT_*`).
-4. Run `googleapis/release-please-action@v5` with that token, `config-file: release-please-config.json`, `manifest-file: .release-please-manifest.json`.
-5. Comment that a GitHub App token is used so the release PR triggers CI, and that `HELPER_APP_ID` / `HELPER_APP_PRIVATE_KEY` are org-level (already used by siblings), not Marketplace publisher credentials.
+1. [x] Create `.github/workflows/release-please.yaml` with only the `release-please` job (copy the helper-app + action shape from stockroom/SumMem/tab-yeet; omit tab-yeet `build-release` / AMO / CWS jobs entirely).
+2. [x] Trigger: `push` to `main`. Permissions: `contents: write`, `pull-requests: write`, `issues: write`. Concurrency group per workflow+ref, `cancel-in-progress: false`.
+3. [x] Token: `actions/create-github-app-token@v3` with `client-id: ${{ vars.HELPER_APP_ID }}` and `private-key: ${{ secrets.HELPER_APP_PRIVATE_KEY }}` (tab-yeet's helper-app pattern; do not invent secrets; do not use `DOGGO_BOT_*`).
+4. [x] Run `googleapis/release-please-action@v5` with that token, `config-file: release-please-config.json`, `manifest-file: .release-please-manifest.json`.
+5. [x] Comment that a GitHub App token is used so the release PR triggers CI, and that `HELPER_APP_ID` / `HELPER_APP_PRIVATE_KEY` are org-level (already used by siblings), not Marketplace publisher credentials.
 
 ### 4. Keep release files out of the VSIX — prose/policy
 
 - Files: `.vscodeignore`
 - No tests: prose/policy artifact
 
-1. Append ignore entries for `.github/**`, `release-please-config.json`, and `.release-please-manifest.json` so vsce does not ship CI/config in the VSIX. Leave existing ignore lines alone. Do not start ignoring `CHANGELOG.md` (fine in the package).
+1. [x] Append ignore entries for `.github/**`, `release-please-config.json`, and `.release-please-manifest.json` so vsce does not ship CI/config in the VSIX. Leave existing ignore lines alone. Do not start ignoring `CHANGELOG.md` (fine in the package).
 
 ### 5. Record how releases work — prose/policy
 
 - Files: `memory-bank/techContext.md`
 - No tests: prose/policy artifact
 
-1. Add a short Releases subsection: tagged GitHub releases come from conventional commits on `main` via release-please; the bumped version is `package.json` `version`; there is no Marketplace/AMO/CWS publish job.
+1. [x] Add a short Releases subsection: tagged GitHub releases come from conventional commits on `main` via release-please; the bumped version is `package.json` `version`; there is no Marketplace/AMO/CWS publish job.
 
 ### 6. Close the issue from the implementation commit — prose/policy
 
 - Files: (commit message only)
 - No tests: prose/policy artifact
 
-1. The build-phase implementation commit that adds the files above includes `Fixes #7` in the body. Niko `chore: saving work before …` commits do not.
+1. [ ] The build-phase implementation commit that adds the files above includes `Fixes #7` in the body. Niko `chore: saving work before …` commits do not.
 
 ## Technology Validation
 

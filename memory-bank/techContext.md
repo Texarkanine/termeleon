@@ -19,3 +19,7 @@ The project is licensed AGPL-3.0-or-later via the root `LICENSE` file (`license`
 Parser and palette tests are a small Node assert harness in `test/parsers.test.ts`, run with `tsx` via `test:parsers` in `package.json`. Fixtures live under `test/fixtures/`. This suite does not load `vscode` and does not cover `apply.ts` or `extension.ts`.
 
 Executable-behavior changes follow TDD as in `.cursor/rules/shared/always-tdd.mdc`. How to run tests while iterating is in `.cursor/rules/shared/test-running-practices.mdc`.
+
+## Releases
+
+Tagged GitHub releases are cut from conventional commits on `main` by release-please (`release-please-config.json`, `.github/workflows/release-please.yaml`). The version it bumps is `package.json` `version` (`release-type: node`). There is no VS Marketplace, AMO, or Chrome Web Store publish job.
