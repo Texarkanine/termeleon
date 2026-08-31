@@ -76,3 +76,12 @@ Add CHANGELOG.md and release-please (config + workflow) so main can cut tagged r
 * Insights
     - VS Code extensions can use node `release-type` without extra-files.
     - Sibling helper-app workflows disagree on `client-id` vs `app-id`; first main run is the check.
+
+## 2026-08-31 - PR REVIEW - IN-PROGRESS
+
+* Work completed
+    - PR #14 opened (ready for review) against `initialdev`.
+    - Applied cursor[bot] finding discussion_r3896587821: `target-branch: ${{ github.ref_name }}` on the release-please action step.
+* Decisions made
+    - Parent adjudicated the judge disposition as fix in this PR.
+    - Required because this repo's GitHub default is still `initialdev`; siblings omit `target-branch` because theirs is `main`.

@@ -34,3 +34,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          # Repo default is still initialdev. Without this, release-please
+          # would open/groom the release PR against initialdev even on a
+          # push to main.
+          target-branch: ${{ github.ref_name }}

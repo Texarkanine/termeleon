@@ -22,4 +22,4 @@ Executable-behavior changes follow TDD as in `.cursor/rules/shared/always-tdd.md
 
 ## Releases
 
-Tagged GitHub releases are cut from conventional commits on `main` by release-please (`release-please-config.json`, `.github/workflows/release-please.yaml`). The version it bumps is `package.json` `version` (`release-type: node`). The workflow mints a GitHub App token from org `HELPER_APP_ID` (passed as `client-id`) and `HELPER_APP_PRIVATE_KEY`; do not invent extra secrets. There is no VS Marketplace, AMO, or Chrome Web Store publish job.
+Tagged GitHub releases are cut from conventional commits on `main` by release-please (`release-please-config.json`, `.github/workflows/release-please.yaml`). The version it bumps is `package.json` `version` (`release-type: node`). The workflow sets `target-branch` to `${{ github.ref_name }}` because the GitHub default branch is still `initialdev`; without that, release-please would open the release PR against `initialdev`. The workflow mints a GitHub App token from org `HELPER_APP_ID` (passed as `client-id`) and `HELPER_APP_PRIVATE_KEY`; do not invent extra secrets. There is no VS Marketplace, AMO, or Chrome Web Store publish job.
