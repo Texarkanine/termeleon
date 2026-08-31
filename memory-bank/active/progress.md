@@ -38,3 +38,15 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
     - The scope merge tests inject names and therefore do not prove `applyPalettePair` reads the preferred dark/light workbench settings rather than the active theme or a wildcard.
 * Next step
     - Return to planning to add testable seams and red tests for both wiring behaviors before Build.
+
+## 2026-08-31 - PLAN - COMPLETE
+
+* Work completed
+    - Replanned after preflight FAIL (fixable)
+    - Added `toGhosttyDiscovered` and `preferredPairScopes` as the testable seams preflight required
+* Decisions made
+    - `discoverGhostty` must stamp appearance only by calling `toGhosttyDiscovered`
+    - `applyPalettePair` must obtain scopes only via `preferredPairScopes((key) => workbench.get(key))`
+    - Adopted preflight advisory `pairScopes` as the single bracket helper
+* Insights
+    - Injected scope strings in merge tests cannot prove which VS Code settings apply reads; a `read(key)` spy can

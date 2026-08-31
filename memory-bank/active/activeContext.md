@@ -1,12 +1,12 @@
 # Active Context
 
 ## Current Task: ghostty-autodetect-pairs
-**Phase:** PREFLIGHT - COMPLETE (FAIL (fixable))
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Classified Level 2.
-- Planned Ghostty dark/light pair apply: stamp `appearance` at discovery, vscode-free `mergePairedColors`, `applyPalettePair` scoped to `preferredDarkColorTheme` / `preferredLightColorTheme`, Mirror treats the pair as one unit.
-- Tests stay in `test/parsers.test.ts` (no `vscode` import). Import picker stays single-theme. Do not flip `window.autoDetectColorScheme`.
+- Replanned after preflight FAIL (fixable).
+- Added vscode-free seams: `toGhosttyDiscovered` (appearance stamping) and `preferredPairScopes` (must read `preferredDarkColorTheme` / `preferredLightColorTheme`, not `colorTheme`). Adopted `pairScopes` from the preflight advisory.
+- Mirror still collapses a Ghostty pair via `mirrorCandidates`. Import picker stays single-theme. Do not flip `window.autoDetectColorScheme`.
 
 ## Next Step
-- Return to planning to make Ghostty role-stamping and preferred-theme scope selection directly testable before Build.
+- Re-run preflight on the revised plan.
