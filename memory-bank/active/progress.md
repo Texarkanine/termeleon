@@ -56,6 +56,18 @@ Attach a packaged `.vsix` to GitHub Releases cut by release-please, add a local 
 * Insights
     - Default vsce include list is "everything not ignored"; agent trees must be named in `.vscodeignore`
 
+## 2026-08-31 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-vsix-github-releases.md`
+    - Reconciled persistent files
+* Decisions made
+    - productContext: skip — maintainer packaging, not a user-facing product change
+    - systemPatterns: skip — no change to the vscode-free core / apply contract
+    - techContext: skip — already updated in build (package script, CI package, VSIX attach, ignore list)
+* Insights
+    - Read the vsce included-files tree during build; ignore-list string tests miss what actually packs
+
 ## 2026-08-31 - QA - COMPLETE
 
 * Work completed
