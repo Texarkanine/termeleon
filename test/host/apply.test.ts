@@ -124,6 +124,26 @@ suite('apply / remove / snapshot', () => {
     assert.strictEqual(inspected?.globalValue, undefined);
   });
 
+  test('removeApplied clears minimumContrastRatio when set to 1 at target', async () => {
+    await applyPalette(ctx, samplePalette(), workspaceOpts({ setMinimumContrastRatio: true }));
+    const termConfig = vscode.workspace.getConfiguration('terminal.integrated');
+    assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, 1);
+
+    const result = await removeApplied(ctx, 'workspace', false);
+    assert.ok(result.removed > 0);
+    assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, undefined);
+  });
+
+  test('removeApplied preserves minimumContrastRatio when set to a custom value other than 1', async () => {
+    const termConfig = vscode.workspace.getConfiguration('terminal.integrated');
+    await termConfig.update('minimumContrastRatio', 3, vscode.ConfigurationTarget.Workspace);
+    await applyPalette(ctx, samplePalette(), workspaceOpts({ setMinimumContrastRatio: false }));
+
+    const result = await removeApplied(ctx, 'workspace', false);
+    assert.ok(result.removed > 0);
+    assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, 3);
+  });
+
   test('workspace apply does not copy global colorCustomizations into workspace', async () => {
     await writeColors(vscode.ConfigurationTarget.Global, {
       'editor.background': '#010101',
@@ -188,6 +208,18 @@ suite('apply / remove / snapshot', () => {
     assert.strictEqual(result.usedFallback, true);
     assert.ok(result.removed >= 1);
     assert.ok(!('[Dark+]' in inspectColors('workspace')));
+  });
+
+  test('fallback remove clears minimumContrastRatio when set to 1', async () => {
+    const termConfig = vscode.workspace.getConfiguration('terminal.integrated');
+    await termConfig.update('minimumContrastRatio', 1, vscode.ConfigurationTarget.Workspace);
+    await writeColors(vscode.ConfigurationTarget.Workspace, {
+      'terminal.background': '#111111',
+    });
+
+    const result = await removeApplied(ctx, 'workspace', true);
+    assert.strictEqual(result.usedFallback, true);
+    assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, undefined);
   });
 
   test('restoreSnapshot writes the captured object back', async () => {

@@ -28,6 +28,12 @@ function readAt(target: Target): Record<string, any> {
   return raw ? JSON.parse(JSON.stringify(raw)) : {};
 }
 
+function readContrastRatioAt(target: Target): number | undefined {
+  const inspected = vscode.workspace.getConfiguration('terminal.integrated')
+    .inspect<number>('minimumContrastRatio');
+  return target === 'global' ? inspected?.globalValue : inspected?.workspaceValue;
+}
+
 function activeThemeName(): string | undefined {
   return vscode.workspace.getConfiguration('workbench').get<string>('colorTheme');
 }
@@ -126,7 +132,11 @@ export function snapshot(target: Target): Record<string, any> {
 }
 
 export function snapshotApply(ctx: vscode.ExtensionContext, target: Target): ApplySnapshot {
-  return { colors: snapshot(target), ownedKeys: ownedKeys(ctx, target) };
+  return {
+    colors: snapshot(target),
+    ownedKeys: ownedKeys(ctx, target),
+    minimumContrastRatio: readContrastRatioAt(target),
+  };
 }
 
 export async function restoreApply(
@@ -137,6 +147,8 @@ export async function restoreApply(
   const restored = restoreApplySnapshot(captured);
   await restoreSnapshot(target, restored.colors);
   await setOwnedKeys(ctx, target, restored.ownedKeys);
+  await vscode.workspace.getConfiguration('terminal.integrated')
+    .update('minimumContrastRatio', restored.minimumContrastRatio, configTarget(target));
 }
 
 export interface RemoveResult {
@@ -194,6 +206,12 @@ export async function removeApplied(
 
   await restoreSnapshot(target, current);
   await setOwnedKeys(ctx, target, []);
+
+  if (readContrastRatioAt(target) === 1) {
+    await vscode.workspace.getConfiguration('terminal.integrated')
+      .update('minimumContrastRatio', undefined, configTarget(target));
+  }
+
   return { removed, usedFallback };
 }
 

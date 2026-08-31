@@ -43,6 +43,21 @@ suite('LivePreview', () => {
     assert.deepStrictEqual(inspectColors('workspace'), {});
   });
 
+  test('cancel restores pre-session minimumContrastRatio', async () => {
+    const termConfig = vscode.workspace.getConfiguration('terminal.integrated');
+    await termConfig.update('minimumContrastRatio', 4.5, vscode.ConfigurationTarget.Workspace);
+
+    const previewOpts: ApplyOptions = { ...opts, setMinimumContrastRatio: true };
+    const preview = new LivePreview(ctx, previewOpts);
+
+    preview.schedule(samplePalette());
+    await delay(PREVIEW_DEBOUNCE_MS + 100);
+    assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, 1);
+
+    await preview.cancel();
+    assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, 4.5);
+  });
+
   test('two schedules inside the debounce window apply only the second palette', async () => {
     await vscode.workspace.getConfiguration('workbench').update(
       'colorCustomizations',
