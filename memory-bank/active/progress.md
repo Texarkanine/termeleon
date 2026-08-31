@@ -25,3 +25,12 @@ Add Node/`tsx` tests that drive `discoverThemes` against a fixture `$HOME` / `$X
     - Do not add extraDirs / Windows Terminal / iTerm2 cases; issue #5 does not ask for them.
 * Insights
     - `/Applications/Ghostty.app` theme files are outside `$HOME` on Darwin; length assertions on `discoverThemes({ sources: ['ghostty'] })` would be machine-dependent.
+
+## 2026-08-31 - PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+
+* Work completed
+    - Validated the Level 2 plan against the discovery implementation, fixtures, Node/`tsx` test harness, and public API surface.
+* Decisions made
+    - No in-phase plan edits were needed; the executable unit already puts test stubs and red tests before production code.
+* Insights
+    - A future injected filesystem/environment resolver could remove ambient `process.env` coupling for parallel-safe tests, but it is out of scope for issue #5.

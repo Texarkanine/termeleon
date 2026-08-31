@@ -1,0 +1,11 @@
+PASS WITH ADVISORY
+
+TDD plan encoding passes: the sole executable unit explicitly stubs tests and the path-resolution interface, implements and runs the tests red, then implements production code and runs the focused and combined suites green. The documentation unit is correctly marked prose/policy and has no change-detector tests.
+
+Convention compliance passes: discovery remains vscode-free, uses the established Node assert/tsx harness and fixture location, preserves the public discoverThemes and DiscoverOptions surface, and keeps test:parsers as the Node entry point.
+
+Dependency and conflict checks pass: src/discover.ts is the sole discovery implementation; its module-scope HOME/XDG snapshots are the identified obstacle, and the plan replaces every consumer with scan-time helpers. The fixtures named by the plan exist, and the planned process split prevents fixture environment mutation from affecting parser tests.
+
+Completeness passes: all issue requirements map to concrete tests, including fixture-origin filtering and environment restoration to prevent machine and cross-test leakage.
+
+Advisory — a future testability redesign could inject a filesystem/environment resolver into discovery instead of mutating process.env. That would make tests safe for parallel execution and eliminate ambient-state coupling, but it expands the API/design surface and is not warranted for this focused issue.
