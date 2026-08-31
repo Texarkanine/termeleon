@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: Detect Windows Terminal's active colorScheme
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
 
 ## What Was Done
 - Classified Level 2.
@@ -9,4 +9,4 @@
 - Default profile `colorScheme` wins over `profiles.defaults` when both are set (WT inheritance). Legacy `profiles` array included because it is cheap.
 
 ## Next Step
-- Preflight via a subagent running `/niko-preflight`.
+- Build the approved test-first implementation plan.

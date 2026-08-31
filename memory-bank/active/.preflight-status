@@ -1,0 +1,11 @@
+PASS WITH ADVISORY
+
+Preflight completed for issue-10.
+
+PASS: The executable unit explicitly orders stub tests, stub interface, implemented failing tests, then production implementation. It covers defaults-only resolution, default-profile precedence and inheritance, absent/malformed configuration, legacy array profiles, case-insensitive GUID matching, a representative JSONC fixture, and the existing scheme-parsing regression.
+
+PASS: `src/parsers/iterm2.ts`, `test/parsers.test.ts`, `test/fixtures/`, and `src/discover.ts` are established locations for this work. The plan keeps the helper pure and vscode-free, reuses `stripJsonComments`, leaves discovery best-effort, and does not change palette parsing.
+
+PASS: The plan accounts for the downstream discovery path by setting `active` per parsed scheme, while keeping unrelated per-profile schemes out of scope. Documentation updates satisfy the stated README acceptance criterion and correct the architecture note.
+
+ADVISORY: Extract a private `parseWindowsTerminalSettings(text)` function returning `unknown | undefined`, and have both `parseWindowsTerminal` and `activeWindowsTerminalScheme` use it. This eliminates the planned duplicate JSONC strip/parse pass and centralizes malformed-document handling, at the cost of a small internal helper. The current separate-helper plan is still acceptable and mirrors the Ghostty pattern.

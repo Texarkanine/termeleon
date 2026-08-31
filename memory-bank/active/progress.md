@@ -26,3 +26,11 @@ Flag the Windows Terminal scheme named by `profiles.defaults.colorScheme` (or th
     - No discover filesystem tests (issue #5); helper is the fixture-tested contract.
 * Insights
     - Double JSON.parse of one settings.json (parse schemes + resolve active name) is acceptable; Ghostty already uses a separate active helper.
+
+## 2026-08-31 - PREFLIGHT - COMPLETE
+
+* Result: PASS WITH ADVISORY
+* Work completed
+    - Validated the TDD ordering, code locations, existing parser/discovery conventions, and documented downstream effects.
+* Advisory
+    - Consider a shared private JSONC parse helper to eliminate the duplicate parse pass between scheme parsing and active-name resolution; the existing separate-helper approach remains valid.
