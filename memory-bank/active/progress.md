@@ -30,3 +30,15 @@ Add CHANGELOG.md and release-please (config + workflow) so main can cut tagged r
 * Insights
     - Siblings disagree on `app-id` vs `client-id` for the same HELPER_APP_ID var; first main run is the real check.
     - Parallel issue-3 may also add `.github/workflows/`; this task adds only `release-please.yaml`.
+
+## 2026-08-31 - PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+
+* Work completed
+    - Validated the plan against the worktree and the real sibling repos (tab-yeet via GitHub API; stockroom, SumMem, a16n locally).
+    - Result: `PASS WITH ADVISORY` (first line of `memory-bank/active/.preflight-status`).
+* Decisions made
+    - TDD check passes: all six units are prose/policy/config artifacts with no scheduled change-detectors; no plan edits were needed.
+    - Plan's tab-yeet claims verified verbatim (node release-type, pull-request-header, `client-id` helper-app token, action v5).
+* Insights
+    - Advisory: a `build-vsix` job attaching the .vsix to the GitHub Release would make releases distributable without a Marketplace publisher.
+    - Advisory: no `package-lock.json` exists, so any future CI build job cannot use `npm ci` until one is committed.

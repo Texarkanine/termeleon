@@ -1,0 +1,17 @@
+PASS WITH ADVISORY
+
+Preflight run 2026-08-31, task changelog-release-please (Level 2). Plan validated against the worktree and against the actual sibling repos (tab-yeet fetched from GitHub; stockroom, SumMem, a16n read locally).
+
+TDD Plan Encoding: PASS. Every implementation unit (1-6) is a prose/policy/config artifact (CHANGELOG, release-please JSON, Actions workflow YAML, .vscodeignore, techContext note, commit message) and is explicitly marked "No tests: prose/policy artifact". No unit schedules a change-detector; the plan and pre-mortem explicitly forbid a CHANGELOG-contents test. The only test commitment is the end-of-build regression run of the existing parser suite, which is correct since no product code is touched. No strikes or step reordering were needed.
+
+Convention Compliance: PASS. Root-level CHANGELOG.md / release-please-config.json / .release-please-manifest.json and .github/workflows/release-please.yaml match the layout and naming of stockroom, SumMem, and a16n. systemPatterns.md covers only the src/ architecture, which is untouched.
+
+Dependency Impact: PASS. package.json is 0.1.0, matching the planned manifest `{ ".": "0.1.0" }`; node release-type bumps package.json, so no extra-files is correct (verified: this repo has no second version field like tab-yeet's manifest.json). .vscodeignore currently lacks .github/release-please entries; unit 4 appends exactly those. The parallel issue-3 workflow collision is acknowledged with a sound mitigation (add only release-please.yaml).
+
+Conflict Detection: PASS. No existing .github/, CHANGELOG.md, or release-please files in the worktree - nothing duplicated or contradicted. Plan claims verified against sources: tab-yeet really does use `release-type: node` on packages["."], the exact `:service_dog:` pull-request-header, `actions/create-github-app-token@v3` with `client-id: ${{ vars.HELPER_APP_ID }}`, and `googleapis/release-please-action@v5`. The client-id vs app-id divergence across siblings is real (stockroom uses app-id with the same var; SumMem uses DOGGO_BOT_*); both inputs are accepted by create-github-app-token v3, and the plan documents the choice and its one-line fallback. Passing config-file/manifest-file explicitly (stockroom/SumMem style) differs from tab-yeet's reliance on defaults but is harmless and matches the majority of siblings. No public contract is affected.
+
+Completeness: PASS. All six brief requirements and all six acceptance criteria map to concrete plan units, including the `Fixes #7` commit-body requirement (unit 6) and the no-SPDX constraint (unit 1).
+
+Advisory (radical innovation, not blocking): consider a small `build-vsix` job gated on `release_created` that runs `npm run compile` + `vsce package` and attaches the .vsix to the GitHub Release (softprops/action-gh-release, the tab-yeet build-release shape minus AMO/CWS). With no Marketplace publishing in scope, the GitHub release is currently a tag with notes but no installable artifact; attaching the VSIX would make releases actually distributable. This adds @vscode/vsce as a devDependency and one job - a real scope expansion for the operator to judge, not assumed into the plan.
+
+Advisory (secondary): the repo has no package-lock.json (techContext confirms). Any future CI build job (issue-3, or the VSIX idea above) cannot use `npm ci` until one exists; tab-yeet even runs an update-package-lock workflow. Worth deciding deliberately, outside this task.
