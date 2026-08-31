@@ -89,4 +89,10 @@ Add GitHub Actions CI that runs `npm ci`, `npm run test:parsers`, and `npm run c
 * Decisions made
     - Do not replace `main` with only `initialdev`; keep both so CI runs on this repo now and still matches house shape when `main` exists.
 
+## 2026-08-31 - ARCHIVE - READY
+
+* Work completed
+    - Operator invoked `/niko-archive` after the PR 15 review fix was pushed.
+
+
 
