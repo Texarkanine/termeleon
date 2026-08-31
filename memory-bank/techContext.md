@@ -16,6 +16,6 @@ The project is licensed AGPL-3.0-or-later via the root `LICENSE` file (`license`
 
 ## Testing Process
 
-Parser and palette tests are a small Node assert harness in `test/parsers.test.ts`, run with `tsx` via `test:parsers` in `package.json`. Fixtures live under `test/fixtures/`. This suite does not load `vscode` and does not cover `apply.ts` or `extension.ts`.
+Parser, palette, and vscode-free discovery tests are a small Node assert harness in `test/parsers.test.ts`, run with `tsx` via `test:parsers` in `package.json`. Fixtures live under `test/fixtures/`. This suite does not load `vscode` and does not cover `apply.ts` or `extension.ts`. `discover.ts` captures home/XDG at module load, so discovery tests that pass `extraDirs` still scan the real machine; assert by filtering `origin` under the fixture directory.
 
 Executable-behavior changes follow TDD as in `.cursor/rules/shared/always-tdd.mdc`. How to run tests while iterating is in `.cursor/rules/shared/test-running-practices.mdc`.

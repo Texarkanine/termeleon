@@ -1,0 +1,37 @@
+PASS
+
+# QA Validation - issue-2-extra-directories
+
+Reviewed commit 18633be (fix: scan extraDirectories for all walkable theme formats) against
+memory-bank/active/projectbrief.md and systemPatterns.md.
+
+## Findings
+
+- Requirement 1 (extra dirs scanned for every already-parsed format) met: `extraDirs` is now
+  threaded into `discoverGhostty`, `discoverKitty`, `discoverAlacritty`, and `discoverWezterm`;
+  `discoverIterm2` already had it. Does not block.
+- Requirement 2 / Acceptance 4 (fixture discovery test) met: `test/fixtures/extra/` holds one
+  file per walkable format and `test/parsers.test.ts` asserts each source+name pair. Does not block.
+- Constraint 1 (vscode-free core) held: `src/discover.ts` has no `vscode` import. Does not block.
+- Constraint 2 (discovery never throws) held: new code reuses the existing `walk`/`readText`
+  try/catch and `isUsable` gate; no new unguarded I/O. Does not block.
+- Constraint 3 (no new parsers) held: extra-dir files are routed through the existing
+  `parseGhostty`/`parseKitty`/`parseAlacritty`/`parseWezterm`/`parseItermColors`. Does not block.
+- KISS/DRY/YAGNI: the diff is a minimal, uniform extension of each discoverer's existing
+  shape (push extra dirs into the same walk/list it already built); no new abstraction, no
+  unused parameters. Does not block.
+- Verified independently: `npm run test:parsers` (12 passed) and `npm run compile` both pass.
+- Advisory - Ghostty dedup-by-stem: `discoverGhostty` appends `extraDirs` after the bundled
+  theme dirs and skips a stem already `seen`, so an extra-dir file that happens to share a name
+  with a bundled theme is silently hidden. Pre-existing dedup behavior extended unchanged to the
+  new dirs, already called out in progress.md; not a regression this change introduces and not
+  required by the plan to change. Does not block.
+- Advisory - Alacritty active-flag by filename: `active` is `/alacritty\.toml$/i.test(file)`,
+  so an extra-dir file literally named `alacritty.toml` would be marked active even though it
+  isn't the emulator's real config. Same filename-based check as before, now reachable from a
+  new directory; narrow edge case, not part of this issue's acceptance criteria. Does not block.
+- Documentation: `package.json`'s `extraDirectories` description and the README's "Add anything
+  else ... via `terminalThemeImport.extraDirectories`" line were already format-agnostic, so no
+  doc text needs correcting now that the behavior matches the docs. Does not block.
+
+No findings require Build or Plan to rerun.

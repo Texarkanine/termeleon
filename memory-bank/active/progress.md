@@ -29,3 +29,13 @@ Scan extra directories for every walkable theme format already parsed (Ghostty, 
 * Insights
     - Alacritty and WezTerm both walk extra `.toml`; each parser fails `isUsable` on the other's schema, so a mixed pack does not double-list.
     - Ghostty extra-dir names still dedupe against bundled themes (`seen` by stem): a pack file named like a bundled theme stays hidden.
+
+## 2026-08-31 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Reviewed commit `18633be` against `projectbrief.md` and `systemPatterns.md`; re-ran `npm run test:parsers` (12 passed) and `npm run compile` independently.
+    - Confirmed every requirement, acceptance criterion, and constraint (vscode-free core, never-throw discovery, no new parsers) is met.
+* Decisions made
+    - PASS: no findings require Build or Plan to rerun.
+* Insights
+    - The two edge cases already known from BUILD (Ghostty stem-dedupe hiding a same-named extra file; Alacritty's filename-based active flag) are pre-existing patterns extended unchanged to the new dirs, not regressions this change introduces, and out of scope for this issue's acceptance criteria.

@@ -27,3 +27,13 @@ Windows Terminal and Xresources stay on their fixed paths (settings.json locatio
 - `src/discover.ts`
 - `test/parsers.test.ts`
 - `test/fixtures/extra/`
+
+## QA - COMPLETE (PASS)
+
+- All plan requirements, acceptance criteria, and constraints verified against commit `18633be`.
+- `npm run test:parsers` (12 passed) and `npm run compile` re-verified independently.
+- Two non-blocking advisories: Ghostty's pre-existing dedup-by-stem can hide an extra-dir file
+  that shares a name with a bundled theme; Alacritty's filename-based active flag would
+  misfire on an extra-dir file literally named `alacritty.toml`. Neither is required to change
+  for this issue and neither is a regression introduced by this change.
+- Full findings: `memory-bank/active/.qa-validation-status`.
