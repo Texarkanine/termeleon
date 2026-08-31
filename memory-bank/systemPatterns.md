@@ -45,7 +45,7 @@ Violating the vscode-free boundary (importing `vscode` into a parser or into dis
 
 ## Live Preview Is Real Writes
 
-The picker does not use a scratch overlay. Arrowing through items schedules `LivePreview` (`src/apply.ts`), which debounces real `applyPalette` writes; cancel restores the snapshot taken when the session started. Accepting leaves the last applied value in place and records owned keys. Turning `livePreview` off skips the write-on-arrow path. Host tests drive `LivePreview` directly; they do not automate the QuickPick.
+The picker does not use a scratch overlay. Arrowing through items schedules `LivePreview` (`src/apply.ts`), which debounces real `applyPalette` writes. `cancel()` restores the pre-session snapshot. `stop()` drops a pending timer without restoring — accept must call it, or a leftover apply can overwrite a Remove inside the debounce window. Turning `livePreview` off skips the write-on-arrow path. Host tests drive `LivePreview` directly; they do not automate the QuickPick.
 
 ## UI-Kind Local Filesystem
 

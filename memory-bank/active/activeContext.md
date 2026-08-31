@@ -4,9 +4,9 @@
 **Phase:** REFLECT COMPLETE
 
 ## What Was Done
-- Host tests for apply, remove, and LivePreview cancel/debounce. `npm test`: parsers 11, host 17.
-- `Fixes #6` is in commit `5e24efc`.
-- Reconciled `systemPatterns.md` and `techContext.md` (host harness now exists; lockfile exists). `productContext.md` unchanged.
+- Host tests for apply, remove, and LivePreview cancel/debounce. PR 17 opened.
+- PR review (cursor[bot]): `LivePreview.stop()` clears the pending timer on accept without restore; picker calls it on hide-when-accepted. Debounce test now omits `cursor` on the second palette and asserts `terminalCursor.foreground` is absent. Host test covers accept-then-remove in the debounce window.
+- `npm test`: parsers 11, host 18.
 
 ## Next Step
-- Operator: run `/niko-archive` to archive. Do not open a PR from this worker.
+- Parent: do not `/niko-archive` yet. Review comments remain for parent to resolve on the PR.

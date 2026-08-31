@@ -140,8 +140,9 @@ async function pickAndApply(
     });
 
     qp.onDidHide(async () => {
-      if (!accepted && session) {
-        await session.cancel();
+      if (session) {
+        if (accepted) { session.stop(); }
+        else { await session.cancel(); }
       }
       qp.dispose();
       if (!accepted) { resolve(undefined); }

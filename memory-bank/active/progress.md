@@ -83,3 +83,13 @@ Add an Extension Development Host test suite so apply, surgical remove, and live
 * Insights
     - Characterization tests for existing vscode-bound APIs; TDD for new units only
     - vscode-test needs a short `--user-data-dir` on macOS in this worktree layout
+
+## 2026-08-31 - PR REVIEW FIXES
+
+* Work completed
+    - `LivePreview.stop()` clears a pending preview without restore; `pickAndApply` calls it on accept
+    - Debounce test asserts a first-only key (`terminalCursor.foreground`) is absent after the wait
+    - Host test: schedule → stop → apply → remove → wait; leftover apply must not return
+    - `npm test`: parsers 11, host 18
+* Decisions made
+    - Named the method `stop()` (clear only); `cancel()` calls `stop()` then restores

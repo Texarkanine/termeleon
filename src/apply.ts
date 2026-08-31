@@ -182,11 +182,16 @@ export class LivePreview {
     }, PREVIEW_DEBOUNCE_MS);
   }
 
-  async cancel(): Promise<void> {
+  /** Drops a pending preview write without restoring the snapshot (accept path). */
+  stop(): void {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = undefined;
     }
+  }
+
+  async cancel(): Promise<void> {
+    this.stop();
     await restoreSnapshot(this.opts.target, this.original);
   }
 }
