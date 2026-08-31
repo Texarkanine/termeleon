@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as assert from 'assert';
 
 import { toColorCustomizations, isUsable, normalizeColor } from '../src/palette';
+import { discoverThemes } from '../src/discover';
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
 import { parseAlacritty } from '../src/parsers/toml';
@@ -150,6 +151,21 @@ test('extracts every scheme from one settings.json, comments and all', () => {
   assert.strictEqual(schemes[0].name, 'Campbell');
   assert.strictEqual(schemes[0].palette.ansi[5], '#881798', 'purple maps to magenta slot');
   assert.strictEqual(schemes[0].palette.ansi[13], '#b4009e');
+});
+
+console.log('\ndiscovery');
+test('extra directories are scanned for every walkable format, not only iterm2', () => {
+  const extraDir = path.join(__dirname, 'fixtures', 'extra');
+  const found = discoverThemes({ extraDirs: [extraDir] })
+    .filter((t) => t.origin.startsWith(extraDir + path.sep));
+  const names = (source: string) =>
+    found.filter((t) => t.source === source).map((t) => t.name).sort();
+
+  assert.deepStrictEqual(names('ghostty'), ['extra-ghostty']);
+  assert.deepStrictEqual(names('kitty'), ['extra-kitty']);
+  assert.deepStrictEqual(names('alacritty'), ['extra-alacritty']);
+  assert.deepStrictEqual(names('wezterm'), ['extra-wezterm']);
+  assert.deepStrictEqual(names('iterm2'), ['extra-iterm2']);
 });
 
 console.log('\nxresources');
