@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Palette, toColorCustomizations, managedKeys, mergeColors, mergePairedColors, preferredPairScopes, stripOwnedKeys } from './palette';
+import { Palette, ApplySnapshot, toColorCustomizations, managedKeys, mergeColors, mergePairedColors, preferredPairScopes, stripOwnedKeys, restoreApplySnapshot } from './palette';
 
 export type Target = 'global' | 'workspace';
 
@@ -123,6 +123,20 @@ export async function restoreSnapshot(
 
 export function snapshot(target: Target): Record<string, any> {
   return readAt(target);
+}
+
+export function snapshotApply(ctx: vscode.ExtensionContext, target: Target): ApplySnapshot {
+  return { colors: snapshot(target), ownedKeys: ownedKeys(ctx, target) };
+}
+
+export async function restoreApply(
+  ctx: vscode.ExtensionContext,
+  target: Target,
+  captured: ApplySnapshot,
+): Promise<void> {
+  const restored = restoreApplySnapshot(captured);
+  await restoreSnapshot(target, restored.colors);
+  await setOwnedKeys(ctx, target, restored.ownedKeys);
 }
 
 export interface RemoveResult {

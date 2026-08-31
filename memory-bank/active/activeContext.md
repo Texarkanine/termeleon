@@ -4,9 +4,9 @@
 **Phase:** REFLECT COMPLETE
 
 ## What Was Done
-- Reflected on Ghostty dark/light pair apply. Standing contract update: strip-before-merge on every apply path (`systemPatterns.md`).
-- productContext: skip — pairing constraint already matches shipped behavior.
-- techContext: skip — still the same `test:parsers` harness; apply.ts/extension.ts remain untested in the extension host.
+- PR #18 review fix (discussion_r3896723496): `pickAndApply` snapshots and restores owned keys with colorCustomizations via `snapshotApply` / `restoreApply`.
+- Test: preview cancel that restores colors alone leaves pair scopes unstrippable; `restoreApplySnapshot` restores both so the next strip clears them.
+- `npm run test:parsers` 22/22; `npm run compile` clean.
 
 ## Next Step
-- Operator: `/niko-archive` to archive this standalone task. Do not open a PR from this worker.
+- Parent continues PR #18. Do not `/niko-archive` until the operator asks.

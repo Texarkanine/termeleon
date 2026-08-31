@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as assert from 'assert';
 
-import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeColor, pairScopes, preferredPairScopes, mergeColors, mergePairedColors, stripOwnedKeys } from '../src/palette';
+import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeColor, pairScopes, preferredPairScopes, mergeColors, mergePairedColors, stripOwnedKeys, restoreApplySnapshot } from '../src/palette';
 import { toGhosttyDiscovered, activeGhosttyPair, mirrorCandidates } from '../src/discover';
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
@@ -336,6 +336,32 @@ test('stripOwnedKeys clears a prior pair so a later flat merge is not shadowed',
   assert.strictEqual(flat.next['terminal.background'], '#222');
   assert.ok(!(darkScope in flat.next));
   assert.ok(!(lightScope in flat.next));
+});
+
+test('preview cancel restores owned keys with colors so the next strip clears pair scopes', () => {
+  const { darkScope, lightScope } = pairScopes('One Dark Pro', 'GitHub Light');
+  const paired = mergePairedColors(
+    {},
+    { 'terminal.background': '#111' },
+    { 'terminal.background': '#fafafa' },
+    darkScope,
+    lightScope,
+  );
+  const snap = { colors: paired.next, ownedKeys: paired.ownedKeys };
+  const previewed = mergeColors(
+    stripOwnedKeys(snap.colors, snap.ownedKeys),
+    { 'terminal.background': '#222' },
+  );
+  const leaked = stripOwnedKeys(snap.colors, previewed.ownedKeys);
+  assert.ok(darkScope in leaked, 'restoring colors alone leaves pair scopes unstrippable');
+
+  const afterCancel = restoreApplySnapshot(snap);
+  assert.deepStrictEqual(afterCancel.colors, snap.colors);
+  assert.deepStrictEqual(afterCancel.ownedKeys, snap.ownedKeys);
+  assert.notDeepStrictEqual(afterCancel.ownedKeys, previewed.ownedKeys);
+  const next = stripOwnedKeys(afterCancel.colors, afterCancel.ownedKeys);
+  assert.ok(!(darkScope in next));
+  assert.ok(!(lightScope in next));
 });
 
 console.log(`\n${passed} passed\n`);

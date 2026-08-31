@@ -131,4 +131,15 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
     - Theme-scoped colorCustomizations outrank unscoped keys; a new apply path that forgets to strip orphans the previous write
     - `read(key)` spies make settings-key choice testable without an extension host
 
+## 2026-08-31 - PR-REVIEW-FIX
+
+* Work completed
+    - Live-preview cancel now restores owned keys with colors (`snapshotApply` / `restoreApply`)
+    - Added `restoreApplySnapshot` test covering pair Mirror then preview cancel then next strip
+    - 22 parser tests passing; compile clean
+* Decisions made
+    - vscode-free contract lives in `restoreApplySnapshot`; `pickAndApply` calls `restoreApply` so both stores come back together
+* Insights
+    - `applyPalette` records owned keys on every preview write; restoring only `colorCustomizations` desyncs the strip list from the settings that remain
+
 

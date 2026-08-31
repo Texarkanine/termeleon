@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { DiscoveredTheme } from './palette';
 import { discoverThemes, mirrorCandidates, MirrorCandidate } from './discover';
 import {
-  Target, ApplyOptions, applyPalette, applyPalettePair, removeApplied, snapshot, restoreSnapshot,
+  Target, ApplyOptions, applyPalette, applyPalettePair, removeApplied, snapshotApply, restoreApply,
 } from './apply';
 
 const CONFIG = 'terminalThemeImport';
@@ -117,9 +117,8 @@ function toMirrorItem(candidate: MirrorCandidate): MirrorItem {
 /**
  * Shows the picker with optional live preview.
  *
- * Preview writes real settings, so the pre-picker value is captured up front
- * and restored if the user backs out. Committing simply leaves the last
- * previewed value in place and records the owned keys.
+ * Preview writes real settings, so the pre-picker colors *and* owned keys
+ * are captured up front and both restored if the user backs out.
  */
 async function pickAndApply(
   ctx: vscode.ExtensionContext,
@@ -128,7 +127,7 @@ async function pickAndApply(
 ): Promise<void> {
   const opts = applyOptions(target);
   const preview = settings().livePreview;
-  const original = snapshot(target);
+  const original = snapshotApply(ctx, target);
 
   const picked = await new Promise<DiscoveredTheme | undefined>((resolve) => {
     const qp = vscode.window.createQuickPick<ThemeItem>();
@@ -162,7 +161,7 @@ async function pickAndApply(
     qp.onDidHide(async () => {
       if (previewTimer) { clearTimeout(previewTimer); }
       if (!accepted && preview) {
-        await restoreSnapshot(target, original);
+        await restoreApply(ctx, target, original);
       }
       qp.dispose();
       if (!accepted) { resolve(undefined); }
