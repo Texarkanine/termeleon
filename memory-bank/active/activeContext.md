@@ -1,14 +1,13 @@
 # Active Context
 
 ## Current Task: GitHub Actions CI
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
 
-- Operator pointed at https://github.com/Texarkanine/vscode-terminal-themes/issues/3 and approved it as the task (no intent wait).
-- Persistent memory bank already present; no `memory-bank/active/` ephemeral files, so this is a fresh standalone task.
-- Classified Level 2: adding CI, lockfile, and `.nvmrc` is a self-contained enhancement of repo tooling, not a product-feature or architectural change.
+- Classified Level 2.
+- Planned TDD contract tests in the existing `test/parsers.test.ts` harness (lockfile, `.nvmrc`, workflow commands), then `.nvmrc` `22`, committed lockfile generated on Node 22, tab-yeet-shaped `ci.yaml` without REUSE/Codecov/vsce, then README + `techContext.md`.
 
 ## Next Step
 
-- Load the Level 2 workflow and run the Plan phase.
+- Preflight validation of the plan.

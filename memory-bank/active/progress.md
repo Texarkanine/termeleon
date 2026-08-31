@@ -17,3 +17,15 @@ Add GitHub Actions CI that runs `npm ci`, `npm run test:parsers`, and `npm run c
     - Tree has no `.github/`, no `.nvmrc`, and no `package-lock.json`.
     - `techContext.md` still says there is no lockfile; that must be updated when the lockfile is committed.
     - README Development already documents `npm install` / `test:parsers` / `compile`; after a lockfile, `npm ci` is the local equivalent of CI.
+
+## 2026-08-31 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote Level 2 implementation plan in `tasks.md`: CI contract tests in the existing harness, then `.nvmrc` / lockfile / `ci.yaml`, then README and techContext.
+* Decisions made
+    - Node pin is major `22` (tab-yeet style; this machine's nvm default is 22.x).
+    - Workflow shape is tab-yeet minus coverage/Codecov and minus this repo's out-of-scope jobs; scripts are `test:parsers` then `compile`.
+    - Contract tests live in `test/parsers.test.ts` so `npm run test:parsers` stays the CI test command.
+    - No new npm dependencies; no YAML parser.
+* Insights
+    - Preflight will treat the workflow as executable because it is a workflow CI runs; encoding TDD as a cross-file contract (not YAML wording) is the always-tdd-legal path.
