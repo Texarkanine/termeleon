@@ -34,3 +34,14 @@ Flag the Windows Terminal scheme named by `profiles.defaults.colorScheme` (or th
     - Validated the TDD ordering, code locations, existing parser/discovery conventions, and documented downstream effects.
 * Advisory
     - Consider a shared private JSONC parse helper to eliminate the duplicate parse pass between scheme parsing and active-name resolution; the existing separate-helper approach remains valid.
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Implemented `activeWindowsTerminalScheme`; `discoverWindowsTerminal` sets `active` from it.
+    - Parser tests 19/19 passing; `npm run compile` succeeded.
+    - README and `systemPatterns.md` updated.
+* Decisions made
+    - Took the preflight advisory: shared `parseWindowsTerminalSettings` for parse + active helpers.
+* Insights
+    - Negative cases (no scheme / unparseable) passed while the helper was still a stub returning `undefined`; red was the six positive-path tests.
