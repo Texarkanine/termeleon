@@ -50,3 +50,16 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
     - Adopted preflight advisory `pairScopes` as the single bracket helper
 * Insights
     - Injected scope strings in merge tests cannot prove which VS Code settings apply reads; a `read(key)` spy can
+
+## 2026-08-31 - PREFLIGHT - COMPLETE
+
+* Result: `PASS WITH ADVISORY`
+* Findings
+    - TDD Plan Encoding: both executable units order stub tests → stub interface → red tests → green code; prior FAIL (fixable) findings resolved by `toGhosttyDiscovered` and `preferredPairScopes(read)` seams.
+    - Convention Compliance / Conflict Detection: new symbols land in the correct vscode-free modules per `systemPatterns.md`; no naming collisions found in `src/`.
+    - Advisory: add a direct `mergeColors(current, colors, '[Theme]')` single-scope test rather than relying on incidental coverage through the pair-merge test.
+    - Advisory: `discoverGhostty`'s inline-config-as-theme fallback branch isn't explicitly routed through `toGhosttyDiscovered`; low risk, worth a one-line decision during Build.
+    - Advisory: `commandMirror`'s pair-candidate QuickPick row needs a concrete discriminated type during Build's interface-stubbing step; untested UI glue, consistent with rest of `extension.ts`.
+    - Radical Innovation (advisory, not applied): generalize `applyPalettePair`/`mergePairedColors` into a cross-emulator "Bind light/dark pair" command later.
+* Next step
+    - Proceed to Build.

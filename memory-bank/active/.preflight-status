@@ -1,12 +1,33 @@
-FAIL (fixable)
+PASS WITH ADVISORY
 
-## Findings
+# Preflight Findings — ghostty-autodetect-pairs (re-run after prior FAIL (fixable))
 
-- **Blocking TDD coverage gap:** Pair-identity tests construct `DiscoveredTheme` values, so they can validate `activeGhosttyPair` but cannot fail when `discoverGhostty` fails to stamp `appearance` from `activeGhosttyThemes`. The plan needs a vscode-free, testable discovery seam or helper and an explicit red test for the stamping behavior.
-- **Blocking acceptance-coverage gap:** The planned merge tests inject `[Dark]` and `[Light]` scope names. They cannot fail if `applyPalettePair` reads `workbench.colorTheme` or wildcard scopes instead of `workbench.preferredDarkColorTheme` and `workbench.preferredLightColorTheme`. The plan needs a testable settings-to-scope seam or an extension-host/mock test that proves the pair path writes under the two preferred-theme names.
-- **Convention and dependency checks passed:** The proposed vscode-free helpers belong in `src/discover.ts` and `src/palette.ts`; `apply.ts` remains the configuration-only mutation boundary. The plan preserves `removeApplied`'s existing scoped-owned-key format and does not re-parse Ghostty configuration during apply.
-- **No overlap conflict found:** `activeGhosttyThemes`, `toColorCustomizations`, and the scoped-key removal regex are reusable foundations rather than competing implementations.
+## TDD Plan Encoding
 
-## Advisory
+Both executable units (1. Pair identity, 2. Paired colorCustomizations merge) place "stub tests → stub interface → write tests/red → write code/green" in that order for every listed behavior. No implementation-only steps found. Unit 3 (README / productContext known-limit docs) correctly declares "No tests: prose/policy artifact" and proposes no doc-content assertions, so no change-detector risk. The two seams added during the prior replan (`toGhosttyDiscovered`, `preferredPairScopes`) resolve both prior FAIL (fixable) findings: appearance stamping is now directly testable without going through `discoverGhostty`'s filesystem walk, and `preferredPairScopes(read)` takes an injectable spy so tests can assert the exact settings keys requested (`preferredDarkColorTheme` / `preferredLightColorTheme`, not `colorTheme` or a `[*Dark*]` wildcard). No blocking finding.
 
-- Extract a small pure `pairScopes(preferredDarkTheme, preferredLightTheme)` helper alongside the palette merge helpers. It gives one contract for validation, brackets names once, and prevents future pair callers from recreating scope construction.
+## Convention Compliance
+
+Matches `systemPatterns.md`'s vscode-free/vscode-bound split: `toGhosttyDiscovered`, `activeGhosttyPair`, `mirrorCandidates` land in `discover.ts` (discovery-level concerns, consistent with its existing active-theme detection and sorting); `pairScopes`, `preferredPairScopes`, `mergeColors`, `mergePairedColors` land in `palette.ts` (extends the existing single mapping hub without adding a second palette→VS Code mapping table — these merge into settings shape, they don't re-map palette semantics). `preferredPairScopes` takes an injected `read` closure rather than importing `vscode`, preserving the vscode-free boundary; `apply.ts` remains the only module that calls `config.update()`, satisfying Constraint 1. No violations found.
+
+## Dependency Impact
+
+`removeApplied`'s existing scoped-key regex (`^(\[[^\]]+\])\.(.+)$`) already matches the new dual-scope owned-key shape (`[Theme].terminal.*`) with no code change required — plan correctly relies on this rather than re-deriving it. `discoverGhostty`'s inline-config-as-theme fallback (when no `theme =` line is found, `discover.ts:102-112`) constructs a `DiscoveredTheme` directly rather than through the walked-entries loop; the plan doesn't say whether this path also routes through `toGhosttyDiscovered` or keeps its current direct construction. Low risk (single-file case has no dark/light appearance to stamp either way) but worth an explicit one-line decision during Build so the "only stamper" invariant in the Pre-Mortem is unambiguous for that branch too.
+
+## Conflict Detection
+
+Searched `src/` for every new symbol name (`preferredDarkColorTheme`, `pairScopes`, `mergeColors`, `mergePairedColors`, `toGhosttyDiscovered`, `activeGhosttyPair`, `mirrorCandidates`, `applyPalettePair`) — no existing implementation or naming collision. No duplication-in-waiting. No public-contract breakage: `applyPalette`/`toColorCustomizations` signatures are unchanged: `mergeColors` is presented as what `applyPalette` now calls, additive from the caller's perspective.
+
+## Completeness Precheck
+
+All three stated Requirements and both Use-Cases map to concrete files/functions. One coverage gap: `mergeColors(current, colors, scopeKey?)` introduces a single-scope code path (equivalent to the existing, previously-untested `scopeToActiveTheme` bracket-merge in `apply.ts`) that is now vscode-free and testable, but the Test Plan's behavior list has no case that calls `mergeColors` directly with one scope key — only the no-scope case and the two-scope case (via `mergePairedColors`, which likely exercises the scoped branch of `mergeColors` internally, but only indirectly). Recommend adding one direct behavior — `mergeColors(current, colors, '[Some Theme]')` → keys under `[Some Theme]`, and unrelated keys preserved — to pin this now-testable regression surface explicitly rather than relying on incidental coverage through the pair path.
+
+Second, minor gap: `extension.ts`'s `commandMirror` needs to render one QuickPick row for a collapsed pair candidate (distinct from the existing `ThemeItem`/`toItem` single-theme shape) and dispatch to `applyPalettePair` vs `applyPalette` accordingly. The plan states the desired behavior ("offer the pair as one QuickPick row") but not a concrete candidate type. This is untested UI glue (consistent with the rest of `extension.ts`, which has no test coverage under the project's stated testing process), so it doesn't trip the TDD Plan Encoding check, but the Build phase's "stub the interface" step should introduce an explicit discriminated type (e.g. a candidate union) so the dispatch isn't ad hoc.
+
+## Radical Innovation (advisory, not applied)
+
+`preferredPairScopes` / `mergePairedColors` don't hardcode Ghostty anywhere in their signatures — they take two color maps and two scope strings. The accretive move: expose a small "Bind light/dark pair" command that lets a user pick *any two* discovered themes (not just a Ghostty `dark:X,light:Y` pair) from `discoverThemes()`'s output and wires them through the exact same `applyPalettePair`/`mergePairedColors` plumbing this task builds. That turns a Ghostty-specific fix into a general cross-emulator auto-detect binding feature (e.g. a kitty dark scheme paired with an Alacritty light scheme) with zero additional core-mapping code — only a new QuickPick flow in `extension.ts` reusing already-built vscode-free helpers. Not applied to the plan; recorded for the operator to evaluate against scope creep for this Level 2 task.
+
+## Verdict
+
+PASS WITH ADVISORY. No blocking or fixable defect found; the two prior FAIL (fixable) findings are resolved by the `toGhosttyDiscovered` / `preferredPairScopes` seams. The two completeness advisories above (explicit single-scope `mergeColors` test; discoverGhostty inline-fallback stamping path; pair-candidate QuickPick type) do not require a replan and can be picked up during Build's interface-stubbing step.
