@@ -12,3 +12,14 @@ Fix `parseKitty` so trailing inline comments are stripped and hex values that st
     - Level 1: bug fix, single component (`src/parsers/kitty.ts` + parser tests).
 * Insights
     - The fixture `tomorrow-night.conf` has no inline comments, which is why the suite stayed green.
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Failing test first: trailing `# comment` plus a `#hex` value with no comment.
+    - Replaced the dead ternary with `.replace(/\s+#.*$/, '').trim()`.
+    - Parser suite: 12 passed.
+* Decisions made
+    - Strip comments at whitespace-then-`#` only, so the hex's leading `#` is not treated as a comment delimiter.
+* Insights
+    - `normalizeColor` rejecting the unstripped rest is why the slot vanished instead of parsing as a wrong color.

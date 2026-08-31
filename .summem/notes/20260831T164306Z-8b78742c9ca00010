@@ -1,0 +1,1 @@
+parseKitty strips trailing comments with whitespace-then-# (replace /\s+#.*$/); a leading hex # is not a comment. The old split('#').length ternary was dead and both branches returned trim().

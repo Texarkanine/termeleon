@@ -1,10 +1,12 @@
 # Active Context
 
 ## Current Task: issue-1-kitty-inline-comments
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Classified as Level 1: the `parseKitty` ternary is dead (both branches return `m[2].trim()`), so trailing `# comments` are passed to `normalizeColor` and the slot is dropped. Single component, isolated parser bug.
+- Added a regression test: `color1 #cc6666  # red` must yield `#cc6666`, and `background #1d1f21` (value starts with `#`) must still parse.
+- Confirmed the test failed (`ansi[1]` was `undefined`) on the dead ternary, then replaced it with `.replace(/\s+#.*$/, '').trim()`.
+- `npm run test:parsers`: 12 passed.
 
 ## Next Step
-- Load the Level 1 workflow and enter Build (Level 1 skips plan, creative, and preflight).
+- QA phase (spawn `/niko-qa`).
