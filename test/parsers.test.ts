@@ -108,6 +108,15 @@ test('parses whitespace-separated conf', () => {
   assert.strictEqual(p.ansi[15], '#ffffff');
 });
 
+test('strips trailing inline comments without eating the hex', () => {
+  const p = parseKitty([
+    'color1 #cc6666  # red',
+    'background #1d1f21',
+  ].join('\n'));
+  assert.strictEqual(p.ansi[1], '#cc6666');
+  assert.strictEqual(p.background, '#1d1f21');
+});
+
 console.log('\nalacritty');
 test('parses TOML with 0x-prefixed colors', () => {
   const p = parseAlacritty(fix('gruvbox.toml'));
