@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: GitHub Actions CI
-**Phase:** PLAN - COMPLETE
+**Phase:** BUILD - READY
 
 ## What Was Done
 
@@ -10,4 +10,4 @@
 
 ## Next Step
 
-- Preflight validation of the plan.
+- Build: TDD contract tests, then `.nvmrc`, lockfile, workflow, then docs. Adopting neither preflight advisory (no `.vscodeignore` change, no `npm run ci` script).

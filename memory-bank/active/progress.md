@@ -29,3 +29,15 @@ Add GitHub Actions CI that runs `npm ci`, `npm run test:parsers`, and `npm run c
     - No new npm dependencies; no YAML parser.
 * Insights
     - Preflight will treat the workflow as executable because it is a workflow CI runs; encoding TDD as a cross-file contract (not YAML wording) is the always-tdd-legal path.
+
+## 2026-08-31 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the plan against codebase reality: TDD encoding, conventions, dependency impact, conflicts, completeness.
+    - Verified the live tab-yeet `ci.yaml` matches the plan's action versions and shape.
+    - Wrote `memory-bank/active/.preflight-status`; first line: `PASS WITH ADVISORY`.
+* Decisions made
+    - No plan edits needed: no change-detector strikes, no TDD step swaps.
+* Insights
+    - Advisory: `.vscodeignore` does not exclude the new root files (`.github/`, `.nvmrc`, `package-lock.json`), so they would ship in a VSIX.
+    - Advisory: a single `npm run ci` script would make "CI runs what contributors run" true by construction.

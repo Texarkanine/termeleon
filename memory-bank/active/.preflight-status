@@ -1,0 +1,19 @@
+PASS WITH ADVISORY
+
+Preflight run 2026-08-31 for task github-actions-ci (Level 2).
+
+TDD Plan Encoding: PASS. The one executable unit (CI contract) orders its substeps test-first: stub tests, stub interface, write tests and run red, then write code and run green. A reasonable implementer cannot follow the plan by coding first. The docs unit (README, techContext.md) is prose/policy and owes no tests; omitting them passes. No change-detector steps are scheduled: the plan explicitly bars absence assertions (REUSE/Codecov/vsce) and wording assertions (job names, action versions), and the planned cases lock cross-file contracts (lockfile present so `npm ci` can run; `.nvmrc` parseable so `setup-node` can read it; workflow contains the triggers and the two gate commands) that go red when the CI contract breaks for a contributor, not when content is merely edited. No step swaps or strikes were needed.
+
+Convention Compliance: PASS. Contract tests land in the existing `test/parsers.test.ts` harness (`test()` helper, `fs` reads, no `vscode`), matching systemPatterns.md's vscode-free-core testing pattern. `.github/workflows/ci.yaml`, `.nvmrc`, and root `package-lock.json` match the sibling-repo convention. Verified against the live tab-yeet `ci.yaml`: `actions/checkout@v7` and `actions/setup-node@v7` with `node-version-file: ".nvmrc"` and `cache: npm` are accurate, and the plan's omit list (Codecov, coverage, artifacts) matches what tab-yeet has and this repo lacks.
+
+Dependency Impact: PASS. `package.json` already has the `test:parsers` and `compile` scripts the workflow will call. The two stale docs that mention the missing lockfile (README Development section, techContext.md) are both in the plan. `.gitignore` does not exclude `package-lock.json`, so the lockfile will be committed. No other consumers of `test/parsers.test.ts` exist.
+
+Conflict Detection: PASS. Tree has no `.github/`, no `.nvmrc`, no lockfile — nothing to duplicate or contradict. Additive files only; no public contract (command ids, configuration keys, `main`) is touched.
+
+Completeness Precheck: PASS. All five requirements and both acceptance criteria in projectbrief.md map to concrete steps with named files. Technology validation (generate lockfile on Node 22 via nvm, run `npm ci`, tests, compile locally) is concrete and matches the Challenges section's Homebrew-Node-26 mitigation.
+
+Advisory findings (non-blocking):
+
+1. VSIX hygiene: `.vscodeignore` does not exclude `.github/`, `.nvmrc`, or `package-lock.json`, so the new files would ship in any future `vsce package` artifact (pre-existing pattern: `memory-bank/`, `.cursor/`, `.summem/` are also unexcluded). Consider adding the new paths to `.vscodeignore` during build; out of scope for the issue's gate but cheap to do while touching these files.
+
+2. Radical-innovation candidate: make the CI gate a single npm script — `"ci": "npm run test:parsers && npm run compile"` in `package.json` — and have the workflow run `npm run ci` while the README tells contributors the same. The contract test then asserts one command instead of two, and "CI runs what contributors run" becomes true by construction rather than by assertion, so the two-command contract can never drift. Cost: one script indirection and a small re-plan of the contract-test strings; the current two-command plan is already adequate.
