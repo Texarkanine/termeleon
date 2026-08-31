@@ -398,6 +398,42 @@ test('vscodeignore keeps agent trees out of the vsix', () => {
   assert.ok(ignore.includes('memory-bank/**'), 'must not ship the memory bank');
 });
 
+test('launch.json contract', () => {
+  const file = path.join(repoRoot, '.vscode', 'launch.json');
+  assert.ok(fs.existsSync(file), '.vscode/launch.json must exist');
+  const launch = JSON.parse(fs.readFileSync(file, 'utf8')) as {
+    configurations?: Array<{
+      name?: string;
+      type?: string;
+      request?: string;
+      args?: string[];
+      preLaunchTask?: string;
+      outFiles?: string[];
+    }>;
+  };
+  const extHost = launch.configurations?.find((c) => c.type === 'extensionHost');
+  assert.ok(extHost, 'must define an extensionHost launch configuration');
+  assert.strictEqual(extHost?.request, 'launch');
+  assert.strictEqual(extHost?.preLaunchTask, 'npm: compile');
+  assert.ok(extHost?.args?.includes('--extensionDevelopmentPath=${workspaceFolder}'));
+});
+
+test('tasks.json contract', () => {
+  const file = path.join(repoRoot, '.vscode', 'tasks.json');
+  assert.ok(fs.existsSync(file), '.vscode/tasks.json must exist');
+  const tasks = JSON.parse(fs.readFileSync(file, 'utf8')) as {
+    tasks?: Array<{
+      label?: string;
+      type?: string;
+      script?: string;
+    }>;
+  };
+  const compileTask = tasks.tasks?.find(
+    (t) => t.label === 'npm: compile' || (t.type === 'npm' && t.script === 'compile'),
+  );
+  assert.ok(compileTask, 'must define the npm: compile build task');
+});
+
 console.log('\nghostty pair');
 const dummyPalette = (): Palette => ({ ansi: Array.from({ length: 16 }, () => '#000000') });
 const ghosttyEntry = (name: string) => ({ name, origin: `/themes/${name}`, palette: dummyPalette() });

@@ -19,3 +19,19 @@ Add `.vscode/launch.json` and `.vscode/tasks.json` to enable F5 Extension Develo
     - Outlined linear implementation steps and pre-mortem analysis
 * Decisions made
     - Add explicit `tasks.json` with `npm: compile` task matching `preLaunchTask` in `launch.json`
+
+## 2026-08-31 - PREFLIGHT - COMPLETE (PASS)
+
+* Work completed
+    - Preflight validated plan against codebase patterns and TDD requirements
+    - Wrote `memory-bank/active/.preflight-status` (PASS)
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Added TDD contract tests in `test/parsers.test.ts`
+    - Created `.vscode/launch.json` and `.vscode/tasks.json`
+    - Updated `memory-bank/techContext.md`
+    - Full test suite passing (52 parser/discover tests, 22 host tests)
+* Decisions made
+    - Defined explicit label `npm: compile` with npm script `compile` in `tasks.json`

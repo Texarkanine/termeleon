@@ -4,7 +4,7 @@ VS Code extension (`terminal-theme-import`) written in TypeScript, bundled to a 
 
 ## Environment Setup
 
-Using the extension requires VS Code 1.75+ on a local desktop (not vscode.dev / browser-only Codespaces). Developing it requires Node and npm. Node is pinned in `.nvmrc`. `npm ci` at the repo root uses the committed `package-lock.json`. Generate or refresh that lockfile from a clean tree (no `node_modules`); npm 10 otherwise prunes other-platform optional packages (esbuild) and linux CI cannot `npm ci`. The lockfile also pins the host-test runner versions (`@vscode/test-electron`, `@vscode/test-cli`).
+Using the extension requires VS Code 1.75+ on a local desktop (not vscode.dev / browser-only Codespaces). Developing it requires Node and npm. Node is pinned in `.nvmrc`. `npm ci` at the repo root uses the committed `package-lock.json`. Generate or refresh that lockfile from a clean tree (no `node_modules`); npm 10 otherwise prunes other-platform optional packages (esbuild) and linux CI cannot `npm ci`. The lockfile also pins the host-test runner versions (`@vscode/test-electron`, `@vscode/test-cli`). F5 debugging is configured via `.vscode/launch.json` ("Run Extension") and `.vscode/tasks.json` (`npm: compile`).
 
 The project is licensed AGPL-3.0-or-later via the root `LICENSE` file (`license` in `package.json` matches). No per-file SPDX / REUSE inventory.
 

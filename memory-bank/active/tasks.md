@@ -28,17 +28,17 @@ Add standard `.vscode/launch.json` and `.vscode/tasks.json` configuration files 
 
 - Files: `test/parsers.test.ts`, `.vscode/launch.json`, `.vscode/tasks.json`
 
-1. Stub tests: Add empty test cases `launch.json contract` and `tasks.json contract` in `test/parsers.test.ts`.
-2. Stub interface: Ensure `.vscode/` directory exists.
-3. Write tests and run red: Implement assertions in `test/parsers.test.ts` checking `.vscode/launch.json` and `.vscode/tasks.json` structure, run `npm run test:parsers` to verify test failure (files missing).
-4. Write code and run green: Create `.vscode/launch.json` and `.vscode/tasks.json` with standard VS Code extension development host settings and npm compile task, re-run `npm run test:parsers` and `npm test` to verify green.
+1. [x] Stub tests: Add empty test cases `launch.json contract` and `tasks.json contract` in `test/parsers.test.ts`.
+2. [x] Stub interface: Ensure `.vscode/` directory exists.
+3. [x] Write tests and run red: Implement assertions in `test/parsers.test.ts` checking `.vscode/launch.json` and `.vscode/tasks.json` structure, run `npm run test:parsers` to verify test failure (files missing).
+4. [x] Write code and run green: Create `.vscode/launch.json` and `.vscode/tasks.json` with standard VS Code extension development host settings and npm compile task, re-run `npm run test:parsers` and `npm test` to verify green.
 
 ### 2. Documentation & memory bank — prose/policy
 
 - Files: `memory-bank/techContext.md`
 - No tests: prose/policy artifact
 
-1. Update `memory-bank/techContext.md` to note the committed `.vscode/launch.json` and `tasks.json` configurations for F5 debugging.
+1. [x] Update `memory-bank/techContext.md` to note the committed `.vscode/launch.json` and `tasks.json` configurations for F5 debugging.
 
 ## Technology Validation
 
@@ -66,6 +66,6 @@ No new technology - validation not required (uses standard VS Code configuration
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA
