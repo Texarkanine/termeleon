@@ -55,3 +55,13 @@ Attach a packaged `.vsix` to GitHub Releases cut by release-please, add a local 
     - Negative Marketplace test is `vsce publish` / `VSCE_PAT`, not the word Marketplace
 * Insights
     - Default vsce include list is "everything not ignored"; agent trees must be named in `.vscodeignore`
+
+## 2026-08-31 - QA - COMPLETE
+
+* Work completed
+    - Reviewed the full `initialdev..HEAD` diff against the plan and brief for KISS/DRY/YAGNI/completeness/regression/integrity/documentation
+    - Re-ran `npm run test:parsers` (45 + 5 passed) and a real `npm run package` to confirm the VSIX excludes agent/memory-bank trees
+* Decisions made
+    - Result: PASS, no rework required
+* Insights
+    - Pre-mortem mitigation (clean-tree install before adding vsce) held: linux esbuild optionals are still in the lockfile

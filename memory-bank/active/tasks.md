@@ -87,4 +87,14 @@ New dependency: `@vscode/vsce`. Proof-of-concept: `npx --yes @vscode/vsce --vers
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA
+
+## QA Results (2026-08-31)
+
+**Result:** ✅ PASS
+
+- Diff (`initialdev..HEAD`) matches the plan file-for-file: `package.json` (publisher, `prepackage`/`package` scripts, `@vscode/vsce` devDependency), `package-lock.json` (regenerated from a clean tree — linux esbuild optionals still present, so the pre-mortem mitigation held), `.github/workflows/ci.yaml` (`npm run package` after compile), `.github/workflows/release-please.yaml` (`id: release`, `release_created`-gated checkout/setup-node/`npm ci`/`npm run package`/`gh release upload`), `.vscodeignore`, `README.md`, `memory-bank/techContext.md`.
+- Full parser/discovery suite green (45 + 5 passed); a real `npm run package` run confirmed the VSIX contains only `LICENSE.txt`, `changelog.md`, `package.json`, `readme.md`, `dist/extension.js` — no `.cursor/`, `.summem/`, or `memory-bank/` leakage.
+- No KISS/DRY/YAGNI/regression/integrity findings. The `.vscodeignore` additions (agent trees, `AGENTS.md`, `CLAUDE.md`, `.nvmrc`, `ai-rizz.skbd`) are a legitimate build-phase discovery (first `vsce package` shipped those trees), not scope creep — recorded in `activeContext.md` and covered by a new contract test.
+- No Marketplace publish surface added; constraint 1 held.
+- Both preflight advisories (CI artifact upload; double-compile redundancy) remain unapplied by operator choice — neither blocks acceptance.
