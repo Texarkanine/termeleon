@@ -79,39 +79,45 @@ async function collect(): Promise<DiscoveredTheme[]> {
   );
 }
 
-interface ThemeItem extends vscode.QuickPickItem {
+export interface ThemeItem extends vscode.QuickPickItem {
   theme: DiscoveredTheme;
 }
 
-/** A row of colored blocks so the palette is legible before applying it. */
-function swatch(theme: DiscoveredTheme): string {
-  return theme.palette.ansi.slice(0, 8).map((c) => (c ? '\u2588' : ' ')).join('');
-}
-
-function toItem(theme: DiscoveredTheme): ThemeItem {
+export function toItem(theme: DiscoveredTheme): ThemeItem {
   const source = SOURCE_LABELS[theme.source] ?? theme.source;
   return {
     label: theme.active ? `$(check) ${theme.name}` : theme.name,
     description: theme.active ? `${source} · in use` : source,
-    detail: `${swatch(theme)}  ${theme.origin}`,
+    detail: theme.origin,
     theme,
   };
 }
 
-interface MirrorItem extends vscode.QuickPickItem {
+export interface MirrorItem extends vscode.QuickPickItem {
   candidate: MirrorCandidate;
 }
 
-function toMirrorItem(candidate: MirrorCandidate): MirrorItem {
+export function toMirrorItem(candidate: MirrorCandidate): MirrorItem {
   if (candidate.kind === 'pair') {
     return {
       label: `$(check) ${candidate.dark.name} / ${candidate.light.name}`,
       description: 'Ghostty · dark/light',
-      detail: `${swatch(candidate.dark)}  ${candidate.dark.origin}  ·  ${swatch(candidate.light)}  ${candidate.light.origin}`,
+      detail: `${candidate.dark.origin}  ·  ${candidate.light.origin}`,
       candidate,
     };
   }
   return { ...toItem(candidate.theme), candidate };
+}
+
+/**
+ * Ensures an integrated terminal is visible so that live preview has an active canvas.
+ */
+export function ensureTerminalVisible(): void {
+  if (vscode.window.terminals.length > 0) {
+    (vscode.window.activeTerminal ?? vscode.window.terminals[0]).show(true);
+  } else {
+    vscode.window.createTerminal().show(true);
+  }
 }
 
 /**
@@ -125,6 +131,7 @@ async function pickAndApply(
   themes: DiscoveredTheme[],
   target: Target,
 ): Promise<void> {
+  ensureTerminalVisible();
   const opts = applyOptions(target);
   const preview = settings().livePreview;
   const session = preview ? new LivePreview(ctx, opts) : undefined;
