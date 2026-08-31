@@ -97,7 +97,7 @@ No new technology - validation not required
 - `applyPalettePair` reads `workbench.colorTheme` instead of preferred dark/light: `preferredPairScopes` tests fail unless those two key names are requested; apply must pass `workbench.get` through that helper, not pick the key names itself.
 - Enabling `window.autoDetectColorScheme` from the extension surprises users who keep a fixed theme: already out of scope; README states the prerequisite.
 
-## QA Findings (2026-08-31)
+## QA Findings (2026-08-31, first pass)
 
 Result: `FAIL` — Build must rerun. Compile clean; 20/20 parser tests pass.
 
@@ -112,6 +112,25 @@ Result: `FAIL` — Build must rerun. Compile clean; 20/20 parser tests pass.
 4. **Integrity (`src/palette.ts`)**: `preferredPairScopes` falls back to `''`, yielding a `[]` scope and `[].terminal.*` owned keys if a preferred theme resolves empty. Low risk given VS Code defaults, but it fails silently into a bogus settings block.
 5. **KISS (`src/discover.ts`)**: the inline-config branch re-scans `entries` for the name it just pushed instead of tracking a boolean, and keeps a local `activeNames` set used only for `.size === 0`.
 
+## QA Findings (2026-08-31, re-review after Build rerun)
+
+Result: `PASS`. Compile clean; 21/21 parser tests pass.
+
+### Prior blocking — resolved
+
+1. Ownership leak: FIXED. Both apply paths strip previously owned keys via shared `stripOwnedKeys` in vscode-free `palette.ts`; pair-then-flat shadowing covered by a new test.
+2. README wording: FIXED. Scopes described as the values of the preferred dark/light settings with concrete examples; `productContext.md` updated to match.
+
+### Advisory (non-blocking)
+
+3. **DRY**: scoped-key regex/delete walk still duplicated between `stripOwnedKeys` and `removeApplied` (not directly mergeable — `removeApplied` counts removals and sweeps unowned scopes in fallback).
+4. **Integrity**: `preferredPairScopes` empty-string fallback can still yield a `[]` scope; near-unreachable given VS Code schema defaults.
+5. **Trivial**: `src/palette.ts` and `test/parsers.test.ts` lost trailing newlines in the rebuild.
+
+### Resolved advisory
+
+- Prior advisory 5 (KISS, inline-config branch): FIXED via `hasInline` boolean.
+
 ## Status
 
 - [x] Initialization complete
@@ -122,3 +141,5 @@ Result: `FAIL` — Build must rerun. Compile clean; 20/20 parser tests pass.
 - [x] Preflight
 - [x] Build
 - [x] QA — FAIL (Build must rerun)
+- [x] Build (rerun)
+- [x] QA — PASS

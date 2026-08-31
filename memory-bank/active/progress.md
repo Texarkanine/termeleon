@@ -105,3 +105,18 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
 * Insights
     - Theme-scoped colorCustomizations outrank unscoped keys, so leftover pair scopes would hide a later flat import
 
+## 2026-08-31 - QA - COMPLETE
+
+* Result: `PASS`
+* Mechanical checks
+    - `npm run compile` clean; `npm run test:parsers` 21/21 (10 new)
+* Prior blocking findings verified resolved
+    - Symmetric owned-key stripping on both apply paths via shared `stripOwnedKeys` in `palette.ts`, with a pair-then-flat test
+    - README and `productContext.md` now name the written scopes as the preferred-theme values
+* Advisory findings (non-blocking)
+    - Scoped-key regex/delete walk still duplicated between `stripOwnedKeys` and `removeApplied`
+    - `preferredPairScopes` empty-string fallback can still produce a `[]` scope (near-unreachable)
+    - Missing trailing newlines in `src/palette.ts` and `test/parsers.test.ts`
+* Next step
+    - Proceed to Reflect per the Level 2 workflow
+

@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: ghostty-autodetect-pairs
-**Phase:** BUILD - COMPLETE
+**Phase:** QA - COMPLETE (PASS)
 
 ## What Was Done
 - QA FAIL (fixable) rebuild: `applyPalette` now strips previously owned keys the same way `applyPalettePair` does (`stripOwnedKeys` lives in vscode-free `palette.ts` and is tested).

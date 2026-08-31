@@ -1,14 +1,17 @@
-FAIL
-QA phase: ghostty-autodetect-pairs (Level 2) - 2026-08-31
-Mechanical: `npm run compile` clean; `npm run test:parsers` 20/20 pass (9 new).
+PASS
+QA phase: ghostty-autodetect-pairs (Level 2) - 2026-08-31 (re-review after Build rerun)
+Mechanical: `npm run compile` clean; `npm run test:parsers` 21/21 pass (10 new).
 
-BLOCKING
-1. Ownership leak across apply modes (`src/apply.ts`). `applyPalettePair` strips previously owned keys before merging, but `applyPalette` does not. After Mirror writes a pair, a later single import writes flat `terminal.*` and overwrites owned state with only those flat keys. The two `[Preferred Theme]` blocks stay in settings.json, untracked by `removeApplied`, and theme-scoped customizations outrank unscoped ones - so the newly imported theme silently does not show while the preferred dark/light theme is active. Fix: make stripping symmetric (reuse `stripOwnedKeys` in `applyPalette`).
-2. README states the wrong settings keys. `README.md` says Mirror writes under `[workbench.preferredDarkColorTheme]` / `[workbench.preferredLightColorTheme]`. The scopes written are the *values* of those settings (e.g. `[One Dark Pro]`). Acceptance criterion 3 requires README to match the new behavior.
+PRIOR BLOCKING - RESOLVED
+1. Ownership leak across apply modes: FIXED. `applyPalette` (src/apply.ts:61) now strips previously owned keys via the same `stripOwnedKeys` as `applyPalettePair` (src/apply.ts:99). The helper moved to vscode-free `src/palette.ts` and the pair-then-flat shadowing scenario is covered by the new `stripOwnedKeys` test.
+2. README settings keys: FIXED. README now says the scopes are the *values* of `workbench.preferredDarkColorTheme` / `workbench.preferredLightColorTheme` with concrete examples (`[One Dark Pro]`, `[GitHub Light]`). `memory-bank/productContext.md` Key Constraints updated to match.
 
-ADVISORY
-3. DRY: `stripOwnedKeys` re-implements the scoped-key delete/prune walk (and the `^(\[[^\]]+\])\.(.+)$` regex) already in `removeApplied`. One shared helper for "delete owned key from a colorCustomizations object".
-4. `preferredPairScopes` falls back to `''`, producing a `[]` scope and `[].terminal.*` owned keys if a preferred theme resolves empty. Low real risk (VS Code ships defaults), but the failure mode is a silent bogus settings block rather than a message.
-5. `discoverGhostty` inline branch re-scans `entries` for `'Ghostty config (inline)'` it just pushed; a local boolean is simpler. Also keeps a local `activeNames` set only to test `.size === 0`.
+ADVISORY (carried over / residual)
+3. DRY: the `^(\[[^\]]+\])\.(.+)$` regex and scoped delete/prune walk still exist in both `stripOwnedKeys` (palette.ts) and `removeApplied` (apply.ts). Not directly mergeable - `removeApplied` needs per-key removal counts and a fallback sweep of unowned scoped blocks - but the shared regex could still be extracted. Non-blocking.
+4. `preferredPairScopes` still falls back to `''`, yielding a `[]` scope if a preferred theme resolves empty. Near-unreachable (VS Code ships schema defaults for both settings), but fails silently into a bogus block. Non-blocking.
+5. Trivial: `src/palette.ts` and `test/parsers.test.ts` lost their trailing newline in the rebuild. Cosmetic only.
 
-Next: BUILD rerun to fix findings 1-2, then QA again.
+RESOLVED ADVISORY
+- Prior advisory 5 (KISS, inline-config branch): FIXED via a `hasInline` boolean; the `activeNames` size-check set is gone from `discoverGhostty`.
+
+Next: QA PASS - proceed per the Level 2 workflow (Reflect).
