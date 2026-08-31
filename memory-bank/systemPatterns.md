@@ -37,7 +37,7 @@ Violating the vscode-free boundary (importing `vscode` into a parser or into dis
 
 ## vscode-Free Core
 
-`discover.ts`, `palette.ts`, and `src/parsers/*` use Node `fs` / `os` / `path` only. `extension.ts` and `apply.ts` are the vscode-importing surface. Parser tests in `test/parsers.test.ts` import the core directly and run with `tsx`; there is no extension-host test harness.
+`discover.ts`, `palette.ts`, and `src/parsers/*` use Node `fs` / `os` / `path` only. `extension.ts` and `apply.ts` are the vscode-importing surface. Parser tests in `test/parsers.test.ts` and discovery tests in `test/discover.test.ts` import the core directly and run with `tsx`; there is no extension-host test harness. Discovery reads `$HOME` / `$XDG_CONFIG_HOME` at scan time so those tests can point at a fixture tree.
 
 ## Surgical Settings Ownership
 

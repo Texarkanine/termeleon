@@ -103,7 +103,7 @@ Emulators disagree about what to call the same pixel:
 
 ```sh
 npm install
-npm run test:parsers   # no VS Code needed, runs against fixtures
+npm run test:parsers   # no VS Code needed; parsers plus discovery against a fake HOME/XDG tree
 npm run compile
 ```
 
