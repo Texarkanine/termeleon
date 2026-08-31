@@ -97,6 +97,21 @@ No new technology - validation not required
 - `applyPalettePair` reads `workbench.colorTheme` instead of preferred dark/light: `preferredPairScopes` tests fail unless those two key names are requested; apply must pass `workbench.get` through that helper, not pick the key names itself.
 - Enabling `window.autoDetectColorScheme` from the extension surprises users who keep a fixed theme: already out of scope; README states the prerequisite.
 
+## QA Findings (2026-08-31)
+
+Result: `FAIL` — Build must rerun. Compile clean; 20/20 parser tests pass.
+
+### Blocking
+
+1. **Regression / ownership (`src/apply.ts`)**: stripping of previously owned keys is asymmetric. `applyPalettePair` strips; `applyPalette` does not. Mirror a pair, then import a single theme: owned state is replaced by the flat keys, the two `[Preferred Theme]` blocks stay behind untracked, and theme-scoped customizations beat unscoped ones — the new import silently does not render under the preferred dark/light theme, and `removeApplied` cannot clean it up without the destructive fallback. Fix by reusing `stripOwnedKeys` in `applyPalette`.
+2. **Documentation (`README.md`)**: the new paragraph says Mirror writes under `[workbench.preferredDarkColorTheme]` / `[workbench.preferredLightColorTheme]`. The scopes are the *values* of those settings (e.g. `[One Dark Pro]`). Acceptance criterion 3 requires the README to describe actual behavior.
+
+### Advisory
+
+3. **DRY (`src/apply.ts`)**: `stripOwnedKeys` duplicates the scoped-key delete/prune walk and the `^(\[[^\]]+\])\.(.+)$` regex already in `removeApplied`. Extract one shared "delete owned key" helper.
+4. **Integrity (`src/palette.ts`)**: `preferredPairScopes` falls back to `''`, yielding a `[]` scope and `[].terminal.*` owned keys if a preferred theme resolves empty. Low risk given VS Code defaults, but it fails silently into a bogus settings block.
+5. **KISS (`src/discover.ts`)**: the inline-config branch re-scans `entries` for the name it just pushed instead of tracking a boolean, and keeps a local `activeNames` set used only for `.size === 0`.
+
 ## Status
 
 - [x] Initialization complete
@@ -106,4 +121,4 @@ No new technology - validation not required
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA — FAIL (Build must rerun)

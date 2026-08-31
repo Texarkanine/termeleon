@@ -76,3 +76,18 @@ Apply Ghostty `theme = dark:X,light:Y` pairs as `window.autoDetectColorScheme` s
 * Insights
     - Existing `removeApplied` scoped-key regex needed no change
     - `preferredPairScopes` spy is what makes the preferred-theme setting choice testable without an extension host
+
+## 2026-08-31 - QA - COMPLETE
+
+* Result: `FAIL`
+* Mechanical checks
+    - `npm run compile` clean; `npm run test:parsers` 20/20 (9 new)
+* Blocking findings
+    - Asymmetric owned-key stripping: `applyPalettePair` strips, `applyPalette` does not, so a single import after a pair Mirror orphans the two scoped blocks and is itself overridden by them
+    - README names the settings keys (`[workbench.preferredDarkColorTheme]`) rather than the scopes actually written (the values of those settings)
+* Advisory findings
+    - `stripOwnedKeys` duplicates the scoped-key delete walk in `removeApplied`
+    - `preferredPairScopes` empty-string fallback can write a `[]` scope silently
+    - Inline-config branch re-scans `entries`; local `activeNames` set used only for a size check
+* Next step
+    - Rerun Build for the two blocking findings, then QA again

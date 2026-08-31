@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: ghostty-autodetect-pairs
-**Phase:** BUILD - COMPLETE
+**Phase:** QA - COMPLETE (FAIL)
 
 ## What Was Done
 - Pair identity: `toGhosttyDiscovered`, `activeGhosttyPair`, `mirrorCandidates`; `discoverGhostty` stamps appearance only through `toGhosttyDiscovered`, including the inline-config fallback.
@@ -24,4 +24,4 @@
 - Preflight "bind any two themes" idea was not implemented.
 
 ## Next Step
-- QA review.
+- QA returned FAIL. Rerun Build for the two blocking findings in `tasks.md` (asymmetric owned-key stripping in `applyPalette`; README naming the settings keys instead of the scopes written), then QA again.
