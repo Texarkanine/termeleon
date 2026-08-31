@@ -2,30 +2,32 @@
 
 ## User Story
 
-As a VS Code user importing terminal themes, I want the import Quick Pick to not show misleading gray block swatches and I want an integrated terminal to be visible when the picker opens so that I have a clean item list and immediate visual feedback during live preview.
+As a contributor or developer working on `vscode-terminal-themes`, I want a standard `.vscode/launch.json` configuration so that I can press **F5** in VS Code to build and run the Extension Development Host for interactive testing and debugging.
 
 ## Use-Case(s)
 
-### Use-Case 1: Browsing themes in Quick Pick
-When opening the theme import picker or mirror picker, the detail line for each theme displays its origin path cleanly without confusing uncolored `████████` blocks that look like a broken preview.
+### Use-Case 1: F5 Extension Development Host
+When pressing F5 (or selecting "Run Extension" in the Run & Debug view), VS Code automatically runs the compile task (`npm: compile`) and starts a new Extension Development Host window with the extension loaded from the workspace folder.
 
-### Use-Case 2: Live preview with terminal panel closed
-When opening the theme import picker while the integrated terminal is closed or hidden, a terminal is revealed so the arrow-key live preview immediately reflects on an active terminal in the window.
+### Use-Case 2: Real-Host Manual Verification
+Contributors have a standard, committed way to open the picker, test live preview, cancel, accept, and remove themes in a live VS Code window.
 
 ## Requirements
 
-1. Remove `swatch()` and the gray `█` block characters from Quick Pick item details in `src/extension.ts` (both theme import and mirror candidates).
-2. Detail line should display the theme origin path (or pair origin paths for mirror candidate pairs) cleanly.
-3. When the import picker opens, reveal a terminal if none is visible so live preview has somewhere to show up.
+1. Add `.vscode/launch.json` defining a standard "Run Extension" launch configuration of type `extensionHost` with `preLaunchTask: "npm: compile"`.
+2. Add `.vscode/tasks.json` defining the `npm: compile` build task if needed so that VS Code can discover and execute the preLaunchTask reliably.
+3. Validate that `.vscodeignore` properly handles `.vscode/` files (keeps launch/tasks out of the VSIX package if appropriate).
+4. Verify all tests (`npm test`) and compilation (`npm run compile`) pass cleanly.
 
 ## Constraints
 
-1. Do not fake color swatches if the VS Code Quick Pick API does not support per-cell/per-glyph color.
-2. Do not treat theme files as "supports light/dark" (that remains a Ghostty mirror concern).
-3. AGPL-3.0-or-later license, VS Code 1.75+ compatibility.
+1. Keep configuration standard and minimal (YAGNI/KISS).
+2. AGPL-3.0-or-later license, VS Code 1.75+ compatibility.
+3. Seat attribution and git safety rules observed for all commits.
 
 ## Acceptance Criteria
 
-1. QuickPick item detail strings contain origin file paths and no swatch block characters.
-2. Import command reveals an integrated terminal when executed.
-3. All parser, discovery, CI contract, and extension host tests pass.
+1. `.vscode/launch.json` exists and is valid JSON/JSONC with an `extensionHost` launch configuration.
+2. `.vscode/tasks.json` exists and defines the `npm: compile` task.
+3. `npm test` passes without regression.
+4. `.vscode/` files are excluded from the packaged VSIX (`.vscodeignore`).
