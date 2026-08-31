@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Palette, toColorCustomizations, managedKeys } from './palette';
+import { Palette, ApplySnapshot, toColorCustomizations, managedKeys, mergeColors, mergePairedColors, preferredPairScopes, stripOwnedKeys, restoreApplySnapshot } from './palette';
 
 export type Target = 'global' | 'workspace';
 
@@ -58,27 +58,54 @@ export async function applyPalette(
     includeSelectionForeground: opts.includeSelectionForeground,
   });
 
-  const current = readAt(opts.target);
+  const current = stripOwnedKeys(readAt(opts.target), ownedKeys(ctx, opts.target));
   const scopeKey = opts.scopeToActiveTheme ? `[${activeThemeName()}]` : undefined;
-
-  if (scopeKey) {
-    current[scopeKey] = { ...(current[scopeKey] ?? {}), ...colors };
-  } else {
-    Object.assign(current, colors);
-  }
+  const { next, ownedKeys: owned } = mergeColors(current, colors, scopeKey);
 
   const config = vscode.workspace.getConfiguration(SECTION);
-  await config.update(KEY, current, configTarget(opts.target));
+  await config.update(KEY, next, configTarget(opts.target));
 
-  await setOwnedKeys(
-    ctx,
-    opts.target,
-    Object.keys(colors).map((k) => (scopeKey ? `${scopeKey}.${k}` : k)),
-  );
+  await setOwnedKeys(ctx, opts.target, owned);
 
   if (opts.setMinimumContrastRatio) {
     // Without this, VS Code nudges foreground colors toward a contrast target
     // and the applied palette does not render as authored.
+    await vscode.workspace.getConfiguration('terminal.integrated')
+      .update('minimumContrastRatio', 1, configTarget(opts.target));
+  }
+}
+
+/**
+ * Writes a Ghostty dark/light pair under the user's preferred dark and light
+ * workbench themes so `window.autoDetectColorScheme` can switch them.
+ *
+ * Ignores `scopeToActiveTheme`: the pair is already scoped.
+ */
+export async function applyPalettePair(
+  ctx: vscode.ExtensionContext,
+  dark: Palette,
+  light: Palette,
+  opts: ApplyOptions,
+): Promise<void> {
+  const mapping = { includeSelectionForeground: opts.includeSelectionForeground };
+  const darkColors = toColorCustomizations(dark, mapping);
+  const lightColors = toColorCustomizations(light, mapping);
+
+  const workbench = vscode.workspace.getConfiguration('workbench');
+  const { darkScope, lightScope } = preferredPairScopes(
+    (key) => workbench.get<string>(key),
+  );
+
+  const stripped = stripOwnedKeys(readAt(opts.target), ownedKeys(ctx, opts.target));
+  const { next, ownedKeys: owned } = mergePairedColors(
+    stripped, darkColors, lightColors, darkScope, lightScope,
+  );
+
+  const config = vscode.workspace.getConfiguration(SECTION);
+  await config.update(KEY, next, configTarget(opts.target));
+  await setOwnedKeys(ctx, opts.target, owned);
+
+  if (opts.setMinimumContrastRatio) {
     await vscode.workspace.getConfiguration('terminal.integrated')
       .update('minimumContrastRatio', 1, configTarget(opts.target));
   }
@@ -96,6 +123,20 @@ export async function restoreSnapshot(
 
 export function snapshot(target: Target): Record<string, any> {
   return readAt(target);
+}
+
+export function snapshotApply(ctx: vscode.ExtensionContext, target: Target): ApplySnapshot {
+  return { colors: snapshot(target), ownedKeys: ownedKeys(ctx, target) };
+}
+
+export async function restoreApply(
+  ctx: vscode.ExtensionContext,
+  target: Target,
+  captured: ApplySnapshot,
+): Promise<void> {
+  const restored = restoreApplySnapshot(captured);
+  await restoreSnapshot(target, restored.colors);
+  await setOwnedKeys(ctx, target, restored.ownedKeys);
 }
 
 export interface RemoveResult {

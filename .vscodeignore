@@ -6,3 +6,6 @@ test/**
 tsconfig.json
 **/*.map
 **/*.ts
+.github/**
+release-please-config.json
+.release-please-manifest.json

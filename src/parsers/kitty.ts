@@ -20,10 +20,8 @@ export function parseKitty(text: string): Palette {
     const m = /^([A-Za-z_][A-Za-z0-9_]*)\s+(.+)$/.exec(trimmed);
     if (!m) { continue; }
     const key = m[1].toLowerCase();
-    // Strip trailing inline comments.
-    const value = m[2].split('#').length > 1 && !m[2].trim().startsWith('#')
-      ? m[2].trim()
-      : m[2].trim();
+    // Strip trailing inline comments. A leading `#` is the hex, not a comment.
+    const value = m[2].replace(/\s+#.*$/, '').trim();
 
     const colorIdx = /^color(\d{1,3})$/.exec(key);
     if (colorIdx) {

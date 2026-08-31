@@ -6,16 +6,27 @@ import { DiscoveredTheme, Palette, isUsable } from './palette';
 import { parseGhostty, activeGhosttyThemes } from './parsers/ghostty';
 import { parseKitty, parseXresources } from './parsers/kitty';
 import { parseAlacritty, parseWezterm, weztermSchemeName } from './parsers/toml';
-import { parseItermColors, parseWindowsTerminal } from './parsers/iterm2';
+import { parseItermColors, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from './parsers/iterm2';
 
 /** Hard ceilings so a pathological directory can't stall the picker. */
 const MAX_DEPTH = 3;
 const MAX_FILES_PER_SOURCE = 800;
 
-const home = os.homedir();
-const xdgConfig = process.env.XDG_CONFIG_HOME || path.join(home, '.config');
-const xdgDataDirs = (process.env.XDG_DATA_DIRS || '/usr/local/share:/usr/share')
-  .split(':').filter(Boolean);
+/** Process home used for config paths. Read at scan time so tests can point `$HOME` at a fixture tree. */
+function homeDir(): string {
+  return os.homedir();
+}
+
+/** `$XDG_CONFIG_HOME`, or `~/.config` when that env var is unset. */
+function xdgConfigDir(): string {
+  return process.env.XDG_CONFIG_HOME || path.join(homeDir(), '.config');
+}
+
+/** `$XDG_DATA_DIRS` split on `:`, with the usual FHS fallback. */
+function xdgDataDirectories(): string[] {
+  return (process.env.XDG_DATA_DIRS || '/usr/local/share:/usr/share')
+    .split(':').filter(Boolean);
+}
 
 function exists(p: string): boolean {
   try { fs.accessSync(p); return true; } catch { return false; }
@@ -56,17 +67,17 @@ function stem(p: string): string {
 // --------------------------------------------------------------------------
 
 function ghosttyDirs(): { themes: string[]; configs: string[] } {
-  const themes: string[] = [path.join(xdgConfig, 'ghostty', 'themes')];
-  const configs: string[] = [path.join(xdgConfig, 'ghostty', 'config')];
+  const themes: string[] = [path.join(xdgConfigDir(), 'ghostty', 'themes')];
+  const configs: string[] = [path.join(xdgConfigDir(), 'ghostty', 'config')];
 
   if (process.platform === 'darwin') {
-    const appSupport = path.join(home, 'Library', 'Application Support', 'com.mitchellh.ghostty');
+    const appSupport = path.join(homeDir(), 'Library', 'Application Support', 'com.mitchellh.ghostty');
     themes.push(path.join(appSupport, 'themes'));
     configs.push(path.join(appSupport, 'config'));
     themes.push('/Applications/Ghostty.app/Contents/Resources/ghostty/themes');
-    themes.push(path.join(home, 'Applications/Ghostty.app/Contents/Resources/ghostty/themes'));
+    themes.push(path.join(homeDir(), 'Applications/Ghostty.app/Contents/Resources/ghostty/themes'));
   } else {
-    for (const d of xdgDataDirs) { themes.push(path.join(d, 'ghostty', 'themes')); }
+    for (const d of xdgDataDirectories()) { themes.push(path.join(d, 'ghostty', 'themes')); }
   }
   return { themes, configs };
 }
@@ -80,11 +91,9 @@ function discoverGhostty(extraDirs: string[]): DiscoveredTheme[] {
     const text = readText(c);
     if (text) { active = { ...active, ...activeGhosttyThemes(text) }; }
   }
-  const activeNames = new Set(
-    [active.single, active.dark, active.light].filter(Boolean) as string[],
-  );
+  const hasThemeLine = !!(active.single || active.dark || active.light);
 
-  const out: DiscoveredTheme[] = [];
+  const entries: { name: string; origin: string; palette: Palette }[] = [];
   const seen = new Set<string>();
 
   for (const dir of themes) {
@@ -96,26 +105,30 @@ function discoverGhostty(extraDirs: string[]): DiscoveredTheme[] {
       const palette = parseGhostty(text);
       if (!isUsable(palette)) { continue; }
       seen.add(name);
-      out.push({ name, source: 'ghostty', origin: file, active: activeNames.has(name), palette });
+      entries.push({ name, origin: file, palette });
     }
   }
 
   // A config with inline palette lines and no `theme =` is itself a theme.
-  if (activeNames.size === 0) {
+  if (!hasThemeLine) {
+    let hasInline = false;
     for (const c of configs) {
       const text = readText(c);
       if (!text) { continue; }
       const palette = parseGhostty(text);
       if (isUsable(palette)) {
-        out.push({ name: 'Ghostty config (inline)', source: 'ghostty', origin: c, active: true, palette });
+        entries.push({ name: 'Ghostty config (inline)', origin: c, palette });
+        hasInline = true;
       }
     }
+    return toGhosttyDiscovered(entries, hasInline ? { single: 'Ghostty config (inline)' } : {});
   }
-  return out;
+
+  return toGhosttyDiscovered(entries, active);
 }
 
 function discoverKitty(extraDirs: string[]): DiscoveredTheme[] {
-  const base = path.join(xdgConfig, 'kitty');
+  const base = path.join(xdgConfigDir(), 'kitty');
   const out: DiscoveredTheme[] = [];
   const currentTheme = path.join(base, 'current-theme.conf');
 
@@ -144,8 +157,8 @@ function discoverKitty(extraDirs: string[]): DiscoveredTheme[] {
 
 function discoverAlacritty(extraDirs: string[]): DiscoveredTheme[] {
   const bases = [
-    path.join(xdgConfig, 'alacritty'),
-    path.join(home, '.alacritty'),
+    path.join(xdgConfigDir(), 'alacritty'),
+    path.join(homeDir(), '.alacritty'),
     ...extraDirs,
   ];
   const out: DiscoveredTheme[] = [];
@@ -170,7 +183,7 @@ function discoverAlacritty(extraDirs: string[]): DiscoveredTheme[] {
 }
 
 function discoverWezterm(extraDirs: string[]): DiscoveredTheme[] {
-  const base = path.join(xdgConfig, 'wezterm');
+  const base = path.join(xdgConfigDir(), 'wezterm');
   const out: DiscoveredTheme[] = [];
   const dirs = [path.join(base, 'colors'), base, ...extraDirs];
 
@@ -194,7 +207,7 @@ function discoverWezterm(extraDirs: string[]): DiscoveredTheme[] {
 function discoverIterm2(extraDirs: string[]): DiscoveredTheme[] {
   if (process.platform !== 'darwin' && extraDirs.length === 0) { return []; }
   const dirs = [
-    path.join(home, 'Library', 'Application Support', 'iTerm2'),
+    path.join(homeDir(), 'Library', 'Application Support', 'iTerm2'),
     ...extraDirs,
   ];
   const out: DiscoveredTheme[] = [];
@@ -224,9 +237,16 @@ function discoverWindowsTerminal(): DiscoveredTheme[] {
   for (const file of candidates) {
     const text = readText(file);
     if (!text) { continue; }
+    const activeNames = activeWindowsTerminalScheme(text);
     for (const { name, palette } of parseWindowsTerminal(text)) {
       if (!isUsable(palette)) { continue; }
-      out.push({ name, source: 'windows-terminal', origin: file, active: false, palette });
+      out.push({
+        name,
+        source: 'windows-terminal',
+        origin: file,
+        active: isWindowsTerminalSchemeActive(name, activeNames),
+        palette,
+      });
     }
   }
   return out;
@@ -234,12 +254,67 @@ function discoverWindowsTerminal(): DiscoveredTheme[] {
 
 function discoverXresources(): DiscoveredTheme[] {
   const out: DiscoveredTheme[] = [];
-  for (const file of [path.join(home, '.Xresources'), path.join(home, '.Xdefaults')]) {
+  for (const file of [path.join(homeDir(), '.Xresources'), path.join(homeDir(), '.Xdefaults')]) {
     const text = readText(file);
     if (!text) { continue; }
     const palette = parseXresources(text);
     if (!isUsable(palette)) { continue; }
     out.push({ name: path.basename(file), source: 'xresources', origin: file, active: true, palette });
+  }
+  return out;
+}
+
+export type MirrorCandidate =
+  | { kind: 'pair'; dark: DiscoveredTheme; light: DiscoveredTheme }
+  | { kind: 'theme'; theme: DiscoveredTheme };
+
+/**
+ * Stamps `active` and `appearance` onto parsed Ghostty theme files using the
+ * names from `activeGhosttyThemes`. `discoverGhostty` must call this rather
+ * than setting those fields inline.
+ */
+export function toGhosttyDiscovered(
+  entries: { name: string; origin: string; palette: Palette }[],
+  active: { dark?: string; light?: string; single?: string },
+): DiscoveredTheme[] {
+  const activeNames = new Set(
+    [active.single, active.dark, active.light].filter(Boolean) as string[],
+  );
+  return entries.map((e) => ({
+    name: e.name,
+    source: 'ghostty',
+    origin: e.origin,
+    active: activeNames.has(e.name),
+    appearance: e.name === active.dark ? 'dark' : e.name === active.light ? 'light' : undefined,
+    palette: e.palette,
+  }));
+}
+
+/** Both halves of a Ghostty split theme, or undefined if this is not a pair. */
+export function activeGhosttyPair(
+  themes: DiscoveredTheme[],
+): { dark: DiscoveredTheme; light: DiscoveredTheme } | undefined {
+  const dark = themes.find((t) => t.source === 'ghostty' && t.active && t.appearance === 'dark');
+  const light = themes.find((t) => t.source === 'ghostty' && t.active && t.appearance === 'light');
+  if (!dark || !light) { return undefined; }
+  return { dark, light };
+}
+
+/**
+ * Mirror choices: a Ghostty dark/light pair is one candidate, never two.
+ * Other emulators' active themes stay as individual candidates.
+ */
+export function mirrorCandidates(themes: DiscoveredTheme[]): MirrorCandidate[] {
+  const pair = activeGhosttyPair(themes);
+  const out: MirrorCandidate[] = [];
+  if (pair) {
+    out.push({ kind: 'pair', dark: pair.dark, light: pair.light });
+  }
+  const skip = pair ? new Set([pair.dark.name, pair.light.name]) : new Set<string>();
+  for (const t of themes) {
+    if (!t.active) { continue; }
+    if (pair && t.source === 'ghostty' && skip.has(t.name)) { continue; }
+    out.push({ kind: 'theme', theme: t });
   }
   return out;
 }
