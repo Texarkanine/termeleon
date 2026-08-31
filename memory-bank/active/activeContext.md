@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current Task: Detect Windows Terminal's active colorScheme
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Operator approved https://github.com/Texarkanine/vscode-terminal-themes/issues/10 as the task; intent clarification was not waited on.
-- Classified Level 2: small enhancement, one subsystem (`parseWindowsTerminal` / `discoverWindowsTerminal`), Ghostty-style pure helper, no architecture change.
+- Classified Level 2.
+- Planned a Ghostty-style `activeWindowsTerminalScheme` helper, fixture + parser tests, discover wiring, README and `systemPatterns.md` updates.
+- Default profile `colorScheme` wins over `profiles.defaults` when both are set (WT inheritance). Legacy `profiles` array included because it is cheap.
 
 ## Next Step
-- Load the Level 2 workflow and run the plan phase.
+- Preflight via a subagent running `/niko-preflight`.

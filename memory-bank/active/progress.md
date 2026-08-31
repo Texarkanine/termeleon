@@ -15,3 +15,14 @@ Flag the Windows Terminal scheme named by `profiles.defaults.colorScheme` (or th
 * Insights
     - Existing parser tests cover scheme extraction from JSONC but not which scheme is in use.
     - README and `systemPatterns.md` currently document Windows Terminal as not reporting an active theme.
+
+## 2026-08-31 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote the Level 2 plan: helper in `iterm2.ts`, fixture + parser tests, `discoverWindowsTerminal` wiring, README and `systemPatterns.md`.
+* Decisions made
+    - Default profile `colorScheme` wins over `profiles.defaults` when both are set.
+    - Legacy `profiles` array is in scope because it is cheap.
+    - No discover filesystem tests (issue #5); helper is the fixture-tested contract.
+* Insights
+    - Double JSON.parse of one settings.json (parse schemes + resolve active name) is acceptable; Ghostty already uses a separate active helper.
