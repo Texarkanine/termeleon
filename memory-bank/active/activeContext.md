@@ -1,10 +1,10 @@
 # Active Context
 
 ## Current Task: vsix-github-releases
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Level 2 determined: packaging and docs are a self-contained enhancement to the existing release-please GitHub Release path, not a new architecture or Marketplace program.
+- Level 2 plan: contract tests in `test/parsers.test.ts` `ci` section; pin `@vscode/vsce`; `npm run package`; release-please follow-on upload; CI smoke; README + techContext. Publisher `texarkanine`. No Marketplace. No launch.json.
 
 ## Next Step
-- Load the Level 2 workflow and execute the plan phase.
+- Preflight validation (subagent).
