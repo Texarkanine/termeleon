@@ -118,7 +118,11 @@
   },
   "scripts": {
     "compile": "tsc -p . --noEmit && esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
-    "test:parsers": "tsx test/parsers.test.ts"
+    "compile-tests": "tsc -p tsconfig.test.json",
+    "pretest:host": "npm run compile && npm run compile-tests",
+    "test:host": "vscode-test",
+    "test:parsers": "tsx test/parsers.test.ts",
+    "test": "npm run test:parsers && npm run test:host"
   },
   "dependencies": {
     "smol-toml": "^1.3.0"

@@ -42,3 +42,17 @@ Add an Extension Development Host test suite so apply, surgical remove, and live
     - `systemPatterns.md` / `techContext.md` will need a Reflect/Archive update once the host suite lands
     - Acceptance criterion "commit message includes `Fixes #6`" has no implementation-plan step; carry it into Build's final commit
     - Radical-innovation idea recorded for a data-table-driven `apply.test.ts` (not applied to the plan)
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Added `test:host` / `compile-tests` / `npm test` (parsers then host)
+    - Characterization tests for apply, remove, snapshot (14 cases, green on existing code)
+    - Extracted `LivePreview` with debounce and cancel restore; wired `pickAndApply`
+    - Host suite 17 passing; `test:parsers` 11 passing
+* Decisions made
+    - `LivePreview` lives in `apply.ts`; picker only schedules/cancels
+    - Did not make `apply.test.ts` data-table-driven
+* Insights
+    - Isolated user-data-dir lets global-target tests run without touching the operator's settings
+    - First apply/remove run was green, as planned for characterization tests

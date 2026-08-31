@@ -37,7 +37,7 @@ Characterization note: `applyPalette` / `removeApplied` / `restoreSnapshot` alre
 
 ## Implementation Plan
 
-### 1. Host harness scripts and packaging — prose/policy
+### 1. Host harness scripts and packaging — prose/policy — done
 
 - Files: `package.json`, `.vscodeignore`, `.gitignore`, `README.md`
 - No tests: prose/policy artifact (scripts and ignore lists). Harness already proven by smoke test during plan validation.
@@ -46,7 +46,7 @@ Characterization note: `applyPalette` / `removeApplied` / `restoreSnapshot` alre
 2. Ignore `out/` and `.vscode-test/` in `.vscodeignore` (gitignore already updated).
 3. Document `npm run test:host` in README Development (downloads VS Code; uses a short temp user-data-dir).
 
-### 2. Apply, remove, snapshot — executable
+### 2. Apply, remove, snapshot — executable — done
 
 - Files: `test/host/apply.test.ts`, `test/host/helpers.ts`
 
@@ -55,7 +55,7 @@ Characterization note: `applyPalette` / `removeApplied` / `restoreSnapshot` alre
 3. Write tests and run red: fill assertions against workspace (and isolated global) `inspect` values. First run is expected GREEN (characterization). `afterEach` restores colorCustomizations and minimumContrastRatio at both targets.
 4. Write code and run green: no production change unless a characterization test fails.
 
-### 3. LivePreview debounce and cancel — executable
+### 3. LivePreview debounce and cancel — executable — done
 
 - Files: `src/apply.ts`, `src/extension.ts`, `test/host/preview.test.ts`
 
@@ -108,6 +108,15 @@ Config already in tree: `.vscode-test.mjs`, `tsconfig.test.json`, `test/host/smo
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA
+
+### 1. Host harness scripts and packaging — prose/policy — done
+
+- Files: `package.json`, `.vscodeignore`, `.gitignore`, `README.md`
+- No tests: prose/policy artifact (scripts and ignore lists). Harness already proven by smoke test during plan validation.
+
+1. Add `compile-tests`, `pretest:host`, `test:host`; keep `test:parsers`; make `test` run parsers then host.
+2. Ignore `out/` and `.vscode-test/` in `.vscodeignore` (gitignore already updated).
+3. Document `npm run test:host` in README Development (downloads VS Code; uses a short temp user-data-dir).

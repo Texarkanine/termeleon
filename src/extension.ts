@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { DiscoveredTheme } from './palette';
 import { discoverThemes } from './discover';
 import {
-  Target, ApplyOptions, applyPalette, removeApplied, snapshot, restoreSnapshot,
+  Target, ApplyOptions, applyPalette, removeApplied, LivePreview,
 } from './apply';
 
 const CONFIG = 'terminalThemeImport';
@@ -112,7 +112,7 @@ async function pickAndApply(
 ): Promise<void> {
   const opts = applyOptions(target);
   const preview = settings().livePreview;
-  const original = snapshot(target);
+  const session = preview ? new LivePreview(ctx, opts) : undefined;
 
   const picked = await new Promise<DiscoveredTheme | undefined>((resolve) => {
     const qp = vscode.window.createQuickPick<ThemeItem>();
@@ -124,16 +124,12 @@ async function pickAndApply(
     qp.ignoreFocusOut = true;
 
     let accepted = false;
-    let previewTimer: NodeJS.Timeout | undefined;
 
-    if (preview) {
+    if (session) {
       qp.onDidChangeActive((active) => {
         const item = active[0];
         if (!item) { return; }
-        if (previewTimer) { clearTimeout(previewTimer); }
-        previewTimer = setTimeout(() => {
-          void applyPalette(ctx, item.theme.palette, opts);
-        }, 120);
+        session.schedule(item.theme.palette);
       });
     }
 
@@ -144,9 +140,8 @@ async function pickAndApply(
     });
 
     qp.onDidHide(async () => {
-      if (previewTimer) { clearTimeout(previewTimer); }
-      if (!accepted && preview) {
-        await restoreSnapshot(target, original);
+      if (!accepted && session) {
+        await session.cancel();
       }
       qp.dispose();
       if (!accepted) { resolve(undefined); }
