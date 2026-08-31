@@ -196,3 +196,43 @@ export async function removeApplied(
   await setOwnedKeys(ctx, target, []);
   return { removed, usedFallback };
 }
+
+/** Delay before a live-preview apply, matching the picker's arrow-key debounce. */
+export const PREVIEW_DEBOUNCE_MS = 120;
+
+/**
+ * Snapshot-and-restore session used by the theme picker while live preview is on.
+ * `schedule` debounces real writes; `cancel` restores the pre-session snapshot.
+ */
+export class LivePreview {
+  private timer: ReturnType<typeof setTimeout> | undefined;
+  private readonly original: ApplySnapshot;
+
+  constructor(
+    private readonly ctx: vscode.ExtensionContext,
+    private readonly opts: ApplyOptions,
+  ) {
+    this.original = snapshotApply(ctx, opts.target);
+  }
+
+  schedule(palette: Palette): void {
+    if (this.timer) { clearTimeout(this.timer); }
+    this.timer = setTimeout(() => {
+      this.timer = undefined;
+      void applyPalette(this.ctx, palette, this.opts);
+    }, PREVIEW_DEBOUNCE_MS);
+  }
+
+  /** Drops a pending preview write without restoring the snapshot (accept path). */
+  stop(): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = undefined;
+    }
+  }
+
+  async cancel(): Promise<void> {
+    this.stop();
+    await restoreApply(this.ctx, this.opts.target, this.original);
+  }
+}

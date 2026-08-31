@@ -104,11 +104,12 @@ Emulators disagree about what to call the same pixel:
 ```sh
 npm ci
 npm run test:parsers   # no VS Code needed; parsers plus discovery against a fake HOME/XDG tree
+npm run test:host      # Extension Development Host; downloads VS Code on first run
 npm run compile
 ```
 
-GitHub Actions runs those same commands on pull requests and on push to `initialdev` or `main`.
+`test:host` launches a throwaway VS Code (not your installed app) with a short temporary `--user-data-dir`. That isolation is required on macOS: the default path under this repo is too long for unix-domain sockets. It does not write your real user `settings.json`.
 
-The parsers and discovery are plain Node with no `vscode` import, so they're
-testable outside the extension host and reusable as a CLI if you ever want the
-dotfiles-build-time version.
+GitHub Actions runs `npm ci`, `npm run test:parsers`, and `npm run compile` on pull requests and on push to `initialdev` or `main`.
+
+The parsers and discovery are plain Node with no `vscode` import, so they're testable outside the extension host and reusable as a CLI if you ever want the dotfiles-build-time version. `npm test` runs the parser suite first, then the host suite.
