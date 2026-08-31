@@ -1,0 +1,1 @@
+Releases: release-please node type bumps package.json version; workflow uses HELPER_APP_ID as client-id; no Marketplace/AMO/CWS publish jobs

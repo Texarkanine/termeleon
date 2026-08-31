@@ -87,17 +87,55 @@ interface WtScheme {
   [key: string]: any;
 }
 
+/** JSON.parse of Windows Terminal JSONC, or `undefined` if the document is unusable. */
+function parseWindowsTerminalSettings(text: string): any | undefined {
+  try {
+    return JSON.parse(stripJsonComments(text));
+  } catch {
+    return undefined;
+  }
+}
+
+function wtColorSchemeNames(value: unknown): string[] {
+  if (typeof value === 'string') { return [value]; }
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    const names: string[] = [];
+    for (const key of ['dark', 'light'] as const) {
+      const n = (value as any)[key];
+      if (typeof n === 'string') { names.push(n); }
+    }
+    return names;
+  }
+  return [];
+}
+
+/** `undefined` means inherit; an array (even empty) means colorScheme was present. */
+function wtColorSchemesFrom(owner: unknown): string[] | undefined {
+  if (owner == null || typeof owner !== 'object') { return undefined; }
+  if (!('colorScheme' in owner)) { return undefined; }
+  return wtColorSchemeNames((owner as any).colorScheme);
+}
+
+function wtProfileList(profiles: unknown): any[] {
+  if (Array.isArray(profiles)) { return profiles; }
+  if (profiles && typeof profiles === 'object' && Array.isArray((profiles as any).list)) {
+    return (profiles as any).list;
+  }
+  return [];
+}
+
+function wtDefaultsSchemes(profiles: unknown): string[] {
+  if (!profiles || typeof profiles !== 'object' || Array.isArray(profiles)) { return []; }
+  return wtColorSchemesFrom((profiles as any).defaults) ?? [];
+}
+
 /**
  * Windows Terminal keeps every scheme in one settings.json under `schemes`,
  * so this returns many palettes from a single file.
  */
 export function parseWindowsTerminal(text: string): { name: string; palette: Palette }[] {
-  let doc: any;
-  try {
-    doc = JSON.parse(stripJsonComments(text));
-  } catch {
-    return [];
-  }
+  const doc = parseWindowsTerminalSettings(text);
+  if (!doc) { return []; }
   const schemes: WtScheme[] = Array.isArray(doc?.schemes) ? doc.schemes : [];
 
   const order = [
@@ -120,4 +158,44 @@ export function parseWindowsTerminal(text: string): { name: string; palette: Pal
       p.selectionBackground = normalizeColor(s.selectionBackground);
       return { name: s.name as string, palette: p };
     });
+}
+
+/**
+ * True when a parsed scheme name is one of the in-use colorScheme names,
+ * ignoring case the way Windows Terminal does.
+ */
+export function isWindowsTerminalSchemeActive(schemeName: string, activeNames: string[]): boolean {
+  const key = schemeName.toLowerCase();
+  return activeNames.some((n) => n.toLowerCase() === key);
+}
+
+/**
+ * Reads the color scheme names Windows Terminal would apply to a new
+ * default-profile tab: the default profile's `colorScheme` if set, otherwise
+ * `profiles.defaults.colorScheme`. A string yields one name; a `{ dark, light }`
+ * object yields both. A present non-string that is not that pair yields none
+ * and does not inherit defaults.
+ *
+ * Per-profile schemes on non-default profiles are ignored. GUID comparison
+ * against `defaultProfile` is case-insensitive. `profiles` may be the modern
+ * `{ defaults, list }` object or a legacy array.
+ */
+export function activeWindowsTerminalScheme(text: string): string[] {
+  const doc = parseWindowsTerminalSettings(text);
+  if (!doc) { return []; }
+
+  const profiles = doc.profiles;
+  const defaultGuid = typeof doc.defaultProfile === 'string'
+    ? doc.defaultProfile.toLowerCase()
+    : undefined;
+
+  if (defaultGuid) {
+    const def = wtProfileList(profiles).find(
+      (p) => typeof p?.guid === 'string' && p.guid.toLowerCase() === defaultGuid,
+    );
+    const fromProfile = wtColorSchemesFrom(def);
+    if (fromProfile !== undefined) { return fromProfile; }
+  }
+
+  return wtDefaultsSchemes(profiles);
 }

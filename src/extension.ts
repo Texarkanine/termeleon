@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { DiscoveredTheme } from './palette';
-import { discoverThemes } from './discover';
+import { discoverThemes, mirrorCandidates, MirrorCandidate } from './discover';
 import {
-  Target, ApplyOptions, applyPalette, removeApplied, LivePreview,
+  Target, ApplyOptions, applyPalette, applyPalettePair, removeApplied, LivePreview,
 } from './apply';
 
 const CONFIG = 'terminalThemeImport';
@@ -98,12 +98,27 @@ function toItem(theme: DiscoveredTheme): ThemeItem {
   };
 }
 
+interface MirrorItem extends vscode.QuickPickItem {
+  candidate: MirrorCandidate;
+}
+
+function toMirrorItem(candidate: MirrorCandidate): MirrorItem {
+  if (candidate.kind === 'pair') {
+    return {
+      label: `$(check) ${candidate.dark.name} / ${candidate.light.name}`,
+      description: 'Ghostty · dark/light',
+      detail: `${swatch(candidate.dark)}  ${candidate.dark.origin}  ·  ${swatch(candidate.light)}  ${candidate.light.origin}`,
+      candidate,
+    };
+  }
+  return { ...toItem(candidate.theme), candidate };
+}
+
 /**
  * Shows the picker with optional live preview.
  *
- * Preview writes real settings, so the pre-picker value is captured up front
- * and restored if the user backs out. Committing simply leaves the last
- * previewed value in place and records the owned keys.
+ * Preview writes real settings, so the pre-picker colors *and* owned keys
+ * are captured up front and both restored if the user backs out.
  */
 async function pickAndApply(
   ctx: vscode.ExtensionContext,
@@ -191,19 +206,29 @@ async function commandMirror(ctx: vscode.ExtensionContext) {
     return;
   }
 
-  let chosen = active[0];
-  if (active.length > 1) {
-    const pick = await vscode.window.showQuickPick(active.map(toItem), {
+  const candidates = mirrorCandidates(active);
+  let chosen = candidates[0];
+  if (candidates.length > 1) {
+    const pick = await vscode.window.showQuickPick(candidates.map(toMirrorItem), {
       title: 'Several terminals report an active theme',
       ignoreFocusOut: true,
     });
     if (!pick) { return; }
-    chosen = pick.theme;
+    chosen = pick.candidate;
   }
 
-  await applyPalette(ctx, chosen.palette, applyOptions(target));
+  const opts = applyOptions(target);
+  if (chosen.kind === 'pair') {
+    await applyPalettePair(ctx, chosen.dark.palette, chosen.light.palette, opts);
+    vscode.window.showInformationMessage(
+      `Mirrored Ghostty dark/light pair "${chosen.dark.name}" / "${chosen.light.name}".`,
+    );
+    return;
+  }
+
+  await applyPalette(ctx, chosen.theme.palette, opts);
   vscode.window.showInformationMessage(
-    `Mirrored "${chosen.name}" from ${SOURCE_LABELS[chosen.source] ?? chosen.source}.`,
+    `Mirrored "${chosen.theme.name}" from ${SOURCE_LABELS[chosen.theme.source] ?? chosen.theme.source}.`,
   );
 }
 

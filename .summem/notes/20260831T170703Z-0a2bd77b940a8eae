@@ -1,0 +1,1 @@
+WT colorScheme may be {dark,light}; those names are both active and do not inherit defaults. Scheme-name active match is case-insensitive.

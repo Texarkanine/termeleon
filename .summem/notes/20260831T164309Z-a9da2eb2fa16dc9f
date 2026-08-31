@@ -1,0 +1,1 @@
+discover.ts captures home/xdgConfig/xdgDataDirs at module load; tests that fake HOME must import after env is set, or scan-time reads are required
