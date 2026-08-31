@@ -1,11 +1,28 @@
 # Active Context
 
 ## Current Task: discover-fixture-tests
-**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Level 2 plan for issue #5: new `test/discover.test.ts` (same Node/`tsx` harness as parsers), per-test tmp HOME + non-default `$XDG_CONFIG_HOME`, origin-prefix assertions, scan-time path helpers in `src/discover.ts`, `test:parsers` runs both files in separate processes.
-- Production API unchanged (`discoverThemes` / `DiscoverOptions`). No new dependencies.
+- Added `test/discover.test.ts`: five Node/`tsx` cases against a throwaway `$HOME` / `$XDG_CONFIG_HOME` tree (XDG is not `~/.config`). Assertions match `origin` under that tree.
+- `src/discover.ts` reads home/XDG at scan time via `homeDir()` / `xdgConfigDir()` / `xdgDataDirectories()`. Public `discoverThemes` / `DiscoverOptions` unchanged.
+- `package.json` `test:parsers` runs parsers then discover in separate processes.
+- Updated `README.md`, `memory-bank/techContext.md`, `memory-bank/systemPatterns.md`.
+
+## Files modified
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-5-discover-fixture-tests/test/discover.test.ts` (created)
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-5-discover-fixture-tests/src/discover.ts`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-5-discover-fixture-tests/package.json`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-5-discover-fixture-tests/README.md`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-5-discover-fixture-tests/memory-bank/techContext.md`
+- `/Users/tex/worktrees/Texarkanine/vscode-terminal-themes/vscode-terminal-themes-issue-5-discover-fixture-tests/memory-bank/systemPatterns.md`
+
+## Key implementation decisions
+- Exact `origin` equality against planted paths, not result-list length, so Darwin `/Applications/Ghostty.app` themes cannot satisfy or break the suite.
+- No new public injection API (preflight advisory left out of scope).
+
+## Deviations from Plan
+- None - built to plan.
 
 ## Next Step
-- Build the approved fixture-home discovery tests and scan-time path resolution.
+- QA review.

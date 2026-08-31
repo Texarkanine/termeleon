@@ -34,3 +34,14 @@ Add Node/`tsx` tests that drive `discoverThemes` against a fixture `$HOME` / `$X
     - No in-phase plan edits were needed; the executable unit already puts test stubs and red tests before production code.
 * Insights
     - A future injected filesystem/environment resolver could remove ambient `process.env` coupling for parallel-safe tests, but it is out of scope for issue #5.
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - `test/discover.test.ts`: find, Ghostty active, kitty active, skip unusable, missing wezterm dir.
+    - Scan-time `homeDir` / `xdgConfigDir` / `xdgDataDirectories` in `src/discover.ts`.
+    - `test:parsers` runs both files; docs updated. Full suite 11 parser + 5 discover; `npm run compile` succeeded.
+* Decisions made
+    - Match planted `origin` paths exactly. Do not inject a filesystem resolver.
+* Insights
+    - Empty path stubs made four cases red and the missing-dir case green, which is the TDD split the plan predicted.

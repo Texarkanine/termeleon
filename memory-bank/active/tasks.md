@@ -27,7 +27,7 @@ Committed Node/`tsx` tests drive `discoverThemes` against a fake `$HOME` / `$XDG
 
 ## Implementation Plan
 
-### 1. Fixture-home discover tests — executable
+### 1. Fixture-home discover tests — executable ✅
 
 - Files: `test/discover.test.ts`, `package.json`, `src/discover.ts`
 
@@ -44,7 +44,7 @@ Committed Node/`tsx` tests drive `discoverThemes` against a fake `$HOME` / `$XDG
     - Set `package.json` `scripts.test:parsers` to `tsx test/parsers.test.ts && tsx test/discover.test.ts` so the documented Node/`tsx` command runs both files in **separate** processes.
     - Run `tsx test/discover.test.ts` then `npm run test:parsers`. All new cases and the existing parser suite must pass.
 
-### 2. Testing docs — prose/policy
+### 2. Testing docs — prose/policy ✅
 
 - Files: `memory-bank/techContext.md`, `memory-bank/systemPatterns.md`, `README.md`
 - No tests: prose/policy artifact
@@ -85,6 +85,6 @@ No new technology - validation not required. Same `assert` + `tsx` stack. `fs.mk
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA

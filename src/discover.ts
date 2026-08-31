@@ -12,10 +12,21 @@ import { parseItermColors, parseWindowsTerminal } from './parsers/iterm2';
 const MAX_DEPTH = 3;
 const MAX_FILES_PER_SOURCE = 800;
 
-const home = os.homedir();
-const xdgConfig = process.env.XDG_CONFIG_HOME || path.join(home, '.config');
-const xdgDataDirs = (process.env.XDG_DATA_DIRS || '/usr/local/share:/usr/share')
-  .split(':').filter(Boolean);
+/** Process home used for config paths. Read at scan time so tests can point `$HOME` at a fixture tree. */
+function homeDir(): string {
+  return os.homedir();
+}
+
+/** `$XDG_CONFIG_HOME`, or `~/.config` when that env var is unset. */
+function xdgConfigDir(): string {
+  return process.env.XDG_CONFIG_HOME || path.join(homeDir(), '.config');
+}
+
+/** `$XDG_DATA_DIRS` split on `:`, with the usual FHS fallback. */
+function xdgDataDirectories(): string[] {
+  return (process.env.XDG_DATA_DIRS || '/usr/local/share:/usr/share')
+    .split(':').filter(Boolean);
+}
 
 function exists(p: string): boolean {
   try { fs.accessSync(p); return true; } catch { return false; }
@@ -56,17 +67,17 @@ function stem(p: string): string {
 // --------------------------------------------------------------------------
 
 function ghosttyDirs(): { themes: string[]; configs: string[] } {
-  const themes: string[] = [path.join(xdgConfig, 'ghostty', 'themes')];
-  const configs: string[] = [path.join(xdgConfig, 'ghostty', 'config')];
+  const themes: string[] = [path.join(xdgConfigDir(), 'ghostty', 'themes')];
+  const configs: string[] = [path.join(xdgConfigDir(), 'ghostty', 'config')];
 
   if (process.platform === 'darwin') {
-    const appSupport = path.join(home, 'Library', 'Application Support', 'com.mitchellh.ghostty');
+    const appSupport = path.join(homeDir(), 'Library', 'Application Support', 'com.mitchellh.ghostty');
     themes.push(path.join(appSupport, 'themes'));
     configs.push(path.join(appSupport, 'config'));
     themes.push('/Applications/Ghostty.app/Contents/Resources/ghostty/themes');
-    themes.push(path.join(home, 'Applications/Ghostty.app/Contents/Resources/ghostty/themes'));
+    themes.push(path.join(homeDir(), 'Applications/Ghostty.app/Contents/Resources/ghostty/themes'));
   } else {
-    for (const d of xdgDataDirs) { themes.push(path.join(d, 'ghostty', 'themes')); }
+    for (const d of xdgDataDirectories()) { themes.push(path.join(d, 'ghostty', 'themes')); }
   }
   return { themes, configs };
 }
@@ -114,7 +125,7 @@ function discoverGhostty(): DiscoveredTheme[] {
 }
 
 function discoverKitty(): DiscoveredTheme[] {
-  const base = path.join(xdgConfig, 'kitty');
+  const base = path.join(xdgConfigDir(), 'kitty');
   const out: DiscoveredTheme[] = [];
   const currentTheme = path.join(base, 'current-theme.conf');
 
@@ -142,8 +153,8 @@ function discoverKitty(): DiscoveredTheme[] {
 
 function discoverAlacritty(): DiscoveredTheme[] {
   const bases = [
-    path.join(xdgConfig, 'alacritty'),
-    path.join(home, '.alacritty'),
+    path.join(xdgConfigDir(), 'alacritty'),
+    path.join(homeDir(), '.alacritty'),
   ];
   const out: DiscoveredTheme[] = [];
 
@@ -167,7 +178,7 @@ function discoverAlacritty(): DiscoveredTheme[] {
 }
 
 function discoverWezterm(): DiscoveredTheme[] {
-  const base = path.join(xdgConfig, 'wezterm');
+  const base = path.join(xdgConfigDir(), 'wezterm');
   const out: DiscoveredTheme[] = [];
 
   for (const file of [...walk(path.join(base, 'colors'), ['.toml']), ...walk(base, ['.toml'])]) {
@@ -190,7 +201,7 @@ function discoverWezterm(): DiscoveredTheme[] {
 function discoverIterm2(extraDirs: string[]): DiscoveredTheme[] {
   if (process.platform !== 'darwin' && extraDirs.length === 0) { return []; }
   const dirs = [
-    path.join(home, 'Library', 'Application Support', 'iTerm2'),
+    path.join(homeDir(), 'Library', 'Application Support', 'iTerm2'),
     ...extraDirs,
   ];
   const out: DiscoveredTheme[] = [];
@@ -230,7 +241,7 @@ function discoverWindowsTerminal(): DiscoveredTheme[] {
 
 function discoverXresources(): DiscoveredTheme[] {
   const out: DiscoveredTheme[] = [];
-  for (const file of [path.join(home, '.Xresources'), path.join(home, '.Xdefaults')]) {
+  for (const file of [path.join(homeDir(), '.Xresources'), path.join(homeDir(), '.Xdefaults')]) {
     const text = readText(file);
     if (!text) { continue; }
     const palette = parseXresources(text);
