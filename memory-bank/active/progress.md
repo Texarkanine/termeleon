@@ -38,3 +38,16 @@ Set up Open VSX publishing in the release workflow on release-please release cre
     - The planned coverage-ignore contract test omits `.gitignore`, although the requirement applies to both Git and VSIX packaging ignores.
 * Advisory
     - Consider a future `codecov.yml` with baseline-derived project and patch thresholds after initial coverage uploads.
+
+## 2026-08-31 - PREFLIGHT (re-run) - COMPLETE
+
+* Work completed
+    - Re-validated the revised Level 2 plan against the codebase: workflows, package scripts, existing CI contract tests, ignore files, and sibling-repo badge conventions.
+    - Recorded `PASS WITH ADVISORY` in `.preflight-status`.
+    - Verified both prior FAIL findings resolved (lockfile update with clean-tree `npm ci` verification; `.gitignore` coverage-ignore assertions).
+* Findings
+    - Struck the "[Readme Badge Contract]" behavior from the Test Plan as a change-detector (README badge presence can only fail on deliberate README edits); the badge work remains in Unit 3 as prose/policy with no tests.
+    - Advisory: use `coverage/` in `.gitignore` (trailing-slash idiom) vs `coverage/**` in `.vscodeignore`.
+    - Advisory: pre-existing techContext drift — release workflow actually uses `DOGGO_BOT_APP_ID`/`DOGGO_BOT_PRIVATE_KEY`, not the documented `HELPER_APP_*`; fix surgically in Unit 3.
+    - Advisory: ensure the Open VSX namespace and `OPENVSX_TOKEN` secret exist before first release; order the publish step after `gh release upload`.
+    - Advisory (radical innovation): add `c8 --check-coverage` thresholds so CI ratchets coverage instead of only reporting it.

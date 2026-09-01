@@ -15,7 +15,6 @@ Configure Open VSX extension publishing on release-please release creation, inte
 - [Marketplace Safety Contract]: `.github/workflows/release-please.yaml` does not publish to Visual Studio Marketplace (`!wf.includes('vsce publish')`, `!wf.includes('VSCE_PAT')`).
 - [Coverage Script Contract]: `package.json` defines `test:coverage` script that generates lcov coverage reports.
 - [Coverage Artifact Ignore Contract]: `.gitignore` and `.vscodeignore` ignore coverage output directories so they are not tracked in git or packaged in VSIX.
-- [Readme Badge Contract]: `README.md` includes the Codecov badge for `Texarkanine/termeleon`.
 
 ### Test Infrastructure
 

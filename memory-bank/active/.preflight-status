@@ -1,13 +1,19 @@
-FAIL (fixable)
+PASS WITH ADVISORY
 
-## Findings
+Preflight re-run for ci-openvsx-codecov (Level 2). Both findings from the prior FAIL (fixable) run are verifiably resolved: Unit 1 now schedules the `package-lock.json` update with clean-tree `npm ci` compatibility, and the coverage-ignore test steps now cover both `.gitignore` and `.vscodeignore`.
 
-- **Fail (fixable) — lockfile omitted:** Unit 1 adds the `c8` devDependency but omits `package-lock.json` from both its file list and implementation step. The committed lockfile is required by CI's `npm ci`; the plan must explicitly regenerate and verify it from a clean dependency tree.
-- **Fail (fixable) — incomplete ignore coverage test:** The stated coverage-artifact contract covers both `.gitignore` and `.vscodeignore`, but Unit 1's test stub specifies only `.vscodeignore`. Add a test assertion for the Git ignore rule before the implementation step so this executable contract is fully test-driven.
-- **Pass — TDD ordering:** Each executable unit places test stubbing and red assertions before implementation. The prose/policy unit correctly has no document-content tests.
-- **Pass — conventions and dependency impact:** The planned `test/parsers.test.ts` CI-contract location, `c8` devDependency, `npm ci` workflow integration, and release-gated Open VSX publication match the repository's established tooling and release flow.
-- **Pass — public-release safety:** The Open VSX step is planned behind `release_created`, retains the GitHub App token / VSIX upload path, uses the requested secret, and expressly avoids Marketplace publishing.
+In-phase plan edit (change-detector strike): removed the "[Readme Badge Contract]" behavior from the Test Plan in `tasks.md`. A test asserting that `README.md` contains the Codecov badge can only go red when someone deliberately edits the README — it stays silent when the product breaks — so it is a change-detector under `.cursor/rules/shared/always-tdd.mdc` (docs content owes no tests). The badge work itself remains scheduled in Unit 3, which is correctly marked prose/policy with no tests. No other steps changed.
 
-## Advisory
+TDD plan encoding: PASS. Unit 1 (coverage script, ignores, lockfile) and Unit 2 (CI/release workflows) order stub-tests, stub-interface, write-tests-run-red, then write-code-run-green; a reasonable implementer cannot follow the plan by coding first. Unit 3 is prose/policy and owes no tests. After the strike, every executable unit retains test steps.
 
-- **Radical innovation:** Add a small `codecov.yml` that establishes repository-wide project and patch coverage thresholds, then enable Codecov PR comments. This turns upload-only visibility into an actionable regression signal, but it should be adopted only after the first baseline upload establishes stable thresholds.
+Convention compliance: PASS. New assertions extend the existing `ci` contract section of `test/parsers.test.ts` using its established string/regex style; the badge markdown matches the verified sibling convention (`[![codecov](https://codecov.io/github/Texarkanine/<repo>/graph/badge.svg)](...)` in a16n and stockroom). Minor nit (advisory): the plan says to add `coverage/**` to `.gitignore`, but that file's idiom is trailing-slash directories (`dist/`, `out/`); `coverage/` fits `.gitignore`, while `coverage/**` fits `.vscodeignore`.
+
+Dependency impact: PASS. `c8` sits in `node_modules` from technology validation but is not yet saved; Unit 1's clean-tree lockfile step covers the known npm 10 optional-dependency pruning risk. Existing contract tests are additive-safe (`includes`-based assertions survive new workflow steps), and `ovsx publish` / `OPENVSX_TOKEN` do not trip the Marketplace-safety assertions (`vsce publish`, `VSCE_PAT`). `npm test` is untouched, keeping the host-test path fast.
+
+Conflict detection: PASS. No existing coverage or Open VSX implementation to duplicate; the extension's public surface (commands, settings, release flow) is preserved. Pre-existing drift noted (advisory): `memory-bank/techContext.md` says the release workflow mints its token from `HELPER_APP_ID` / `HELPER_APP_PRIVATE_KEY`, but the workflow actually uses `vars.DOGGO_BOT_APP_ID` / `secrets.DOGGO_BOT_PRIVATE_KEY`. Unit 3 edits that very Releases section — fix the secret names surgically while there.
+
+Completeness: PASS. All six requirements and every acceptance criterion map to a plan unit; the dedicated-branch requirement is already satisfied (on `feat/ci-openvsx-codecov`, clean tree). Bookkeeping nit (advisory): Unit 3 lists `memory-bank/systemPatterns.md` under Files but no step touches it, while its steps touch `activeContext.md`/`progress.md` unlisted — harmless; no systemPatterns change appears necessary since the CI-contract-test pattern is already documented.
+
+Operational advisory: Open VSX publishing requires the `texarkanine` namespace on open-vsx.org and the `OPENVSX_TOKEN` repository secret to exist before the first release, or the release job fails after the release is created. Order the Open VSX step after `gh release upload` (or mark it continue-on-error) so a registry failure cannot strand a cut release without its VSIX asset.
+
+Radical innovation (advisory): make coverage a ratchet, not just a report. Add thresholds to the c8 invocation, e.g. `c8 --check-coverage --lines 90 --branches 85 --reporter=lcov --reporter=text ...`. Technology validation measured 94.57% statements, so a 90% floor holds today; CI then fails on coverage erosion and the badge can never silently rot. One script line, no new dependencies.
