@@ -62,3 +62,18 @@ Set up Open VSX publishing in the release workflow on release-please release cre
 * Decisions made
     - Used `npx --yes ovsx publish *.vsix --pat "$OPENVSX_TOKEN"` in release workflow after GitHub release VSIX upload.
     - Configured Codecov upload step in `ci.yaml` with `fail_ci_if_error: false`.
+
+## 2026-08-31 - QA - COMPLETE
+
+* Work completed
+    - Independent QA review via subagent verified completeness, KISS/DRY adherence, regression safety, and secret handling.
+    - Recorded `PASS` in `.qa-validation-status`.
+
+## 2026-08-31 - REFLECT - COMPLETE
+
+* Work completed
+    - Created reflection document in `memory-bank/active/reflection/reflection-ci-openvsx-codecov.md`.
+    - Reconciled persistent memory bank files (`techContext.md`, `productContext.md`, `systemPatterns.md`).
+    - Verified clean build, tests, and packaging.
+* Decisions made
+    - Documented Open VSX publishing and Codecov coverage pipeline conventions in persistent tech context.

@@ -83,4 +83,15 @@ Validated `c8` (v11/v12) coverage execution over `test/parsers.test.ts` and `tes
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA (PASS)
+
+## QA Results
+
+**Result:** PASS (advisories)
+
+Implementation matches the plan: `test:coverage` via `c8`, Codecov upload on CI, Open VSX publish gated on `release_created`, coverage ignored in git and VSIX, Codecov badge and techContext/README updates, contract tests extended in `test/parsers.test.ts`. Existing release-please mint/upload path is unchanged. No KISS/DRY/YAGNI, completeness, regression, or integrity blockers.
+
+Advisories (do not block):
+- `techContext.md` still claims the release-please action sets `target-branch: ${{ github.ref_name }}`; the workflow file does not (pre-existing; Unit 3 walked past that sentence while fixing `DOGGO_BOT_*`).
+- CI contract assertion still accepts `test:parsers` *or* `test:coverage`; Codecov step assertions still lock upload.
+- Open VSX namespace / `OPENVSX_TOKEN` must exist before the first real release (preflight advisory, still true).
