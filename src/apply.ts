@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { Palette, ApplySnapshot, toColorCustomizations, managedKeys, mergeColors, mergePairedColors, preferredPairScopes, stripOwnedKeys, restoreApplySnapshot } from './palette';
 
@@ -142,6 +144,54 @@ export function snapshotApply(ctx: vscode.ExtensionContext, target: Target): App
   };
 }
 
+/**
+ * Removes empty `.vscode/settings.json` and empty `.vscode/` directories in
+ * open workspace folders if settings.json was reduced to an empty JSON object.
+ */
+export function cleanEmptyWorkspaceSettings(): void {
+  const folders = vscode.workspace.workspaceFolders ?? [];
+  for (const folder of folders) {
+    if (folder.uri.scheme !== 'file') {
+      continue;
+    }
+    const vscodeDir = path.join(folder.uri.fsPath, '.vscode');
+    const settingsPath = path.join(vscodeDir, 'settings.json');
+    try {
+      if (fs.existsSync(settingsPath)) {
+        const raw = fs.readFileSync(settingsPath, 'utf8').trim();
+        let isEmpty = false;
+        if (raw === '' || raw === '{}') {
+          isEmpty = true;
+        } else {
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Object.keys(parsed).length === 0) {
+              isEmpty = true;
+            }
+          } catch {
+            // Not standard JSON or contains comments; preserve file
+          }
+        }
+        if (isEmpty) {
+          fs.unlinkSync(settingsPath);
+        }
+      }
+      if (fs.existsSync(vscodeDir)) {
+        const remaining = fs.readdirSync(vscodeDir).filter((f) => f !== '.DS_Store');
+        if (remaining.length === 0) {
+          const dsStore = path.join(vscodeDir, '.DS_Store');
+          if (fs.existsSync(dsStore)) {
+            try { fs.unlinkSync(dsStore); } catch { /* ignore */ }
+          }
+          fs.rmdirSync(vscodeDir);
+        }
+      }
+    } catch {
+      // Ignore filesystem errors so settings operations never throw unexpectedly
+    }
+  }
+}
+
 export async function restoreApply(
   ctx: vscode.ExtensionContext,
   target: Target,
@@ -151,6 +201,9 @@ export async function restoreApply(
   await restoreSnapshot(target, restored.colors);
   await setOwnedKeys(ctx, target, restored.ownedKeys);
   await writeContrastRatioAt(target, restored.minimumContrastRatio);
+  if (target === 'workspace') {
+    cleanEmptyWorkspaceSettings();
+  }
 }
 
 export interface RemoveResult {
@@ -211,6 +264,10 @@ export async function removeApplied(
 
   if (readContrastRatioAt(target) === 1) {
     await writeContrastRatioAt(target, undefined);
+  }
+
+  if (target === 'workspace') {
+    cleanEmptyWorkspaceSettings();
   }
 
   return { removed, usedFallback };

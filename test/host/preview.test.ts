@@ -1,4 +1,6 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 import {
@@ -56,6 +58,22 @@ suite('LivePreview', () => {
 
     await preview.cancel();
     assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, 4.5);
+  });
+
+  test('cancel in empty workspace cleans up .vscode/settings.json and empty .vscode directory', async () => {
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    assert.ok(root, 'expected workspace folder');
+    const vscodeDir = path.join(root, '.vscode');
+    const settingsFile = path.join(vscodeDir, 'settings.json');
+
+    const preview = new LivePreview(ctx, opts);
+    preview.schedule(samplePalette());
+    await delay(PREVIEW_DEBOUNCE_MS + 100);
+    assert.ok(fs.existsSync(settingsFile), 'expected settings.json to exist during preview');
+
+    await preview.cancel();
+    assert.ok(!fs.existsSync(settingsFile), 'expected settings.json to be deleted after preview cancel');
+    assert.ok(!fs.existsSync(vscodeDir), 'expected .vscode dir to be deleted after preview cancel');
   });
 
   test('two schedules inside the debounce window apply only the second palette', async () => {

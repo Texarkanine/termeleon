@@ -1,4 +1,6 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 import {
@@ -27,6 +29,12 @@ function activeScope(): string {
   const theme = vscode.workspace.getConfiguration('workbench').get<string>('colorTheme');
   assert.ok(theme, 'expected workbench.colorTheme');
   return `[${theme}]`;
+}
+
+function workspaceVscodeDir(): string {
+  const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  assert.ok(root, 'expected open workspace folder');
+  return path.join(root, '.vscode');
 }
 
 suite('apply / remove / snapshot', () => {
@@ -142,6 +150,58 @@ suite('apply / remove / snapshot', () => {
     const result = await removeApplied(ctx, 'workspace', false);
     assert.ok(result.removed > 0);
     assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, 3);
+  });
+
+  test('removeApplied cleans up empty .vscode/settings.json and empty .vscode directory on workspace target', async () => {
+    const vscodeDir = workspaceVscodeDir();
+    const settingsFile = path.join(vscodeDir, 'settings.json');
+
+    await applyPalette(ctx, samplePalette(), workspaceOpts({ setMinimumContrastRatio: true }));
+    assert.ok(fs.existsSync(settingsFile), 'expected settings.json to exist after apply');
+
+    const result = await removeApplied(ctx, 'workspace', false);
+    assert.ok(result.removed > 0);
+    assert.ok(!fs.existsSync(settingsFile), 'expected settings.json to be deleted after remove');
+    assert.ok(!fs.existsSync(vscodeDir), 'expected .vscode dir to be deleted after remove');
+  });
+
+  test('removeApplied preserves .vscode/settings.json when other workspace settings exist', async () => {
+    const vscodeDir = workspaceVscodeDir();
+    const settingsFile = path.join(vscodeDir, 'settings.json');
+
+    await vscode.workspace.getConfiguration('editor').update('tabSize', 4, vscode.ConfigurationTarget.Workspace);
+    await applyPalette(ctx, samplePalette(), workspaceOpts());
+
+    const result = await removeApplied(ctx, 'workspace', false);
+    assert.ok(result.removed > 0);
+    assert.ok(fs.existsSync(settingsFile), 'expected settings.json to be preserved');
+    assert.ok(fs.existsSync(vscodeDir), 'expected .vscode dir to be preserved');
+
+    await vscode.workspace.getConfiguration('editor').update('tabSize', undefined, vscode.ConfigurationTarget.Workspace);
+  });
+
+  test('removeApplied preserves .vscode directory when other files exist in it', async () => {
+    const vscodeDir = workspaceVscodeDir();
+    const settingsFile = path.join(vscodeDir, 'settings.json');
+    const launchFile = path.join(vscodeDir, 'launch.json');
+
+    await applyPalette(ctx, samplePalette(), workspaceOpts());
+    fs.writeFileSync(launchFile, '{}');
+
+    try {
+      const result = await removeApplied(ctx, 'workspace', false);
+      assert.ok(result.removed > 0);
+      assert.ok(!fs.existsSync(settingsFile), 'expected settings.json to be deleted');
+      assert.ok(fs.existsSync(vscodeDir), 'expected .vscode dir to be preserved because launch.json exists');
+      assert.ok(fs.existsSync(launchFile), 'expected launch.json to be preserved');
+    } finally {
+      if (fs.existsSync(launchFile)) {
+        fs.unlinkSync(launchFile);
+      }
+      if (fs.existsSync(vscodeDir) && fs.readdirSync(vscodeDir).length === 0) {
+        fs.rmdirSync(vscodeDir);
+      }
+    }
   });
 
   test('workspace apply does not copy global colorCustomizations into workspace', async () => {

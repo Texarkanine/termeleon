@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current Task: clean-up-empty-workspace-settings
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Clarified intent: delete empty `.vscode/settings.json` and empty `.vscode/` directory when removing applied themes or canceling live preview in a workspace where no other settings/configs remain
-- Classified as Level 1 (Quick Bug Fix): self-contained enhancement in `src/apply.ts` with host tests in `test/host/apply.test.ts` and `test/host/preview.test.ts`
+- Wrote failing host tests covering removal and live-preview cancellation unlinking empty `.vscode/settings.json` and empty `.vscode/`, while preserving files when other settings or configs exist
+- Implemented `cleanEmptyWorkspaceSettings` in `src/apply.ts` and called it in `restoreApply` and `removeApplied` when `target === 'workspace'`
+- Verified all parser (45), discovery (5), and host (30) tests pass cleanly
 
 ## Next Step
-- Transition to Level 1 Build Phase
+- Transition to QA phase (spawn subagent to run `/niko-qa`)
