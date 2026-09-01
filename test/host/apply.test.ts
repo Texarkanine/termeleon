@@ -44,20 +44,10 @@ suite('apply / remove / snapshot', () => {
     await resetSettings();
     await ctx.workspaceState.update('termeleon.ownedKeys', undefined);
     await ctx.globalState.update('termeleon.ownedKeys', undefined);
-    await ctx.workspaceState.update('terminalThemeImport.ownedKeys', undefined);
-    await ctx.globalState.update('terminalThemeImport.ownedKeys', undefined);
   });
 
   suiteTeardown(async () => {
     await resetSettings();
-  });
-
-  test('legacy terminalThemeImport.ownedKeys migrates automatically to termeleon.ownedKeys', async () => {
-    await ctx.workspaceState.update('terminalThemeImport.ownedKeys', ['terminal.background']);
-    assert.deepStrictEqual(ownedKeys(ctx, 'workspace'), ['terminal.background']);
-    // Check that state migrated
-    assert.deepStrictEqual(ctx.workspaceState.get('termeleon.ownedKeys'), ['terminal.background']);
-    assert.strictEqual(ctx.workspaceState.get('terminalThemeImport.ownedKeys'), undefined);
   });
 
   test('flat apply writes terminal keys and records owned keys', async () => {

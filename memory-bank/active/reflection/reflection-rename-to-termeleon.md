@@ -16,7 +16,7 @@ Delivered all requirements specified in `projectbrief.md`:
 - `package.json` reflects `name: "termeleon"`, `displayName: "Termeleon"`, `repository: "https://github.com/Texarkanine/termeleon.git"`, and comprehensive keyword tags.
 - Commands and settings renamed to `termeleon.*`.
 - `CONFIG` in `src/extension.ts` and `OWNED_STATE` in `src/apply.ts` updated to `termeleon` and `termeleon.ownedKeys`.
-- Additive transparent migration implemented in `src/apply.ts` so active installations carrying `terminalThemeImport.ownedKeys` seamlessly migrate to `termeleon.ownedKeys`.
+- Clean-break approach without pre-release backwards compatibility hacks or legacy migration shims.
 - Documentation (`README.md`, `techContext.md`, `systemPatterns.md`) updated.
 
 ## Plan Accuracy
@@ -30,7 +30,7 @@ Build executed cleanly with strict TDD: manifest contract tests failed red on th
 ## Insights
 
 ### Technical
-- Scoping state storage keys (`termeleon.ownedKeys`) with an in-flight check against legacy storage keys (`terminalThemeImport.ownedKeys`) ensures zero-friction upgrades for existing users during extension renames.
+- Clean-break changes for pre-release (unreleased 0.x) software eliminate unneeded migration shims, keeping the codebase minimal, clean, and maintainable.
 
 ### Process
 - Using dedicated contract tests in `test/parsers.test.ts` to assert on package manifest properties (`name`, `displayName`, command list, configuration titles) keeps package configuration tightly synchronized with code without needing slow integration tests.
