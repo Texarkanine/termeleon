@@ -10,6 +10,7 @@ tsconfig.json
 tsconfig.test.json
 **/*.map
 **/*.ts
+coverage/**
 .github/**
 .cursor/**
 .summem/**

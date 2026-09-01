@@ -1,5 +1,7 @@
 # Termeleon
 
+[![codecov](https://codecov.io/github/Texarkanine/termeleon/graph/badge.svg)](https://codecov.io/github/Texarkanine/termeleon)
+
 You already picked a color scheme for your terminal emulator. Termeleon reads the
 theme files sitting on your disk and applies one of them to the VS Code integrated
 terminal, either mirroring what your emulator currently uses or letting you drive
@@ -106,6 +108,7 @@ Emulators disagree about what to call the same pixel:
 ```sh
 npm ci
 npm run test:parsers   # no VS Code needed; parsers plus discovery against a fake HOME/XDG tree
+npm run test:coverage  # parsers plus discovery with c8 coverage report
 npm run test:host      # Extension Development Host; downloads VS Code on first run
 npm run compile
 npm run package        # writes termeleon-<version>.vsix (runs compile first)
@@ -115,6 +118,6 @@ Iterate with `test:parsers` / `compile` (and `test:host` when you touch apply or
 
 `test:host` launches a throwaway VS Code (not your installed app) with a short temporary `--user-data-dir`. That isolation is required on macOS: the default path under this repo is too long for unix-domain sockets. It does not write your real user `settings.json`.
 
-GitHub Actions runs `npm ci`, `npm run test:parsers`, `npm run compile`, and `npm run package` on pull requests and on push to `initialdev` or `main`. A tagged GitHub Release from release-please also gets that VSIX attached; it is not published to the Marketplace.
+GitHub Actions runs `npm ci`, `npm run test:coverage`, `npm run compile`, and `npm run package` on pull requests and on push to `initialdev` or `main`, uploading coverage reports to Codecov. A tagged GitHub Release from release-please packages that VSIX, uploads it to the GitHub Release, and publishes it to Open VSX; it is not published to the Visual Studio Marketplace.
 
 The parsers and discovery are plain Node with no `vscode` import, so they're testable outside the extension host and reusable as a CLI if you ever want the dotfiles-build-time version. `npm test` runs the parser suite first, then the host suite.

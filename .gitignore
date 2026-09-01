@@ -3,5 +3,6 @@ dist/
 out/
 .vscode-test/
 *.vsix
+coverage/
 **/.summem/__pycache__/
 test/host/fixtures/workspace/.vscode/
