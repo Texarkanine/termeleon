@@ -27,3 +27,14 @@ Set up Open VSX publishing in the release workflow on release-please release cre
     - Add `c8` as devDependency for coverage collection and `test:coverage` script.
     - Publish to Open VSX using `npx --yes ovsx publish *.vsix --pat "$OPENVSX_TOKEN"` upon GitHub release.
     - Upload coverage with `codecov/codecov-action@v7` using `CODECOV_TOKEN`.
+
+## 2026-08-31 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the Level 2 implementation plan against the existing CI, release workflow, package scripts, test contracts, and memory-bank guidance.
+    - Recorded `FAIL (fixable)` in `.preflight-status`.
+* Findings
+    - The plan omits the required `package-lock.json` update and clean-tree `npm ci` verification for the proposed `c8` dependency.
+    - The planned coverage-ignore contract test omits `.gitignore`, although the requirement applies to both Git and VSIX packaging ignores.
+* Advisory
+    - Consider a future `codecov.yml` with baseline-derived project and patch thresholds after initial coverage uploads.

@@ -1,0 +1,13 @@
+FAIL (fixable)
+
+## Findings
+
+- **Fail (fixable) — lockfile omitted:** Unit 1 adds the `c8` devDependency but omits `package-lock.json` from both its file list and implementation step. The committed lockfile is required by CI's `npm ci`; the plan must explicitly regenerate and verify it from a clean dependency tree.
+- **Fail (fixable) — incomplete ignore coverage test:** The stated coverage-artifact contract covers both `.gitignore` and `.vscodeignore`, but Unit 1's test stub specifies only `.vscodeignore`. Add a test assertion for the Git ignore rule before the implementation step so this executable contract is fully test-driven.
+- **Pass — TDD ordering:** Each executable unit places test stubbing and red assertions before implementation. The prose/policy unit correctly has no document-content tests.
+- **Pass — conventions and dependency impact:** The planned `test/parsers.test.ts` CI-contract location, `c8` devDependency, `npm ci` workflow integration, and release-gated Open VSX publication match the repository's established tooling and release flow.
+- **Pass — public-release safety:** The Open VSX step is planned behind `release_created`, retains the GitHub App token / VSIX upload path, uses the requested secret, and expressly avoids Marketplace publishing.
+
+## Advisory
+
+- **Radical innovation:** Add a small `codecov.yml` that establishes repository-wide project and patch coverage thresholds, then enable Codecov PR comments. This turns upload-only visibility into an actionable regression signal, but it should be adopted only after the first baseline upload establishes stable thresholds.

@@ -26,14 +26,14 @@ Configure Open VSX extension publishing on release-please release creation, inte
 
 ## Implementation Plan
 
-### 1. Test coverage script and packaging ignore — executable
+### 1. Test coverage script, packaging ignore, and lockfile — executable
 
-- Files: `package.json`, `.gitignore`, `.vscodeignore`, `test/parsers.test.ts`
+- Files: `package.json`, `package-lock.json`, `.gitignore`, `.vscodeignore`, `test/parsers.test.ts`
 
-1. Stub tests: Add empty test stubs in `test/parsers.test.ts` under the CI contract section for coverage script, coverage ignore in `.vscodeignore`, Codecov upload in `ci.yaml`, and Open VSX in `release-please.yaml`.
+1. Stub tests: Add empty test stubs in `test/parsers.test.ts` under the CI contract section for coverage script, coverage ignore in `.gitignore` and `.vscodeignore`, Codecov upload in `ci.yaml`, and Open VSX in `release-please.yaml`.
 2. Stub interface: Add placeholder `test:coverage` script in `package.json`.
-3. Write tests and run red: Implement assertions in `test/parsers.test.ts` and run `npm run test:parsers` to verify failure.
-4. Write code and run green: Add `c8` devDependency and `test:coverage` script in `package.json`, add `coverage/**` to `.gitignore` and `.vscodeignore`, and run `npm run test:parsers` until green.
+3. Write tests and run red: Implement assertions in `test/parsers.test.ts` (including `.gitignore` and `.vscodeignore` checking for coverage ignore, and `package-lock.json` presence and lockfile integrity) and run `npm run test:parsers` to verify failure.
+4. Write code and run green: Add `c8` devDependency and `test:coverage` script in `package.json`, add `coverage/**` to `.gitignore` and `.vscodeignore`, update `package-lock.json` ensuring clean-tree npm ci compatibility, and run `npm run test:parsers` until green.
 
 ### 2. CI & Release-Please GitHub Actions Workflows — executable
 
