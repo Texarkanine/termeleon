@@ -1,7 +1,7 @@
 {
-  "name": "terminal-theme-import",
+  "name": "termeleon",
   "publisher": "texarkanine",
-  "displayName": "Terminal Theme Import",
+  "displayName": "Termeleon",
   "description": "Read the color schemes already installed for Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal and Xresources, and apply them to the VS Code integrated terminal.",
   "version": "0.2.0",
   "license": "AGPL-3.0-or-later",
@@ -13,7 +13,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Texarkanine/vscode-terminal-themes.git"
+    "url": "https://github.com/Texarkanine/termeleon.git"
   },
   "categories": [
     "Themes",
@@ -22,44 +22,53 @@
   "keywords": [
     "terminal",
     "theme",
+    "palette",
     "ghostty",
     "kitty",
-    "alacritty"
+    "alacritty",
+    "wezterm",
+    "iterm2",
+    "windows-terminal",
+    "xresources",
+    "color-scheme",
+    "terminal-themes",
+    "import",
+    "mirror"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "terminalThemeImport.import",
+        "command": "termeleon.import",
         "title": "Import Terminal Theme…",
-        "category": "Terminal Theme"
+        "category": "Termeleon"
       },
       {
-        "command": "terminalThemeImport.importGlobal",
+        "command": "termeleon.importGlobal",
         "title": "Import Terminal Theme to User Settings…",
-        "category": "Terminal Theme"
+        "category": "Termeleon"
       },
       {
-        "command": "terminalThemeImport.importWorkspace",
+        "command": "termeleon.importWorkspace",
         "title": "Import Terminal Theme to Workspace Settings…",
-        "category": "Terminal Theme"
+        "category": "Termeleon"
       },
       {
-        "command": "terminalThemeImport.mirror",
+        "command": "termeleon.mirror",
         "title": "Mirror Active Terminal Theme",
-        "category": "Terminal Theme"
+        "category": "Termeleon"
       },
       {
-        "command": "terminalThemeImport.remove",
+        "command": "termeleon.remove",
         "title": "Remove Imported Terminal Theme",
-        "category": "Terminal Theme"
+        "category": "Termeleon"
       }
     ],
     "configuration": {
-      "title": "Terminal Theme Import",
+      "title": "Termeleon",
       "properties": {
-        "terminalThemeImport.target": {
+        "termeleon.target": {
           "type": "string",
           "enum": [
             "ask",
@@ -69,7 +78,7 @@
           "default": "ask",
           "markdownDescription": "Where to write the imported palette. `ask` prompts each time; with no folder open it always uses user settings."
         },
-        "terminalThemeImport.sources": {
+        "termeleon.sources": {
           "type": "array",
           "items": {
             "type": "string",
@@ -86,7 +95,7 @@
           "default": [],
           "description": "Emulators to scan. Empty means all of them."
         },
-        "terminalThemeImport.extraDirectories": {
+        "termeleon.extraDirectories": {
           "type": "array",
           "items": {
             "type": "string"
@@ -94,22 +103,22 @@
           "default": [],
           "description": "Additional directories to sweep for theme files, e.g. a dotfiles checkout."
         },
-        "terminalThemeImport.scopeToActiveTheme": {
+        "termeleon.scopeToActiveTheme": {
           "type": "boolean",
           "default": false,
           "markdownDescription": "Nest the colors under `[Your Theme Name]` so they only apply while that workbench theme is active. Off by default, so the terminal palette survives theme switching."
         },
-        "terminalThemeImport.setMinimumContrastRatio": {
+        "termeleon.setMinimumContrastRatio": {
           "type": "boolean",
           "default": true,
           "markdownDescription": "Also set `#terminal.integrated.minimumContrastRatio#` to 1. Without this, VS Code adjusts foreground colors toward a contrast target and the palette will not render as authored."
         },
-        "terminalThemeImport.includeSelectionForeground": {
+        "termeleon.includeSelectionForeground": {
           "type": "boolean",
           "default": false,
           "markdownDescription": "Write `terminal.selectionForeground`. Off by default: setting it disables the behavior where selected text keeps its own color."
         },
-        "terminalThemeImport.livePreview": {
+        "termeleon.livePreview": {
           "type": "boolean",
           "default": true,
           "description": "Apply each theme as you arrow through the list, and restore your previous colors if you cancel. Turn off if the settings.json churn is disruptive."

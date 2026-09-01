@@ -42,8 +42,8 @@ suite('apply / remove / snapshot', () => {
 
   setup(async () => {
     await resetSettings();
-    await ctx.workspaceState.update('terminalThemeImport.ownedKeys', undefined);
-    await ctx.globalState.update('terminalThemeImport.ownedKeys', undefined);
+    await ctx.workspaceState.update('termeleon.ownedKeys', undefined);
+    await ctx.globalState.update('termeleon.ownedKeys', undefined);
   });
 
   suiteTeardown(async () => {

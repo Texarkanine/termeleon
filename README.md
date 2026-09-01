@@ -1,7 +1,7 @@
-# Terminal Theme Import
+# Termeleon
 
-You already picked a color scheme for your terminal emulator. This reads the theme
-files sitting on your disk and applies one of them to the VS Code integrated
+You already picked a color scheme for your terminal emulator. Termeleon reads the
+theme files sitting on your disk and applies one of them to the VS Code integrated
 terminal, either mirroring what your emulator currently uses or letting you drive
 the two independently.
 
@@ -27,11 +27,11 @@ rather than installing and silently doing nothing.
 
 | Command | What it does |
 | --- | --- |
-| `Terminal Theme: Import Terminal Theme…` | Scans the machine, shows a picker with live preview, writes the palette. |
-| `Terminal Theme: Import to User Settings…` | Same, skipping the scope prompt. |
-| `Terminal Theme: Import to Workspace Settings…` | Same, writing to `.vscode/settings.json`. |
-| `Terminal Theme: Mirror Active Terminal Theme` | Applies whatever theme your emulator is configured to use right now. |
-| `Terminal Theme: Remove Imported Terminal Theme` | Removes only the keys this extension wrote. |
+| `Termeleon: Import Terminal Theme…` | Scans the machine, shows a picker with live preview, writes the palette. |
+| `Termeleon: Import to User Settings…` | Same, skipping the scope prompt. |
+| `Termeleon: Import to Workspace Settings…` | Same, writing to `.vscode/settings.json`. |
+| `Termeleon: Mirror Active Terminal Theme` | Applies whatever theme your emulator is configured to use right now. |
+| `Termeleon: Remove Imported Terminal Theme` | Removes only the keys this extension wrote. |
 
 ## Formats read
 
@@ -46,7 +46,7 @@ rather than installing and silently doing nothing.
 | Xresources | `~/.Xresources`, `~/.Xdefaults` | assumed active |
 
 Add anything else (a dotfiles checkout, a downloaded theme pack) via
-`terminalThemeImport.extraDirectories`.
+`termeleon.extraDirectories`.
 
 ## Behavior worth knowing
 
@@ -108,10 +108,10 @@ npm ci
 npm run test:parsers   # no VS Code needed; parsers plus discovery against a fake HOME/XDG tree
 npm run test:host      # Extension Development Host; downloads VS Code on first run
 npm run compile
-npm run package        # writes terminal-theme-import-<version>.vsix (runs compile first)
+npm run package        # writes termeleon-<version>.vsix (runs compile first)
 ```
 
-Iterate with `test:parsers` / `compile` (and `test:host` when you touch apply or live preview). Sideload into the editor you actually use with `npm run package`, then **Install from VSIX…** (or `code --install-extension terminal-theme-import-*.vsix` / `cursor --install-extension …`). That is how you try the unpublished extension; there is no Marketplace listing yet.
+Iterate with `test:parsers` / `compile` (and `test:host` when you touch apply or live preview). Sideload into the editor you actually use with `npm run package`, then **Install from VSIX…** (or `code --install-extension termeleon-*.vsix` / `cursor --install-extension …`). That is how you try the unpublished extension; there is no Marketplace listing yet.
 
 `test:host` launches a throwaway VS Code (not your installed app) with a short temporary `--user-data-dir`. That isolation is required on macOS: the default path under this repo is too long for unix-domain sockets. It does not write your real user `settings.json`.
 

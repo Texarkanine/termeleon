@@ -7,7 +7,7 @@ export type Target = 'global' | 'workspace';
 
 const SECTION = 'workbench';
 const KEY = 'colorCustomizations';
-const OWNED_STATE = 'terminalThemeImport.ownedKeys';
+const OWNED_STATE = 'termeleon.ownedKeys';
 
 export interface ApplyOptions {
   target: Target;
