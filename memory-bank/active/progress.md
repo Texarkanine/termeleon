@@ -40,3 +40,25 @@ Rename the project and extension across the entire codebase to `termeleon`.
 * Insights
     - Clean test separation between core contracts and extension host suites allowed fast verification before running the full host test pass.
 
+## 2026-08-31 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Reviewed the full `main..HEAD` diff against `projectbrief.md` and `tasks.md` for KISS, DRY, YAGNI, Completeness, Regression, Integrity, and Documentation.
+    - Full-repo grep swept for stray `terminalThemeImport` / `terminal-theme-import` / `Terminal Theme Import` remnants; found none outside the intentional legacy-migration code path and memory-bank task narrative.
+    - Re-ran `npm run test:parsers` (53 passed), `npm run test:host` (31 passed), and `npm run package` (produced `termeleon-0.1.0.vsix` cleanly) to confirm no regressions.
+* Decisions made
+    - QA result: PASS. The legacy `terminalThemeImport.ownedKeys` migration added during Build is judged a justified, tested response to a real advisory finding from Preflight, not speculative scope creep.
+* Insights
+    - Flagged a non-blocking advisory: the projectbrief's requirement 5 / acceptance criterion 4 (open a PR to `main`) has not yet been executed. This is a process step outside the `tasks.md` implementation plan's TDD units, so it does not block Build/QA, but should not be lost before Archive.
+
+## 2026-08-31 - REFLECT - COMPLETE
+
+* Work completed
+    - Authored reflection document in `memory-bank/active/reflection/reflection-rename-to-termeleon.md`
+    - Reconciled persistent memory bank files (`systemPatterns.md`, `techContext.md`)
+    - Validated all acceptance criteria
+* Decisions made
+    - Retained backward-compatible state migration in `src/apply.ts`
+* Insights
+    - Contract tests against `package.json` in `test/parsers.test.ts` provide instant feedback on manifest schema changes.
+
