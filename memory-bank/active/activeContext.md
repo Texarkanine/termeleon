@@ -1,15 +1,11 @@
 # Active Context
 
-## Current Task: clean-up-minimum-contrast-ratio
-**Phase:** QA - COMPLETE (PASS)
+## Current Task: clean-up-empty-workspace-settings
+**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
 
 ## What Was Done
-- TDD reproduction test cases added in `test/host/apply.test.ts`, `test/host/preview.test.ts`, and `test/parsers.test.ts`
-- Extended `ApplySnapshot` and `restoreApplySnapshot` in `src/palette.ts` to include `minimumContrastRatio`
-- Updated `src/apply.ts` with `writeContrastRatioAt` helper, `snapshotApply`/`restoreApply` restoring `minimumContrastRatio` on preview cancel, and `removeApplied` clearing `minimumContrastRatio: 1` at target
-- Updated `README.md` to document `minimumContrastRatio` cleanup on theme removal
-- Reconciled persistent memory-bank files (`systemPatterns.md`)
-- Subagent QA review passed with full test suite verification
+- Clarified intent: delete empty `.vscode/settings.json` and empty `.vscode/` directory when removing applied themes or canceling live preview in a workspace where no other settings/configs remain
+- Classified as Level 1 (Quick Bug Fix): self-contained enhancement in `src/apply.ts` with host tests in `test/host/apply.test.ts` and `test/host/preview.test.ts`
 
 ## Next Step
-- Task complete; commit final changeset
+- Transition to Level 1 Build Phase
