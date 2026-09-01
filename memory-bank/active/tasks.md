@@ -4,15 +4,13 @@
 * Complexity: Level 2
 * Type: simple enhancement
 
-Add committed extension marketplace icon, configure `package.json` with `icon` path, verify `publisher` is `texarkanine`, ensure VSIX inclusion via `.vscodeignore`, and lock packaging contracts into `test/parsers.test.ts` without brittle change-detector assertions.
+Add committed extension marketplace icon, configure `package.json` with `icon` path, verify `publisher` is `texarkanine`, ensure VSIX inclusion via `.vscodeignore`, and lock packaging contracts into `test/parsers.test.ts` with valid image signature checks and no brittle change-detector assertions.
 
 ## Test Plan (TDD)
 
 ### Behaviors to Verify
 
-- [Package Icon Contract]: `package.json` specifies an `icon` property pointing to a file path within the repository; that file exists on disk, is a non-empty file, and is not excluded by `.vscodeignore`.
-- [Package Publisher Contract]: `package.json` specifies `"publisher": "texarkanine"`.
-- [Packaging Verification]: `npm run package` (`vsce package`) executes without errors or missing publisher/icon warnings and produces a valid VSIX.
+- [Package Icon & Publisher Contract]: `package.json` specifies `"publisher": "texarkanine"` and an `"icon"` property pointing to a repository path; that file exists on disk, is a non-empty valid PNG image (checked via PNG magic header `89 50 4E 47 0D 0A 1A 0A`), and is not excluded by `.vscodeignore`.
 
 ### Test Infrastructure
 
@@ -23,23 +21,22 @@ Add committed extension marketplace icon, configure `package.json` with `icon` p
 
 ## Implementation Plan
 
-### 1. Package icon asset and manifest contract — executable
+### 1. Package icon asset, manifest declaration, and ignore contract — executable
 
-- Files: `images/icon.png`, `package.json`, `test/parsers.test.ts`
+- Files: `images/icon.png`, `package.json`, `.vscodeignore`, `test/parsers.test.ts`
 
 1. Stub tests: Add empty test stub `package.json icon and publisher contract` in `test/parsers.test.ts`.
 2. Stub interface: Add `icon?: string` and `publisher?: string` fields to `package.json` type shape in `test/parsers.test.ts`.
-3. Write tests and run red: Implement assertions in `test/parsers.test.ts` checking `pkg.icon`, `pkg.publisher === 'texarkanine'`, existence of `path.join(repoRoot, pkg.icon)` as a non-empty file, and verifying `.vscodeignore` does not ignore the icon path. Run `npm run test:parsers` to see the test fail (red).
-4. Write code and run green: Generate `images/icon.png` (256x256 square transparent PNG derived from `.scratch/termeleon-logo-1024.png`), add `"icon": "images/icon.png"` to `package.json`, and run `npm run test:parsers` to verify all tests pass (green).
-
-### 2. VSIX packaging and test suite verification — executable
-
-- Files: `.vscodeignore`, `package.json`
-
-1. Stub tests: N/A (covered by build and packaging pipeline).
-2. Stub interface: N/A.
-3. Write tests and run red: N/A.
-4. Write code and run green: Run `npm run compile`, `npm run test:coverage`, and `npm run package` (`vsce package --no-dependencies`) to verify clean VSIX packaging with the icon included.
+3. Write tests and run red: Implement assertions in `test/parsers.test.ts` checking:
+   - `pkg.publisher === 'texarkanine'`
+   - `typeof pkg.icon === 'string'` and points to an existing file
+   - The file at `path.join(repoRoot, pkg.icon)` is at least 8 bytes and starts with the PNG signature (`Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])`)
+   - `.vscodeignore` does not exclude `pkg.icon` or its parent directory
+   Run `npm run test:parsers` to verify test fails (red).
+4. Write code and run green:
+   - Generate `images/icon.png` as a 256x256 square transparent PNG derived from `.scratch/termeleon-logo-1024.png`.
+   - Add `"icon": "images/icon.png"` to `package.json`.
+   - Run `npm run test:parsers` to verify all tests pass (green).
 
 ## Technology Validation
 
@@ -51,15 +48,15 @@ No new runtime or build dependencies required. Asset generation uses macOS image
 
 ## Challenges & Mitigations
 
-- [Challenge 1]: Preventing brittle change-detector tests.
-  Mitigation: Assert only on manifest property existence, file existence, non-zero file size, and `.vscodeignore` non-exclusion. Do not assert on image checksums, exact byte sizes, or pixel values.
+- [Challenge 1]: Preventing brittle change-detector tests while verifying image validity.
+  Mitigation: Assert on the standard 8-byte PNG file header (`0x89504E470D0A1A0A`) rather than pixel values or file checksums, so replacing the icon image with any valid PNG will never break the test.
 - [Challenge 2]: Ensuring icon dimensions and transparency match VS Code extension guidelines.
   Mitigation: Generate a 256x256 Retina-ready square PNG with transparent padding preserving the full chameleon illustration.
 
 ## Pre-Mortem
 
 - [Likely cause if this plan failed]: `.vscodeignore` might inadvertently exclude the image directory or file extension during packaging.
-  Mitigation: Contract test in `test/parsers.test.ts` verifies `.vscodeignore` does not ignore the icon path, and `npm run package` validates VSIX assembly directly.
+  Mitigation: Contract test in `test/parsers.test.ts` verifies `.vscodeignore` does not ignore the icon path.
 
 ## Status
 

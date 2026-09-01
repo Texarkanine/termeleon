@@ -1,0 +1,13 @@
+FAIL (blocking)
+
+TDD Plan Encoding — Blocking: Implementation Plan unit 2, “VSIX packaging and test suite verification,” is explicitly marked executable but has no test-writing step. Its steps declare tests N/A and proceed directly to compile, coverage, and package commands. The plan must either define the appropriate test-first coverage for this executable unit or reclassify it as verification of unit 1 rather than a separate executable unit.
+
+Completeness — Fixable: The planned icon contract proves that the referenced asset exists and is non-empty, but it does not verify that the file is an image as required by the brief. Add a format-level assertion (for example, a PNG signature check) that validates the file type without locking its pixels or hash.
+
+Convention compliance — Pass: `images/icon.png`, the manifest location, and a Node assert contract in `test/parsers.test.ts` fit the repository structure and the existing CI-contract section. `.vscodeignore` contains no rule currently excluding `images/icon.png`.
+
+Dependency impact — Pass: The asset only affects the extension manifest and VSIX payload. `npm run package` already invokes `prepackage`, so the proposed compile/package checks cover the build edge.
+
+Conflict detection — Pass: No committed icon asset or existing manifest icon property overlaps with the proposed path. The current `publisher` is already `texarkanine`.
+
+Advisory — The strongest improvement is to replace the separate “unit 2” with one post-green acceptance-verification step attached to unit 1. This makes the real contract explicit: parser test establishes manifest/asset invariants first; compile, coverage, and VSIX assembly then validate their integration.
