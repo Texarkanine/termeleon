@@ -14,3 +14,15 @@ Add extension marketplace icon, update `package.json` with icon path and ensure 
     - Level 2 complexity selected.
     - Resize logo to 256x256 / 128x128 standard extension icon PNG with transparent background.
     - Test assertions must verify icon declaration, existence, and packaging inclusion without change-detector pixel or hash locks.
+
+## 2026-09-01 - PLAN - COMPLETE
+
+* Work completed
+    - Established detailed Level 2 implementation plan in `tasks.md`.
+    - Defined behaviors for icon configuration, publisher validation, asset existence, and packaging inclusion.
+    - Designed non-fragile tests in `test/parsers.test.ts`.
+    - Completed Pre-Mortem assessment.
+* Decisions made
+    - Place the square transparent icon at `images/icon.png`.
+    - Set `"icon": "images/icon.png"` and verify `"publisher": "texarkanine"` in `package.json`.
+    - In `test/parsers.test.ts`, assert `pkg.icon` path exists and is a file with size > 0, and verify it is not blocked by `.vscodeignore`.
