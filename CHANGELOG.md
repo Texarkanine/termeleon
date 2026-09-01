@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/Texarkanine/termeleon/compare/v0.2.0...v0.3.0) (2026-09-01)
+
+
+### Features
+
+* add open-vsx publishing and codecov coverage reporting in ci ([#27](https://github.com/Texarkanine/termeleon/issues/27)) ([4090f1e](https://github.com/Texarkanine/termeleon/commit/4090f1e23bfab4e90a7c3cceb8706af6869ee739))
+
 ## [0.2.0](https://github.com/Texarkanine/vscode-terminal-themes/compare/v0.1.0...v0.2.0) (2026-09-01)
 
 
