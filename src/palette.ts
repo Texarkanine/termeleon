@@ -212,16 +212,18 @@ export function stripOwnedKeys(current: Record<string, any>, keys: string[]): Re
 export interface ApplySnapshot {
   colors: Record<string, any>;
   ownedKeys: string[];
+  minimumContrastRatio?: number;
 }
 
 /**
- * Live-preview cancel must put both colorCustomizations and the owned-key
- * list back. Restoring colors alone leaves a prior pair's scopes in settings
- * with a flat owned-key list, so the next strip misses them.
+ * Live-preview cancel must put colorCustomizations, the owned-key
+ * list, and minimumContrastRatio back. Restoring colors alone leaves a prior
+ * pair's scopes in settings with a flat owned-key list, so the next strip misses them.
  */
 export function restoreApplySnapshot(snapshot: ApplySnapshot): ApplySnapshot {
   return {
     colors: snapshot.colors,
     ownedKeys: [...snapshot.ownedKeys],
+    minimumContrastRatio: snapshot.minimumContrastRatio,
   };
 }

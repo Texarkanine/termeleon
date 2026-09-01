@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { Palette, ApplySnapshot, toColorCustomizations, managedKeys, mergeColors, mergePairedColors, preferredPairScopes, stripOwnedKeys, restoreApplySnapshot } from './palette';
 
@@ -26,6 +28,17 @@ function readAt(target: Target): Record<string, any> {
   const inspected = vscode.workspace.getConfiguration(SECTION).inspect<Record<string, any>>(KEY);
   const raw = target === 'global' ? inspected?.globalValue : inspected?.workspaceValue;
   return raw ? JSON.parse(JSON.stringify(raw)) : {};
+}
+
+function readContrastRatioAt(target: Target): number | undefined {
+  const inspected = vscode.workspace.getConfiguration('terminal.integrated')
+    .inspect<number>('minimumContrastRatio');
+  return target === 'global' ? inspected?.globalValue : inspected?.workspaceValue;
+}
+
+async function writeContrastRatioAt(target: Target, value: number | undefined): Promise<void> {
+  await vscode.workspace.getConfiguration('terminal.integrated')
+    .update('minimumContrastRatio', value, configTarget(target));
 }
 
 function activeThemeName(): string | undefined {
@@ -70,8 +83,7 @@ export async function applyPalette(
   if (opts.setMinimumContrastRatio) {
     // Without this, VS Code nudges foreground colors toward a contrast target
     // and the applied palette does not render as authored.
-    await vscode.workspace.getConfiguration('terminal.integrated')
-      .update('minimumContrastRatio', 1, configTarget(opts.target));
+    await writeContrastRatioAt(opts.target, 1);
   }
 }
 
@@ -106,8 +118,7 @@ export async function applyPalettePair(
   await setOwnedKeys(ctx, opts.target, owned);
 
   if (opts.setMinimumContrastRatio) {
-    await vscode.workspace.getConfiguration('terminal.integrated')
-      .update('minimumContrastRatio', 1, configTarget(opts.target));
+    await writeContrastRatioAt(opts.target, 1);
   }
 }
 
@@ -126,7 +137,59 @@ export function snapshot(target: Target): Record<string, any> {
 }
 
 export function snapshotApply(ctx: vscode.ExtensionContext, target: Target): ApplySnapshot {
-  return { colors: snapshot(target), ownedKeys: ownedKeys(ctx, target) };
+  return {
+    colors: snapshot(target),
+    ownedKeys: ownedKeys(ctx, target),
+    minimumContrastRatio: readContrastRatioAt(target),
+  };
+}
+
+/**
+ * Removes empty `.vscode/settings.json` and empty `.vscode/` directories in
+ * open workspace folders if settings.json was reduced to an empty JSON object.
+ */
+export function cleanEmptyWorkspaceSettings(): void {
+  const folders = vscode.workspace.workspaceFolders ?? [];
+  for (const folder of folders) {
+    if (folder.uri.scheme !== 'file') {
+      continue;
+    }
+    const vscodeDir = path.join(folder.uri.fsPath, '.vscode');
+    const settingsPath = path.join(vscodeDir, 'settings.json');
+    try {
+      if (fs.existsSync(settingsPath)) {
+        const raw = fs.readFileSync(settingsPath, 'utf8').trim();
+        let isEmpty = false;
+        if (raw === '' || raw === '{}') {
+          isEmpty = true;
+        } else {
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Object.keys(parsed).length === 0) {
+              isEmpty = true;
+            }
+          } catch {
+            // Not standard JSON or contains comments; preserve file
+          }
+        }
+        if (isEmpty) {
+          fs.unlinkSync(settingsPath);
+        }
+      }
+      if (fs.existsSync(vscodeDir)) {
+        const remaining = fs.readdirSync(vscodeDir).filter((f) => f !== '.DS_Store');
+        if (remaining.length === 0) {
+          const dsStore = path.join(vscodeDir, '.DS_Store');
+          if (fs.existsSync(dsStore)) {
+            try { fs.unlinkSync(dsStore); } catch { /* ignore */ }
+          }
+          fs.rmdirSync(vscodeDir);
+        }
+      }
+    } catch {
+      // Ignore filesystem errors so settings operations never throw unexpectedly
+    }
+  }
 }
 
 export async function restoreApply(
@@ -137,6 +200,10 @@ export async function restoreApply(
   const restored = restoreApplySnapshot(captured);
   await restoreSnapshot(target, restored.colors);
   await setOwnedKeys(ctx, target, restored.ownedKeys);
+  await writeContrastRatioAt(target, restored.minimumContrastRatio);
+  if (target === 'workspace') {
+    cleanEmptyWorkspaceSettings();
+  }
 }
 
 export interface RemoveResult {
@@ -194,6 +261,15 @@ export async function removeApplied(
 
   await restoreSnapshot(target, current);
   await setOwnedKeys(ctx, target, []);
+
+  if (readContrastRatioAt(target) === 1) {
+    await writeContrastRatioAt(target, undefined);
+  }
+
+  if (target === 'workspace') {
+    cleanEmptyWorkspaceSettings();
+  }
+
   return { removed, usedFallback };
 }
 

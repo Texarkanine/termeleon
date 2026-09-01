@@ -617,7 +617,7 @@ test('preview cancel restores owned keys with colors so the next strip clears pa
     darkScope,
     lightScope,
   );
-  const snap = { colors: paired.next, ownedKeys: paired.ownedKeys };
+  const snap = { colors: paired.next, ownedKeys: paired.ownedKeys, minimumContrastRatio: 4.5 };
   const previewed = mergeColors(
     stripOwnedKeys(snap.colors, snap.ownedKeys),
     { 'terminal.background': '#222' },
@@ -628,6 +628,7 @@ test('preview cancel restores owned keys with colors so the next strip clears pa
   const afterCancel = restoreApplySnapshot(snap);
   assert.deepStrictEqual(afterCancel.colors, snap.colors);
   assert.deepStrictEqual(afterCancel.ownedKeys, snap.ownedKeys);
+  assert.strictEqual(afterCancel.minimumContrastRatio, 4.5);
   assert.notDeepStrictEqual(afterCancel.ownedKeys, previewed.ownedKeys);
   const next = stripOwnedKeys(afterCancel.colors, afterCancel.ownedKeys);
   assert.ok(!(darkScope in next));
