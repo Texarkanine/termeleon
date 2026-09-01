@@ -408,7 +408,9 @@ test('release-please publishes to Open VSX when a release is created', () => {
     path.join(repoRoot, '.github', 'workflows', 'release-please.yaml'),
     'utf8',
   );
-  assert.ok(wf.includes('release_created'), 'open-vsx publish must gate on release_created');
+  assert.ok(wf.includes('publish-openvsx:'), 'must declare a separate publish-openvsx deployment job');
+  assert.ok(wf.includes('environment:'), 'must declare an environment');
+  assert.ok(wf.includes('open-vsx.org'), 'open-vsx publish must target open-vsx.org environment');
   assert.ok(wf.includes('OPENVSX_TOKEN'), 'open-vsx publish must use OPENVSX_TOKEN');
   assert.ok(wf.includes('ovsx publish'), 'open-vsx publish must invoke ovsx publish');
 });

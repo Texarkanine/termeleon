@@ -11,7 +11,7 @@ Configure Open VSX extension publishing on release-please release creation, inte
 ### Behaviors to Verify
 
 - [CI Workflow Contract]: `.github/workflows/ci.yaml` runs test coverage (`test:coverage` or coverage step) and uploads to Codecov using `codecov/codecov-action@v7` with `secrets.CODECOV_TOKEN` and `fail_ci_if_error: false`.
-- [Release Please Open VSX Contract]: `.github/workflows/release-please.yaml` includes an Open VSX publish step gated on `release_created` using `secrets.OPENVSX_TOKEN` and `ovsx publish`.
+- [Release Please Open VSX Contract]: `.github/workflows/release-please.yaml` includes a separate `publish-openvsx` deployment job targeting environment `open-vsx.org` gated on `release_created` using `secrets.OPENVSX_TOKEN` and `ovsx publish`.
 - [Marketplace Safety Contract]: `.github/workflows/release-please.yaml` does not publish to Visual Studio Marketplace (`!wf.includes('vsce publish')`, `!wf.includes('VSCE_PAT')`).
 - [Coverage Script Contract]: `package.json` defines `test:coverage` script that generates lcov coverage reports.
 - [Coverage Artifact Ignore Contract]: `.gitignore` and `.vscodeignore` ignore coverage output directories so they are not tracked in git or packaged in VSIX.
