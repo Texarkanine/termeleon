@@ -1,12 +1,14 @@
 # Active Context
 
 ## Current Task: packaging-icon
-**Phase:** PLAN - COMPLETE
+**Phase:** PLAN - COMPLETE (re-planned after preflight findings)
 
 ## What Was Done
-- Refined implementation plan in `tasks.md` to consolidate into a single executable TDD unit.
-- Specified non-fragile image validation using the standard 8-byte PNG signature (`0x89504E470D0A1A0A`), avoiding brittle pixel/checksum change detectors.
-- Removed redundant third-party packaging test expectations; relying on clean manifest contracts and `npm run package` build verification.
+- Addressed Preflight findings in `tasks.md`:
+  - Added post-green acceptance verification step (compile, coverage, host tests, vsce packaging and VSIX content inspection).
+  - Explicitly specified transparent aspect-fit square canvas strategy for the 1024x1130 source image.
+  - Added `.scratch/` `.gitignore` rule for clean-break workspace hygiene.
+- Retained non-fragile 8-byte PNG header validation.
 
 ## Next Step
-- Run Preflight validation subagent (`/niko-preflight`).
+- Re-run Preflight validation subagent (`/niko-preflight`).

@@ -26,3 +26,15 @@ Add extension marketplace icon, update `package.json` with icon path and ensure 
     - Place the square transparent icon at `images/icon.png`.
     - Set `"icon": "images/icon.png"` and verify `"publisher": "texarkanine"` in `package.json`.
     - In `test/parsers.test.ts`, assert `pkg.icon` path exists, is a valid PNG via header check, and is not excluded by `.vscodeignore`.
+
+## 2026-09-01 - PREFLIGHT - FAIL (fixable)
+
+* Findings
+    - Added post-green verification step covering compile, coverage, host tests, and VSIX content check.
+    - Added workspace scratch cleanup step (`.scratch/` in `.gitignore`).
+    - Documented transparent aspect-fit scaling for non-square source logo.
+
+## 2026-09-01 - PLAN (revision) - COMPLETE
+
+* Work completed
+    - Updated `tasks.md` with post-green verification, scratch gitignore, and image aspect ratio handling.
