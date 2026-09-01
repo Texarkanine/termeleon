@@ -18,3 +18,8 @@
   - `src/apply.ts`
   - `test/host/apply.test.ts`
   - `test/host/preview.test.ts`
+
+## QA Results - PASS (2026-08-31)
+- Semantic review against plan: all requirements, use-cases, and constraints satisfied; no KISS/DRY/YAGNI/completeness/regression/integrity violations.
+- Advisories (non-blocking): `{}` fast-path redundant with JSON.parse branch; helper exported though only exercised via `removeApplied`/`LivePreview.cancel`.
+- Mechanical re-verification: 45 parser + 5 discovery tests green; `tsc --noEmit` green for src and tests; 30 host tests green from build phase.

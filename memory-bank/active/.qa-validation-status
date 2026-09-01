@@ -1,0 +1,15 @@
+PASS
+
+QA semantic review of clean-up-empty-workspace-settings (Level 1), 2026-08-31.
+
+Reviewed: src/apply.ts (cleanEmptyWorkspaceSettings + call sites in restoreApply/removeApplied), test/host/apply.test.ts, test/host/preview.test.ts against memory-bank/active/projectbrief.md and tasks.md.
+
+Findings (non-blocking advisories):
+1. `raw === '{}'` fast-path in cleanEmptyWorkspaceSettings is subsumed by the JSON.parse branch; kept as a readability fast-path. Not a KISS violation.
+2. `cleanEmptyWorkspaceSettings` is exported but only exercised through removeApplied/LivePreview.cancel in tests; export matches the module's all-exported style. Not a YAGNI violation.
+
+Verified:
+- Completeness: all 4 requirements and 3 use-cases implemented; no stubs/TODOs; multi-root aware; non-file schemes skipped.
+- Boundary: helper lives in vscode-bound src/apply.ts; vscode-free core untouched.
+- Integrity: conservative JSONC handling (unparseable/commented settings.json preserved); no debug artifacts; no repo pollution (host tests run against test/host/fixtures/workspace).
+- Mechanical: 45 parser + 5 discovery tests re-run green; tsc --noEmit green for src and test projects; 30 host tests verified green during build phase.

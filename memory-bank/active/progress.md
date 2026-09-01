@@ -25,3 +25,13 @@ Clean up empty `.vscode/settings.json` and empty `.vscode/` folder from disk on 
     - Only delete `settings.json` if content is empty or parses to an empty object `{}`
     - Safely ignore `.DS_Store` when evaluating whether `.vscode/` is empty so macOS desktop metadata doesn't prevent cleanup
     - Wrap filesystem operations in try/catch to protect against permission or concurrent access errors
+
+## 2026-08-31 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Semantically reviewed `cleanEmptyWorkspaceSettings` and its call sites against the project brief: completeness, KISS/DRY/YAGNI, pattern regression, integrity, documentation
+    - Re-ran parser (45) and discovery (5) suites and `tsc --noEmit` on src and test projects - all green
+    - Wrote `.qa-validation-status` (PASS) and recorded QA results in tasks.md
+* Insights
+    - Host tests run against `test/host/fixtures/workspace`, so filesystem cleanup tests never touch the real repo's `.vscode/`
+    - Conservative JSONC handling (preserve unparseable/commented settings.json) is the safe failure direction for a delete-on-disk feature
