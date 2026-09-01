@@ -1,13 +1,14 @@
 # Active Context
 
 ## Current Task: ci-openvsx-codecov
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Clarified intent with user and received approval.
-- Created and checked out feature branch `feat/ci-openvsx-codecov`.
-- Classified task complexity as Level 2 (Simple Enhancement).
-- Initialized ephemeral memory bank artifacts (`projectbrief.md`, `activeContext.md`, `tasks.md`, `progress.md`).
+- Completed Step 1 through Step 9 of Level 2 Plan.
+- Defined TDD test plan covering workflow contracts, scripts, ignoring coverage, and badge in `test/parsers.test.ts`.
+- Formulated linear implementation plan with 3 units.
+- Completed technology validation on `c8` and `ovsx`.
+- Completed Pre-Mortem and risk analysis.
 
 ## Next Step
-- Load Level 2 workflow and begin Plan phase.
+- Run Preflight validation subagent (`/niko-preflight`).
