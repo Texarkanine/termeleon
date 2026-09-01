@@ -1,0 +1,1 @@
+Open VSX publish runs via npx ovsx publish in release-please workflow on release_created using OPENVSX_TOKEN; CI uploads c8 lcov to Codecov via CODECOV_TOKEN.
