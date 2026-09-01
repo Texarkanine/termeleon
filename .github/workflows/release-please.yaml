@@ -18,16 +18,12 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      # A GitHub App token (rather than the default GITHUB_TOKEN) is used so the
-      # release PR triggers CI like a normal PR. HELPER_APP_ID and
-      # HELPER_APP_PRIVATE_KEY are the org helper-app credentials already used
-      # by sibling repos; they are not Marketplace publisher credentials.
       - name: Generate GitHub App Token
         id: generate-token
         uses: actions/create-github-app-token@v3
         with:
-          client-id: ${{ vars.HELPER_APP_ID }}
-          private-key: ${{ secrets.HELPER_APP_PRIVATE_KEY }}
+          client-id: ${{ vars.DOGGO_BOT_APP_ID }}
+          private-key: ${{ secrets.DOGGO_BOT_PRIVATE_KEY }}
 
       - uses: googleapis/release-please-action@v5
         id: release
@@ -35,10 +31,6 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-          # Repo default is still initialdev. Without this, release-please
-          # would open/groom the release PR against initialdev even on a
-          # push to main.
-          target-branch: ${{ github.ref_name }}
 
       - uses: actions/checkout@v7
         if: ${{ steps.release.outputs.release_created }}
