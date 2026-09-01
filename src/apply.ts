@@ -7,7 +7,8 @@ export type Target = 'global' | 'workspace';
 
 const SECTION = 'workbench';
 const KEY = 'colorCustomizations';
-const OWNED_STATE = 'terminalThemeImport.ownedKeys';
+const OWNED_STATE = 'termeleon.ownedKeys';
+const LEGACY_OWNED_STATE = 'terminalThemeImport.ownedKeys';
 
 export interface ApplyOptions {
   target: Target;
@@ -47,7 +48,17 @@ function activeThemeName(): string | undefined {
 
 export function ownedKeys(ctx: vscode.ExtensionContext, target: Target): string[] {
   const store = target === 'global' ? ctx.globalState : ctx.workspaceState;
-  return store.get<string[]>(OWNED_STATE) ?? [];
+  const current = store.get<string[]>(OWNED_STATE);
+  if (current !== undefined) {
+    return current;
+  }
+  const legacy = store.get<string[]>(LEGACY_OWNED_STATE);
+  if (legacy !== undefined) {
+    void store.update(OWNED_STATE, legacy);
+    void store.update(LEGACY_OWNED_STATE, undefined);
+    return legacy;
+  }
+  return [];
 }
 
 async function setOwnedKeys(ctx: vscode.ExtensionContext, target: Target, keys: string[]) {

@@ -398,6 +398,53 @@ test('vscodeignore keeps agent trees out of the vsix', () => {
   assert.ok(ignore.includes('memory-bank/**'), 'must not ship the memory bank');
 });
 
+console.log('\ntermeleon package and settings contract');
+test('package.json declares termeleon identity, commands, and settings', () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ) as {
+    name?: string;
+    displayName?: string;
+    repository?: { url?: string };
+    keywords?: string[];
+    contributes?: {
+      commands?: Array<{ command: string; category: string }>;
+      configuration?: { title: string; properties: Record<string, any> };
+    };
+  };
+
+  assert.strictEqual(pkg.name, 'termeleon');
+  assert.strictEqual(pkg.displayName, 'Termeleon');
+  assert.strictEqual(pkg.repository?.url, 'https://github.com/Texarkanine/termeleon.git');
+  assert.ok(pkg.keywords?.includes('ghostty'));
+  assert.ok(pkg.keywords?.includes('kitty'));
+  assert.ok(pkg.keywords?.includes('alacritty'));
+
+  const commands = pkg.contributes?.commands ?? [];
+  const expectedCommands = [
+    'termeleon.import',
+    'termeleon.importGlobal',
+    'termeleon.importWorkspace',
+    'termeleon.mirror',
+    'termeleon.remove',
+  ];
+  for (const cmd of expectedCommands) {
+    const entry = commands.find((c) => c.command === cmd);
+    assert.ok(entry, `command ${cmd} must be contributed`);
+    assert.strictEqual(entry?.category, 'Termeleon');
+  }
+
+  const props = pkg.contributes?.configuration?.properties ?? {};
+  assert.strictEqual(pkg.contributes?.configuration?.title, 'Termeleon');
+  assert.ok('termeleon.target' in props);
+  assert.ok('termeleon.sources' in props);
+  assert.ok('termeleon.extraDirectories' in props);
+  assert.ok('termeleon.scopeToActiveTheme' in props);
+  assert.ok('termeleon.setMinimumContrastRatio' in props);
+  assert.ok('termeleon.includeSelectionForeground' in props);
+  assert.ok('termeleon.livePreview' in props);
+});
+
 test('launch.json contract', () => {
   const file = path.join(repoRoot, '.vscode', 'launch.json');
   assert.ok(fs.existsSync(file), '.vscode/launch.json must exist');

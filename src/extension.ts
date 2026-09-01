@@ -5,7 +5,7 @@ import {
   Target, ApplyOptions, applyPalette, applyPalettePair, removeApplied, LivePreview,
 } from './apply';
 
-const CONFIG = 'terminalThemeImport';
+const CONFIG = 'termeleon';
 
 const SOURCE_LABELS: Record<string, string> = {
   'ghostty': 'Ghostty',
