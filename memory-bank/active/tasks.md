@@ -65,8 +65,15 @@ No new runtime or build dependencies required. Asset generation uses macOS image
 
 ## QA Findings (2026-09-01)
 
-- [ ] **BLOCKING (DRY)**: `publisher present` test in `test/parsers.test.ts` was rewritten during Build to duplicate the exact-value publisher assertion now also present in the new `package.json icon and publisher contract` test, contradicting Preflight's "complementary, not duplication-in-waiting" expectation. Revert `publisher present` to its original format-based assertion (`assert.match(pkg.publisher, /^[a-z0-9][a-z0-9-]*$/)`); keep the exact-value check only in the new contract test.
-- [ ] **Advisory (KISS)**: New contract test's PNG-header read uses `fs.openSync`/`fs.readSync` (the only fd-based read in the file); simplify to `fs.readFileSync(iconPath).subarray(0, 8)` for consistency with the rest of `test/parsers.test.ts`.
+Prior FAIL (resolved in Build rework; confirmed on re-review):
+
+- [x] **BLOCKING (DRY)**: `publisher present` was duplicating the exact-value publisher assertion. Restored to format-based `assert.match(pkg.publisher, /^[a-z0-9][a-z0-9-]*$/)`; exact `texarkanine` remains only in `package.json icon and publisher contract`.
+- [x] **Advisory (KISS)**: PNG-header read now uses `fs.readFileSync(iconPath).subarray(0, 8)`.
+
+Re-review (PASS):
+
+- No blocking findings. Icon is a committed 256×256 8-bit RGBA PNG at `images/icon.png` with transparent corners (~49% fully transparent pixels), `package.json` has `"icon": "images/icon.png"` and `"publisher": "texarkanine"`, `.vscodeignore` does not exclude `images/` and does exclude `.scratch/**`, `.gitignore` ignores `.scratch/`. Contract test matches the plan (publisher identity, path existence, ≥8-byte PNG magic, non-exclusion of `pkg.icon` / `images/**` / `images/`) without pixel or hash locks.
+- [advisory] **Documentation**: `memory-bank/techContext.md` packaging-ignore bullet still omits `.scratch/**` and does not mention that `images/icon.png` is the marketplace asset. Acceptable as-is; optional follow-up.
 
 ## Status
 
@@ -77,4 +84,5 @@ No new runtime or build dependencies required. Asset generation uses macOS image
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [x] QA - FAIL (issues requiring build changes, see QA Findings above)
+- [x] QA - PASS
+
