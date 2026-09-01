@@ -25,23 +25,23 @@ Add committed extension marketplace icon, configure `package.json` with `icon` p
 
 - Files: `images/icon.png`, `package.json`, `.vscodeignore`, `.gitignore`, `test/parsers.test.ts`
 
-1. Stub tests: Add empty test stub `package.json icon and publisher contract` in `test/parsers.test.ts`.
-2. Stub interface: Add `icon?: string` and `publisher?: string` fields to `package.json` type shape in `test/parsers.test.ts`.
-3. Write tests and run red: Implement assertions in `test/parsers.test.ts` checking:
+1. [x] Stub tests: Add empty test stub `package.json icon and publisher contract` in `test/parsers.test.ts`.
+2. [x] Stub interface: Add `icon?: string` and `publisher?: string` fields to `package.json` type shape in `test/parsers.test.ts`.
+3. [x] Write tests and run red: Implement assertions in `test/parsers.test.ts` checking:
    - `pkg.publisher === 'texarkanine'`
    - `typeof pkg.icon === 'string'` and points to an existing file
    - The file at `path.join(repoRoot, pkg.icon)` is at least 8 bytes and starts with the standard PNG signature (`Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])`)
    - `.vscodeignore` does not exclude `pkg.icon` or `images/**`
    Run `npm run test:parsers` to verify test fails (red).
-4. Write code and run green:
+4. [x] Write code and run green:
    - Generate `images/icon.png` as a 256x256 square transparent PNG derived from `.scratch/termeleon-logo-1024.png` using aspect-ratio-preserving transparent canvas padding (no clipping/distortion).
    - Add `"icon": "images/icon.png"` to `package.json`.
    - Run `npm run test:parsers` to verify all parser tests pass (green).
-5. Post-green acceptance verification and workspace cleanup:
+5. [x] Post-green acceptance verification and workspace cleanup:
    - Run `npm run compile` to confirm clean typecheck and bundle.
    - Run `npm run test:coverage` and `npm run test:host` to verify full test suite passes.
    - Run `npm run package` (`vsce package`) to verify valid VSIX emission and inspect the package contents to verify `images/icon.png` is bundled.
-   - Add `.scratch/` to `.gitignore` so local scratch assets stay untracked and clean.
+   - Add `.scratch/` to `.gitignore` and `.scratch/**` to `.vscodeignore` so local scratch assets stay untracked and excluded from packaging.
 
 ## Technology Validation
 
@@ -70,6 +70,6 @@ No new runtime or build dependencies required. Asset generation uses macOS image
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA

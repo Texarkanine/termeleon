@@ -357,7 +357,31 @@ test('publisher present', () => {
     fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
   ) as { publisher?: string };
   assert.ok(typeof pkg.publisher === 'string' && pkg.publisher.length > 0, 'publisher is required for vsce package');
-  assert.match(pkg.publisher, /^[a-z0-9][a-z0-9-]*$/);
+  assert.strictEqual(pkg.publisher, 'texarkanine');
+});
+test('package.json icon and publisher contract', () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ) as { icon?: string; publisher?: string };
+  assert.strictEqual(pkg.publisher, 'texarkanine');
+  assert.ok(typeof pkg.icon === 'string' && pkg.icon.length > 0, 'package.json must declare an icon');
+  const iconPath = path.join(repoRoot, pkg.icon);
+  assert.ok(fs.existsSync(iconPath), `icon file must exist at ${pkg.icon}`);
+  const stat = fs.statSync(iconPath);
+  assert.ok(stat.isFile() && stat.size >= 8, 'icon must be a non-empty file');
+  const header = Buffer.alloc(8);
+  const fd = fs.openSync(iconPath, 'r');
+  fs.readSync(fd, header, 0, 8, 0);
+  fs.closeSync(fd);
+  const pngMagic = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  assert.ok(header.equals(pngMagic), 'icon must be a valid PNG image');
+
+  const vscodeignore = fs.readFileSync(path.join(repoRoot, '.vscodeignore'), 'utf8');
+  const ignoreLines = vscodeignore.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  assert.ok(
+    !ignoreLines.some((line) => line === pkg.icon || line === 'images/**' || line === 'images/'),
+    'vscodeignore must not ignore icon or image directory',
+  );
 });
 test('package script invokes vsce', () => {
   const pkg = JSON.parse(

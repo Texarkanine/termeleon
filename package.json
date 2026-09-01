@@ -2,6 +2,7 @@
   "name": "termeleon",
   "publisher": "texarkanine",
   "displayName": "Termeleon",
+  "icon": "images/icon.png",
   "description": "Read the color schemes already installed for Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal and Xresources, and apply them to the VS Code integrated terminal.",
   "version": "0.3.0",
   "license": "AGPL-3.0-or-later",

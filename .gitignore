@@ -4,5 +4,6 @@ out/
 .vscode-test/
 *.vsix
 coverage/
+.scratch/
 **/.summem/__pycache__/
 test/host/fixtures/workspace/.vscode/
