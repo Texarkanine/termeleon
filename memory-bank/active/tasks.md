@@ -63,6 +63,11 @@ No new runtime or build dependencies required. Asset generation uses macOS image
 - [Likely cause if this plan failed]: `.vscodeignore` might inadvertently exclude the image directory or file extension during packaging.
   Mitigation: Contract test in `test/parsers.test.ts` verifies `.vscodeignore` does not ignore the icon path, and post-green step verifies VSIX contents.
 
+## QA Findings (2026-09-01)
+
+- [ ] **BLOCKING (DRY)**: `publisher present` test in `test/parsers.test.ts` was rewritten during Build to duplicate the exact-value publisher assertion now also present in the new `package.json icon and publisher contract` test, contradicting Preflight's "complementary, not duplication-in-waiting" expectation. Revert `publisher present` to its original format-based assertion (`assert.match(pkg.publisher, /^[a-z0-9][a-z0-9-]*$/)`); keep the exact-value check only in the new contract test.
+- [ ] **Advisory (KISS)**: New contract test's PNG-header read uses `fs.openSync`/`fs.readSync` (the only fd-based read in the file); simplify to `fs.readFileSync(iconPath).subarray(0, 8)` for consistency with the rest of `test/parsers.test.ts`.
+
 ## Status
 
 - [x] Initialization complete
@@ -72,4 +77,4 @@ No new runtime or build dependencies required. Asset generation uses macOS image
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA - FAIL (issues requiring build changes, see QA Findings above)

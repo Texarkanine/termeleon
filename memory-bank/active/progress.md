@@ -40,7 +40,7 @@ Add extension marketplace icon, update `package.json` with icon path and ensure 
     - Configured `"icon": "images/icon.png"` in `package.json`.
     - Added test-first contract assertions in `test/parsers.test.ts` checking publisher, icon declaration, non-empty PNG magic header validation, and `.vscodeignore` non-exclusion.
     - Added `.scratch/` to `.gitignore` and `.scratch/**` to `.vscodeignore`.
-    - Ran full test suites: 58 parser & discovery tests passed, 30 host tests passed, compile and vsce package produced clean VSIX containing `images/icon.png`.
+    - Addressed QA feedback: preserved format regex in `publisher present` and simplified buffer subarray read.
 * Decisions made
     - Icon positioned at `images/icon.png`.
     - Used 8-byte PNG header check (`0x89504E470D0A1A0A`) to ensure image validity without fragile pixel/checksum locks.

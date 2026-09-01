@@ -1,14 +1,12 @@
 # Active Context
 
 ## Current Task: packaging-icon
-**Phase:** BUILD - COMPLETE
+**Phase:** BUILD - COMPLETE (QA fix applied)
 
 ## What Was Done
-- Created square 256x256 transparent icon at `images/icon.png` from `.scratch/termeleon-logo-1024.png`.
-- Configured `"icon": "images/icon.png"` in `package.json`.
-- Added contract tests in `test/parsers.test.ts` verifying `package.json` declares an icon, that the referenced file exists on disk, begins with the 8-byte PNG header (`0x89504E470D0A1A0A`), and is not excluded by `.vscodeignore`.
-- Added `.scratch/` to `.gitignore` and `.scratch/**` to `.vscodeignore`.
-- Verified all 58 parser & discovery tests, 30 host tests, and clean VSIX packaging with `images/icon.png` included.
+- Reverted `publisher present` in `test/parsers.test.ts` to format-based regex test (`assert.match(pkg.publisher, /^[a-z0-9][a-z0-9-]*$/)`).
+- Simplified 8-byte PNG header validation in `test/parsers.test.ts` to use `fs.readFileSync(iconPath).subarray(0, 8)`.
+- Verified all 58 parser & discovery tests pass.
 
 ## Next Step
-- Run QA validation subagent (`/niko-qa`).
+- Re-run QA validation subagent (`/niko-qa`).

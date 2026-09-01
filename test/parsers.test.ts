@@ -357,7 +357,7 @@ test('publisher present', () => {
     fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
   ) as { publisher?: string };
   assert.ok(typeof pkg.publisher === 'string' && pkg.publisher.length > 0, 'publisher is required for vsce package');
-  assert.strictEqual(pkg.publisher, 'texarkanine');
+  assert.match(pkg.publisher, /^[a-z0-9][a-z0-9-]*$/);
 });
 test('package.json icon and publisher contract', () => {
   const pkg = JSON.parse(
@@ -369,10 +369,8 @@ test('package.json icon and publisher contract', () => {
   assert.ok(fs.existsSync(iconPath), `icon file must exist at ${pkg.icon}`);
   const stat = fs.statSync(iconPath);
   assert.ok(stat.isFile() && stat.size >= 8, 'icon must be a non-empty file');
-  const header = Buffer.alloc(8);
-  const fd = fs.openSync(iconPath, 'r');
-  fs.readSync(fd, header, 0, 8, 0);
-  fs.closeSync(fd);
+  const fileBytes = fs.readFileSync(iconPath);
+  const header = fileBytes.subarray(0, 8);
   const pngMagic = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   assert.ok(header.equals(pngMagic), 'icon must be a valid PNG image');
 
