@@ -134,6 +134,7 @@
     "pretest:host": "npm run compile && npm run compile-tests",
     "test:host": "vscode-test",
     "test:parsers": "tsx test/parsers.test.ts && tsx test/discover.test.ts",
+    "test:coverage": "c8 --reporter=lcov --reporter=text npm run test:parsers",
     "test": "npm run test:parsers && npm run test:host"
   },
   "dependencies": {
@@ -146,6 +147,7 @@
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
+    "c8": "^10.1.3",
     "esbuild": "^0.21.0",
     "tsx": "^4.0.0",
     "typescript": "^5.4.0"

@@ -29,28 +29,28 @@ Configure Open VSX extension publishing on release-please release creation, inte
 
 - Files: `package.json`, `package-lock.json`, `.gitignore`, `.vscodeignore`, `test/parsers.test.ts`
 
-1. Stub tests: Add empty test stubs in `test/parsers.test.ts` under the CI contract section for coverage script, coverage ignore in `.gitignore` and `.vscodeignore`, Codecov upload in `ci.yaml`, and Open VSX in `release-please.yaml`.
-2. Stub interface: Add placeholder `test:coverage` script in `package.json`.
-3. Write tests and run red: Implement assertions in `test/parsers.test.ts` (including `.gitignore` and `.vscodeignore` checking for coverage ignore, and `package-lock.json` presence and lockfile integrity) and run `npm run test:parsers` to verify failure.
-4. Write code and run green: Add `c8` devDependency and `test:coverage` script in `package.json`, add `coverage/**` to `.gitignore` and `.vscodeignore`, update `package-lock.json` ensuring clean-tree npm ci compatibility, and run `npm run test:parsers` until green.
+1. [x] Stub tests: Add empty test stubs in `test/parsers.test.ts` under the CI contract section for coverage script, coverage ignore in `.gitignore` and `.vscodeignore`, Codecov upload in `ci.yaml`, and Open VSX in `release-please.yaml`.
+2. [x] Stub interface: Add placeholder `test:coverage` script in `package.json`.
+3. [x] Write tests and run red: Implement assertions in `test/parsers.test.ts` (including `.gitignore` and `.vscodeignore` checking for coverage ignore, and `package-lock.json` presence and lockfile integrity) and run `npm run test:parsers` to verify failure.
+4. [x] Write code and run green: Add `c8` devDependency and `test:coverage` script in `package.json`, add `coverage/` to `.gitignore` and `coverage/**` to `.vscodeignore`, update `package-lock.json` ensuring clean-tree npm ci compatibility, and run `npm run test:parsers` until green.
 
 ### 2. CI & Release-Please GitHub Actions Workflows — executable
 
 - Files: `.github/workflows/ci.yaml`, `.github/workflows/release-please.yaml`, `test/parsers.test.ts`
 
-1. Stub tests: (Already stubbed in step 1).
-2. Stub interface: N/A (workflow YAML configuration).
-3. Write tests and run red: Run `test:parsers` to see workflow contract assertions fail against unedited workflow files.
-4. Write code and run green: Update `.github/workflows/ci.yaml` with coverage execution and Codecov action step; update `.github/workflows/release-please.yaml` with Open VSX publish step. Run `npm run test:parsers` until green.
+1. [x] Stub tests: (Already stubbed in step 1).
+2. [x] Stub interface: N/A (workflow YAML configuration).
+3. [x] Write tests and run red: Run `test:parsers` to see workflow contract assertions fail against unedited workflow files.
+4. [x] Write code and run green: Update `.github/workflows/ci.yaml` with coverage execution and Codecov action step; update `.github/workflows/release-please.yaml` with Open VSX publish step. Run `npm run test:parsers` until green.
 
 ### 3. Readme badge and memory-bank context — prose/policy
 
-- Files: `README.md`, `memory-bank/techContext.md`, `memory-bank/systemPatterns.md`
+- Files: `README.md`, `memory-bank/techContext.md`
 - No tests: prose/policy artifact
 
-1. Add Codecov badge to `README.md` matching sibling repo conventions (`a16n`, `stockroom`).
-2. Update `memory-bank/techContext.md` to document Open VSX publishing in releases and Codecov coverage in CI.
-3. Update `memory-bank/active/activeContext.md` and `memory-bank/active/progress.md`.
+1. [x] Add Codecov badge to `README.md` matching sibling repo conventions (`a16n`, `stockroom`).
+2. [x] Update `memory-bank/techContext.md` to document Open VSX publishing in releases and Codecov coverage in CI.
+3. [x] Update `memory-bank/active/activeContext.md` and `memory-bank/active/progress.md`.
 
 ## Technology Validation
 
@@ -81,6 +81,6 @@ Validated `c8` (v11/v12) coverage execution over `test/parsers.test.ts` and `tes
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA

@@ -54,3 +54,9 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: gh release upload ${{ steps.release.outputs.tag_name }} *.vsix
+
+      - name: Publish to Open VSX
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          OPENVSX_TOKEN: ${{ secrets.OPENVSX_TOKEN }}
+        run: npx --yes ovsx publish *.vsix --pat "$OPENVSX_TOKEN"

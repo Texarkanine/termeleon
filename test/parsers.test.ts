@@ -345,9 +345,11 @@ test('workflow contract', () => {
   assert.ok(wf.includes('.nvmrc'), 'node-version-file must be .nvmrc');
   assert.ok(/cache:\s*"?npm"?/.test(wf), 'setup-node must cache npm');
   assert.ok(wf.includes('npm ci'), 'must install with npm ci');
-  assert.ok(wf.includes('npm run test:parsers'), 'must run parser tests');
+  assert.ok(wf.includes('npm run test:coverage') || wf.includes('npm run test:parsers'), 'must run parser tests or coverage');
   assert.ok(wf.includes('npm run compile'), 'must typecheck/bundle');
   assert.ok(wf.includes('npm run package'), 'must package a VSIX so vsce failures fail the PR');
+  assert.ok(wf.includes('codecov/codecov-action'), 'must upload coverage to Codecov');
+  assert.ok(wf.includes('CODECOV_TOKEN'), 'must use CODECOV_TOKEN secret');
 });
 
 test('publisher present', () => {
@@ -364,6 +366,15 @@ test('package script invokes vsce', () => {
   const script = pkg.scripts?.package ?? '';
   assert.ok(script.includes('vsce package'), 'scripts.package must invoke vsce package');
 });
+test('test:coverage script is declared in package.json', () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ) as { scripts?: Record<string, string> };
+  const script = pkg.scripts?.['test:coverage'] ?? '';
+  assert.ok(script.includes('c8'), 'scripts.test:coverage must invoke c8');
+  assert.ok(script.includes('lcov'), 'scripts.test:coverage must generate lcov report');
+  assert.ok(script.includes('test:parsers'), 'scripts.test:coverage must run parser test suite');
+});
 test('vsce is a pinned devDependency', () => {
   const pkg = JSON.parse(
     fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
@@ -371,6 +382,15 @@ test('vsce is a pinned devDependency', () => {
   assert.ok(
     pkg.devDependencies?.['@vscode/vsce'],
     '@vscode/vsce must be a devDependency so npm ci installs it',
+  );
+});
+test('c8 is a pinned devDependency', () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ) as { devDependencies?: Record<string, string> };
+  assert.ok(
+    pkg.devDependencies?.['c8'],
+    'c8 must be a devDependency so npm ci installs it',
   );
 });
 test('release-please attaches a vsix when a release is created', () => {
@@ -382,6 +402,15 @@ test('release-please attaches a vsix when a release is created', () => {
   assert.ok(wf.includes('release_created'), 'upload must gate on release_created');
   assert.ok(wf.includes('gh release upload'), 'must upload with gh');
   assert.ok(wf.includes('.vsix'), 'must upload a vsix');
+});
+test('release-please publishes to Open VSX when a release is created', () => {
+  const wf = fs.readFileSync(
+    path.join(repoRoot, '.github', 'workflows', 'release-please.yaml'),
+    'utf8',
+  );
+  assert.ok(wf.includes('release_created'), 'open-vsx publish must gate on release_created');
+  assert.ok(wf.includes('OPENVSX_TOKEN'), 'open-vsx publish must use OPENVSX_TOKEN');
+  assert.ok(wf.includes('ovsx publish'), 'open-vsx publish must invoke ovsx publish');
 });
 test('release-please does not publish to the Marketplace', () => {
   const wf = fs.readFileSync(
@@ -396,6 +425,18 @@ test('vscodeignore keeps agent trees out of the vsix', () => {
   assert.ok(ignore.includes('.cursor/**'), 'must not ship Cursor agent rules/skills');
   assert.ok(ignore.includes('.summem/**'), 'must not ship SumMem store');
   assert.ok(ignore.includes('memory-bank/**'), 'must not ship the memory bank');
+});
+test('coverage artifacts are ignored by git and vsce packaging', () => {
+  const gitignore = fs.readFileSync(path.join(repoRoot, '.gitignore'), 'utf8');
+  assert.ok(
+    gitignore.split(/\r?\n/).some((line) => line.trim() === 'coverage/' || line.trim() === 'coverage'),
+    '.gitignore must ignore coverage/',
+  );
+  const vscodeignore = fs.readFileSync(path.join(repoRoot, '.vscodeignore'), 'utf8');
+  assert.ok(
+    vscodeignore.split(/\r?\n/).some((line) => line.trim() === 'coverage/**' || line.trim() === 'coverage/'),
+    '.vscodeignore must ignore coverage/**',
+  );
 });
 
 console.log('\ntermeleon package and settings contract');

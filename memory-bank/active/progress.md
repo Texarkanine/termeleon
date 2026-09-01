@@ -51,3 +51,14 @@ Set up Open VSX publishing in the release workflow on release-please release cre
     - Advisory: pre-existing techContext drift — release workflow actually uses `DOGGO_BOT_APP_ID`/`DOGGO_BOT_PRIVATE_KEY`, not the documented `HELPER_APP_*`; fix surgically in Unit 3.
     - Advisory: ensure the Open VSX namespace and `OPENVSX_TOKEN` secret exist before first release; order the publish step after `gh release upload`.
     - Advisory (radical innovation): add `c8 --check-coverage` thresholds so CI ratchets coverage instead of only reporting it.
+
+## 2026-08-31 - BUILD - COMPLETE
+
+* Work completed
+    - Unit 1: Added `c8` devDependency, `test:coverage` script in `package.json`, added `coverage/` to `.gitignore` and `coverage/**` to `.vscodeignore`, regenerated `package-lock.json` preserving optional esbuild targets, and added contract assertions in `test/parsers.test.ts`.
+    - Unit 2: Updated `.github/workflows/ci.yaml` to run parser tests with coverage and upload to Codecov via `codecov/codecov-action@v7` using `CODECOV_TOKEN`; updated `.github/workflows/release-please.yaml` to publish to Open VSX using `npx --yes ovsx publish *.vsix --pat "$OPENVSX_TOKEN"` upon release creation.
+    - Unit 3: Added Codecov badge and updated development documentation in `README.md`; updated `memory-bank/techContext.md` to reflect new CI coverage, Open VSX releases, and fixed secret name pointers.
+    - Verified all 87 tests passing across parser/discovery suites and extension host Mocha suite, and verified clean VSIX packaging.
+* Decisions made
+    - Used `npx --yes ovsx publish *.vsix --pat "$OPENVSX_TOKEN"` in release workflow after GitHub release VSIX upload.
+    - Configured Codecov upload step in `ci.yaml` with `fail_ci_if_error: false`.
