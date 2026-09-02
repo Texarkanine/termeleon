@@ -430,6 +430,46 @@ test('lockfile present', () => {
     'package-lock.json must exist so npm ci can run',
   );
 });
+test('dependabot ignores toolchain majors ahead of repo policy', () => {
+  const text = fs.readFileSync(
+    path.join(repoRoot, '.github', 'dependabot.yaml'),
+    'utf8',
+  );
+  assert.ok(
+    /dependency-name:\s*["']typescript["']/.test(text),
+    'dependabot must name typescript in an ignore rule',
+  );
+  assert.ok(
+    /dependency-name:\s*["']@types\/node["']/.test(text),
+    'dependabot must name @types/node in an ignore rule',
+  );
+  assert.ok(
+    /dependency-name:\s*["']typescript["'][\s\S]*versions:\s*\[[\s\S]*>=7\.0\.0/.test(text),
+    'dependabot must ignore typescript >=7.0.0',
+  );
+  assert.ok(
+    /dependency-name:\s*["']@types\/node["'][\s\S]*versions:\s*\[[\s\S]*>=23\.0\.0/.test(text),
+    'dependabot must ignore @types/node >=23.0.0',
+  );
+});
+test('@types/node major tracks .nvmrc Node major', () => {
+  const nvmText = fs.readFileSync(path.join(repoRoot, '.nvmrc'), 'utf8');
+  const nodeMajor = nvmText
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .find((l) => l && !l.startsWith('#'))
+    ?.match(/^(\d+)/)?.[1];
+  assert.ok(nodeMajor, '.nvmrc must declare a Node major version');
+
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ) as { devDependencies?: Record<string, string> };
+  const typesRange = pkg.devDependencies?.['@types/node'] ?? '';
+  assert.ok(
+    typesRange.startsWith(`^${nodeMajor}.`),
+    `@types/node (${typesRange}) must match Node ${nodeMajor}.x from .nvmrc`,
+  );
+});
 test('.nvmrc pin', () => {
   const text = fs.readFileSync(path.join(repoRoot, '.nvmrc'), 'utf8');
   const line = text
