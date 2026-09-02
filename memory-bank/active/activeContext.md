@@ -5,8 +5,8 @@
 
 ## What Was Done
 
-- Rework classified Level 2. Plan: `alacrittyImports` / `resolveAlacrittyImport`, then `discoverAlacritty` grows `%APPDATA%\alacritty` and follows imports for `active`. Docs stop saying `alacritty.toml` is assumed active.
+- Replanned after preflight FAIL (fixable): exact-basename `alacritty.toml`, `~/` only, concrete systemPatterns edit, productContext left alone on purpose.
 
 ## Next Step
 
-- Preflight validation of the rework plan.
+- Preflight validation of the replanned Alacritty rework.

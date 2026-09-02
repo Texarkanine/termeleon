@@ -125,3 +125,23 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
     - Resolve Windows drive letters with `path.win32.isAbsolute`. Do not expand `%VAR%`.
 * Insights
     - Mirror needs the imported file in the discovered list even when it lives outside extraDirectories.
+
+## 2026-09-02 - PLAN - COMPLETE
+
+* Work completed
+    - Replanned after preflight FAIL (fixable): systemPatterns Alacritty active-detection clause, productContext explicitly unchanged, exact-basename configs, drop untested `~\`.
+* Decisions made
+    - Config = basename `alacritty.toml` only. Home prefix = `~/` only, matching Alacritty docs.
+    - No shared path helper for kitty `include` this task.
+
+## 2026-09-02 - PREFLIGHT - COMPLETE (FAIL (fixable))
+
+* Work completed
+    - Validated the Alacritty rework plan against the codebase, existing test fixtures, and `systemPatterns.md`'s documentation bar for per-emulator active-detection behavior.
+    - Confirmed TDD ordering, file-location conventions, and no conflicts with existing helpers for both executable units.
+    - Wrote `memory-bank/active/.preflight-status` with one blocking-fixable completeness gap, two minor findings, and one advisory.
+* Decisions made
+    - FAIL (fixable): unit 3 names `memory-bank/productContext.md` and `memory-bank/systemPatterns.md` as files to touch but gives no concrete edit for either; re-plan must map a specific change (or an explicit "no change needed") to each.
+* Insights
+    - `systemPatterns.md`'s "Best-Effort Discovery" paragraph already documents comparable active-detection nuances for every other emulator; Alacritty's new config-vs-import logic meets that same inclusion bar.
+    - Kitty's `include` directive is structurally the same problem as Alacritty's `import` — a good on-ramp for a future shared path-resolution helper, left as advisory rather than expanding this task.
