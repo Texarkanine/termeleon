@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/github/Texarkanine/termeleon/graph/badge.svg)](https://codecov.io/github/Texarkanine/termeleon)
 
-You already picked a color scheme for your terminal emulator. Termeleon reads the theme files sitting on your disk and applies one of them to the VS Code integrated terminal, either mirroring what your emulator currently uses or letting you drive the two independently.
+You already picked a color scheme for your terminal emulator. Termeleon reads the theme files and addons sitting on your disk and applies one of them to the VS Code integrated terminal, either mirroring what your emulator currently uses or letting you drive the two independently.
 
 ## Requirements
 
@@ -30,10 +30,10 @@ Prefixed with `Termeleon: `
 | --- | --- | --- |
 | Alacritty | `~/.config/alacritty/**/*.toml` | `alacritty.toml` assumed active |
 | Ghostty | `$XDG_CONFIG_HOME/ghostty/themes/*`, bundled app themes, inline config palettes | yes, including `theme = dark:X,light:Y` |
-| iTerm2 | `*.itermcolors` under iTerm2 app support | no |
+| iTerm2 | `*.itermcolors` under iTerm2 app support (user/addon files only) | no (profile colors are saved in macOS preferences) |
 | kitty | `~/.config/kitty/themes/*.conf`, `current-theme.conf`, `kitty.conf` | yes, via `current-theme.conf` |
-| WezTerm | `~/.config/wezterm/colors/*.toml` | no |
-| Windows Terminal | every entry in the `schemes` array of `settings.json` | yes, via `profiles.defaults.colorScheme` or the default profile |
+| WezTerm | `~/.config/wezterm/colors/*.toml`, `~/.config/wezterm/*.toml` (user/addon files only) | no (config is dynamic Lua) |
+| Windows Terminal | entries in `schemes` array of `settings.json` (custom/imported schemes only) | yes, via `profiles.defaults.colorScheme` or the default profile |
 | Xresources | `~/.Xresources`, `~/.Xdefaults` | assumed active |
 
 Add anything else (a dotfiles checkout, a downloaded theme pack) via `termeleon.extraDirectories`.
@@ -62,8 +62,11 @@ Emulators disagree about what to call the same pixel:
 
 ## Known limits
 
+- **Built-in presets vs addon files.** Termeleon scans theme files and addons on disk; it does not vendor static copies of upstream palettes or inspect application binaries.
+  - **WezTerm:** Built-in schemes live compiled in Rust inside the binary and config is dynamic Lua, so only user `.toml` scheme files in `~/.config/wezterm/` are found.
+  - **iTerm2:** Built-in presets (e.g. Pastel, Solarized, Tango) and active profile colors are stored in Cocoa application preferences plist, not as `.itermcolors` files. Only downloaded or exported `*.itermcolors` files are scanned.
+  - **Windows Terminal:** Built-in preset schemes (e.g. Campbell, Vintage) are packaged in internal `defaults.json`. Only custom schemes defined in the `schemes` array of `settings.json` are discovered.
 - **Alacritty YAML** (pre-0.13) is not read. The schema moved; supporting both doubles the parser for a deprecated format.
-- **WezTerm built-in schemes** live in Lua inside the binary, not on disk, so only user scheme files are found.
 - **iTerm2 color spaces.** Entries tagged `Calibrated` rather than `sRGB` are read as sRGB. Slightly wrong, and the same approximation every porting tool makes.
 - **256-color slots are ignored.** kitty and others define `color16`–`color255`; VS Code derives those from the base 16.
 

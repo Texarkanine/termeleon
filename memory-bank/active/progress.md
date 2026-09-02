@@ -31,3 +31,13 @@ Investigate built-in theme detection in terminal emulators, implement reliable d
 * Decisions made
     - Preflight status: PASS WITH ADVISORY.
     - Defer any iTerm2 profile-import capability to a separately scoped, test-first enhancement.
+
+## 2026-09-02 - BUILD - COMPLETE
+
+* Work completed
+    - Updated `README.md` with explicit notes on built-in presets vs addon files in the overview, Formats read table, and Known limits.
+    - Updated `STORE.md` overview and Supported Emulators table.
+    - Updated `memory-bank/productContext.md` Key Constraints and `memory-bank/systemPatterns.md` Best-Effort Discovery.
+    - Verified all 60 tests passing, clean compile, and successful VSIX packaging.
+* Decisions made
+    - No executable changes needed; accurately documented current on-disk scanning boundaries and emulator specific behavior.

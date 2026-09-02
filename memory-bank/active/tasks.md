@@ -26,16 +26,16 @@ No new executable behavior. This task is an architectural and platform investiga
 - Files: `README.md`, `STORE.md`, `memory-bank/productContext.md`, `memory-bank/systemPatterns.md`
 - No tests: prose/policy artifact
 
-1. Update `README.md`:
-   - Clarify in the overview that Termeleon scans user-installed theme files and addons on disk.
-   - Update the "Formats read" table to explicitly state the source file patterns and explain active theme detection per emulator (clarifying why WezTerm and iTerm2 do not report active themes from on-disk static files).
-   - Update "Known limits" to explain built-in preset storage across WezTerm (Lua/binary), iTerm2 (binary plist / Cocoa defaults), and Windows Terminal (packaged `defaults.json`).
-2. Update `STORE.md`:
-   - Update the overview and "Supported Emulators" table, correcting the "Active Theme Detection" column for iTerm2 and WezTerm to accurately reflect that only static theme files are scanned, giving users upfront clarity.
-3. Update `memory-bank/productContext.md`:
-   - Update "Key Constraints" (preserving "Use Cases" in clean user language) to record the permanent boundary and rationale regarding built-in presets and active detection across WezTerm, iTerm2, and Windows Terminal.
-4. Update `memory-bank/systemPatterns.md`:
-   - Update "Best-Effort Discovery" to document the discovery boundaries and active detection rationale for each emulator.
+1. [x] Update `README.md`:
+   - Clarified in the overview that Termeleon scans user-installed theme files and addons on disk.
+   - Updated the "Formats read" table to explicitly state the source file patterns and explain active theme detection per emulator (clarifying why WezTerm and iTerm2 do not report active themes from on-disk static files).
+   - Updated "Known limits" to explain built-in preset storage across WezTerm (Lua/binary), iTerm2 (binary plist / Cocoa defaults), and Windows Terminal (packaged `defaults.json`).
+2. [x] Update `STORE.md`:
+   - Updated the overview and "Supported Emulators" table, correcting the "Active Theme Detection" column for iTerm2 and WezTerm to accurately reflect that only static theme files are scanned, giving users upfront clarity.
+3. [x] Update `memory-bank/productContext.md`:
+   - Updated "Key Constraints" (preserving "Use Cases" in clean user language) to record the permanent boundary and rationale regarding built-in presets and active detection across WezTerm, iTerm2, and Windows Terminal.
+4. [x] Update `memory-bank/systemPatterns.md`:
+   - Updated "Best-Effort Discovery" to document the discovery boundaries and active detection rationale for each emulator.
 
 ## Technology Validation
 
@@ -60,6 +60,6 @@ None
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA
