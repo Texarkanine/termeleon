@@ -1,5 +1,6 @@
 # Termeleon <img align="right" width="128" src="images/icon.png" alt="Termeleon logo">
 
+[![Open VSX Version](https://img.shields.io/open-vsx/v/texarkanine/termeleon)](https://open-vsx.org/extension/texarkanine/termeleon)
 [![codecov](https://codecov.io/github/Texarkanine/termeleon/graph/badge.svg)](https://codecov.io/github/Texarkanine/termeleon)
 
 You've already picked how you want your terminal to look in your normal terminal emulator. Now make VS Code's terminal match it.
