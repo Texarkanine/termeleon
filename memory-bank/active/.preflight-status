@@ -1,41 +1,21 @@
-FAIL (fixable)
+PASS WITH ADVISORY
 
 # Preflight - investigate-mobaxterm-themes - 2026-09-02
 
-## Verified against reality
+## Findings
 
-The plan's central factual claim holds up. Mobatek's own documentation states that `MobaXterm.ini` lives in `%MyDocuments%\MobaXterm` for the installed edition, beside the executable for the portable edition, and in `%AppData%\MobaXterm` "with some versions" - so both default roots the plan scans are vendor-documented, and the portable-edition-is-extraDirs-only decision is correct. Surveyed real theme files (dracula/mobaxterm `MobaXterm.ini`, catppuccin/mobaxterm `.mxtcolors`, `mbadolato/iTerm2-Color-Schemes/mobaxterm/*.ini`, `DreamScripter/putty_to_moba`) all carry exactly the `[Colors]` layout the plan assumes: `Black`..`White` and `BoldBlack`..`BoldWhite` as `r,g,b` decimal triples, plus `ForegroundColour` / `BackgroundColour` / `CursorColour`, alongside `DefaultColorScheme=N` and sometimes `SyntaxType=N`.
+**TDD plan encoding passes.** Both executable units explicitly order empty test stubs before interface stubs, implemented tests and a red run before production implementation, and focused green runs afterward. The documentation unit is prose/policy and correctly schedules no tests. The source-enum assertion protects a cross-file user contract rather than detecting intentional prose changes.
 
-`DefaultColorScheme` indexes a built-in dropdown scheme and coexists with explicit RGB rather than overriding it (Dracula ships `=4`, the theme packs ship `=0`, and both render their palette), so treating a 16-slot `[Colors]` block from a default root as `active` is sound, and the planned "index-only file is not `isUsable`" case is the right and sufficient guard.
+**The earlier OneDrive finding is resolved.** Discovery now plans plain Documents, `%OneDrive%\Documents`, `%USERPROFILE%\OneDrive\Documents`, and `%APPDATA%\MobaXterm` in an explicit priority order; it adds a OneDrive discovery case, restores all mocked Windows environment variables, deduplicates overlapping roots, and marks only the first usable default-root `MobaXterm.ini` active. The documentation unit names the covered OneDrive path and the `-i` / portable extra-directory escape hatch.
 
-A claim circulating in third-party write-ups - that installed MobaXterm prefers the Windows registry over the INI - was checked and does not apply to palettes. `HKCU\Software\Mobatek\MobaXterm` holds credentials and master-password material (the `PasswordsInRegistry` switch), not `[Colors]`. Do not document a registry palette gap; it would be wrong.
+**Conventions and public boundaries pass.** `src/parsers/mobaxterm.ts` remains in the vscode-free core, emits the existing `Palette`, and uses a byte-component helper beside `fromFloatComponents` without widening `normalizeColor`. The source takes `extraDirs`, `discoverThemes` remains the failure boundary, and no change is planned to the apply path or `extensionKind`.
 
-Convention checks pass. A new `src/parsers/mobaxterm.ts` matches the existing one-file-per-parse-technique grouping, stays inside the vscode-free core, adds no second VS Code mapping table, and takes `extraDirs` as `systemPatterns.md` requires of every walkable format. No public contract moves: `Palette`, the apply path, and `extensionKind` are untouched. No duplication-in-waiting: nothing in the tree parses INI today, and although `discoverGhostty` walks `extraDirs` with a null extension filter and will therefore read a MobaXterm file placed there, `parseGhostty` needs `palette = N=#hex` / `background =` keys and cannot reach `isUsable` on a `[Colors]` block, so no theme gets listed twice.
+**Dependency and integration coverage passes.** The plan accounts for parser exports, discovery registration and filename handling, `package.json` source configuration and keywords, `SOURCE_LABELS`, parser and discovery fixtures, environment-test isolation, README and store support tables, and persistent product/architecture context. Manifest and label edits remain in the write-code step so their test is red first.
 
-TDD encoding passes for both executable units. Units 1 and 2 each place stub-tests, then stub-interface, then write-tests-and-run-red, then write-code-and-run-green, explicitly enough that an implementer cannot code first. Unit 3 is a prose/policy unit (README, STORE, memory-bank narrative) and correctly owes no tests. No scheduled change-detectors: the `termeleon.sources` enum assertion is a cross-file manifest contract (a source discovery runs but settings will not admit is a user-visible break), not a document-content assertion, so it stays.
+**Conflict detection passes.** No existing parser handles INI sections or byte RGB triples. Ghostty's extension-agnostic extra-directory walk cannot produce a usable palette from MobaXterm's `[Colors]` keys, while resolved-path deduplication prevents overlapping default roots from listing the same MobaXterm file twice.
 
-## Blocking finding - fixable
-
-**The Documents default path ignores OneDrive Known Folder Move.** The plan hardcodes `path.join(USERPROFILE or homedir, 'Documents', 'MobaXterm')`, but the vendor-documented location is `%MyDocuments%\MobaXterm` - and `%MyDocuments%` follows the Known Folder redirect, which points at `%USERPROFILE%\OneDrive\Documents` on any profile signed into OneDrive. That redirect is the Windows default for the exact population this task targets, so for a large and predictable share of installed-edition users, default-path discovery finds nothing while `README.md` and `STORE.md` publish a path that is not theirs. This is the one path edge case the plan's Challenges section does not consider, next to portable-edition, CI-env, and UTF-16 cases it does.
-
-The fix is known and small, which is why this is fixable rather than blocking: probe `%OneDrive%\Documents\MobaXterm` and `%USERPROFILE%\OneDrive\Documents\MobaXterm` alongside the plain `Documents` root (OneDrive sets the `OneDrive` environment variable on Windows), add one discovery case for it, extend `withFixtureHome` to save/delete `OneDrive` as well as `USERPROFILE` and `APPDATA`, and note the redirect in the docs unit.
-
-## Minor findings
-
-**Two production edits sit inside a stub step.** Unit 2 substep 2 adds `mobaxterm` to the `package.json` `termeleon.sources` enum and to `SOURCE_LABELS` while the step is nominally interface-stubbing, so the enum test planned in substep 1 will already be green when substep 3 runs it red. Move both edits to substep 4. The unit's overall test-before-code order is correct, so this is not a TDD failure - only a step that will not go red.
-
-**Byte-triple conversion is planned in the wrong module.** `palette.ts` already owns `fromFloatComponents` as the canonical "colour components to `#rrggbb`" primitive for iTerm2's representation; MobaXterm's `r,g,b` decimals are the same kind of primitive and belong next to it as a sibling helper rather than inline in `parseMobaXterm`. The plan's guard against teaching `normalizeColor` raw triples is right and is unaffected by this - a new sibling function is not a change to `normalizeColor`.
-
-**The American `Color` key alias is speculative.** Every real file surveyed, including Mobatek's own documentation, uses British `Colour`. Accepting `ForegroundColor` etc. is harmless but ships untested surface; either add a case for it or drop the alias.
-
-**The `-i` override is undocumented.** MobaXterm accepts `-i <path>` to relocate `MobaXterm.ini` to any local path, network share, or HTTP URL, so a config can legitimately live somewhere discovery will never look. One line in the docs unit's known-limits pointing at `termeleon.extraDirectories` covers it.
-
-**Optional strengthening of the enum test.** Asserting that every source `discoverThemes` actually runs appears in the `termeleon.sources` enum would lock the contract for all future sources, where `includes('mobaxterm')` only locks this one.
+**Requirement coverage passes.** The plan implements the on-disk parser/discovery outcome, tests parser and discovery behavior, documents built-in-index, session, syntax, portable, and `-i` limits, and preserves the `Palette`, apply, and UI-kind contracts.
 
 ## Advisory - radical innovation
 
-MobaXterm's terminal is PuTTY-derived, and so is its colour representation: PuTTY session exports spell their palette `Colour0`..`Colour21` as the same `r,g,b` decimal triples inside the same `[section] key=value` INI shape. Termeleon supports no PuTTY-family emulator today, and the Windows/WSL audience this task is aimed at is exactly the PuTTY, KiTTY, and SuperPuTTY audience.
-
-So the accretive version of this build is to land two small shared primitives instead of one bespoke parser: a `fromByteComponents(r, g, b)` helper beside `fromFloatComponents` in `palette.ts`, and a minimal `[section] key=value` reader (comments, CRLF, section scoping) that returns section-to-key-to-value and nothing more. `parseMobaXterm` then becomes a thin key-mapping table over those two, and a future `parsePutty` is a second key-mapping table plus a discovery function - no new parsing technique, no new colour conversion, no new mapping table. The cost now is one extra exported helper and one ~25-line module over what the plan already writes; the payoff is that the next Windows format is mapping-only work.
-
-Recorded as advisory only. The plan was not modified to include it.
+Consider extracting the planned section-scoped INI loop into a minimal `src/parsers/ini.ts` helper that returns keys for one named section. Keep `fromByteComponents` in `palette.ts`, then make `parseMobaXterm` only a key-to-palette mapping. This adds a small reusable seam for later PuTTY-family support (`Colour0` through `Colour21` use the same decimal triples) without changing this task's discovery or public contracts. This is advisory only; the current bespoke parser plan is acceptable as-is.

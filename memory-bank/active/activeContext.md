@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: investigate-mobaxterm-themes
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
 
 ## What Was Done
 
@@ -12,4 +12,4 @@
 
 ## Next Step
 
-- Preflight validation of the replanned plan.
+- Build: parseMobaXterm, then discoverMobaXterm, then docs.

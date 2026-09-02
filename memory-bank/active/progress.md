@@ -53,3 +53,15 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
     - Convert byte triples in `palette.ts` next to `fromFloatComponents`; still do not teach `normalizeColor` raw triples.
 * Insights
     - `%MyDocuments%` is not `%USERPROFILE%\Documents` on OneDrive-signed-in Windows profiles, which is the default for this task's audience.
+
+## 2026-09-02 - PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+
+* Work completed
+    - Revalidated the replanned parser, discovery, integration, documentation, and test steps against the current codebase.
+    - Confirmed explicit test-before-code ordering for both executable units and complete coverage of the earlier OneDrive finding.
+    - Overwrote `.preflight-status` with a passing result and one non-blocking shared-INI-reader advisory.
+* Decisions made
+    - The plan is build-ready without edits.
+    - Keep a reusable section-scoped INI reader as an optional PuTTY-family on-ramp rather than expanding this task.
+* Insights
+    - Resolved-path deduplication plus first-usable-default-root activation prevents overlapping OneDrive candidates from creating duplicate active themes.
