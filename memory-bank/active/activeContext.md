@@ -2,11 +2,12 @@
 
 **Current Task:** Investigate built-in theme support (Issue #36)
 
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Clarified intent with the operator based on GitHub Issue #36 and confirmed scope.
-- Evaluated task complexity and classified as Level 2 (Simple Enhancement / Investigation and docs/discovery update).
+- Completed investigation into terminal emulator architectures regarding built-in themes and active theme colors (WezTerm, iTerm2, Ghostty, kitty, Alacritty, Windows Terminal, Xresources).
+- Confirmed that emulators with themes compiled into binaries (WezTerm, iTerm2) do not store built-in themes on disk, and extracting them dynamically or vendoring would violate stability and licensing constraints.
+- Formulated an implementation plan in `memory-bank/active/tasks.md` to document the built-in vs addon theme behavior across `README.md`, `STORE.md`, and `memory-bank/productContext.md`.
 
 ## Next Step
-- Load Level 2 workflow (`.cursor/skills/shared/niko/references/level2/level2-workflow.md`) and begin Plan phase.
+- Transition to Preflight phase by spawning a subagent with `/niko-preflight`.
