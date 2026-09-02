@@ -2,7 +2,7 @@
 
 **Current Task:** Investigate built-in theme support (Issue #36)
 
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
 
 ## What Was Done
 - Investigated both built-in preset storage and active-theme detection across all supported emulators (WezTerm, iTerm2, Windows Terminal, Ghostty, kitty, Alacritty, Xresources).
@@ -14,4 +14,4 @@
 - Updated `memory-bank/active/tasks.md` with the full implementation plan.
 
 ## Next Step
-- Re-run Preflight validation with subagent.
+- Proceed to Build; the preflight result permits the transition.

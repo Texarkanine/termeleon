@@ -22,3 +22,12 @@ Investigate built-in theme detection in terminal emulators, implement reliable d
     - Do not add brittle binary plist parsing, external subprocess execution, or dynamic Lua evaluation.
     - Keep "Use Cases" in `productContext.md` clean of implementation details, housing constraints under "Key Constraints".
     - Align active theme detection cells in both README and STORE tables.
+
+## 2026-09-02 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the documentation-only implementation plan against current discovery behavior and the memory-bank conventions.
+    - Confirmed that no executable behavior changes are planned, so tests are not required under the TDD policy.
+* Decisions made
+    - Preflight status: PASS WITH ADVISORY.
+    - Defer any iTerm2 profile-import capability to a separately scoped, test-first enhancement.

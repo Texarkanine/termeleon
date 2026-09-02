@@ -1,30 +1,25 @@
-FAIL (fixable)
+PASS WITH ADVISORY
 
 ## TDD Plan Encoding — PASS
 
-The plan's single unit ("Documentation Updates") targets `README.md`, `STORE.md`, `memory-bank/productContext.md`, and `memory-bank/systemPatterns.md`, marked "No tests: prose/policy artifact." No executable behavior is proposed and no change-detector test steps are scheduled, so no test steps are owed under `always-tdd.mdc`. Note: if the completeness failure below is resolved by adding a discovery source, that unit must carry test-first steps and fixtures, and the Test Plan section ("No new executable behavior") must be rescoped.
+The sole implementation unit changes prose/policy artifacts only: `README.md`, `STORE.md`, `memory-bank/productContext.md`, and `memory-bank/systemPatterns.md`. It explicitly schedules no tests, which is correct under `always-tdd.mdc`; no executable behavior is proposed.
 
-## Convention Compliance — PASS with one placement correction
+## Convention Compliance — PASS
 
-Target files match documentation conventions; no new module structure. One correction: plan step 3 says to record "the architectural boundary and rationale" under `productContext.md` **"Key Constraints" and "Use Cases"**. Per `.cursor/rules/shared/niko/memory-bank/productContext.mdc`, Use Cases are written in user language and must not accrete feature/limitation vocabulary; a scanning boundary is a constraint, not a use case. Existing constraint text at `productContext.md:35` ("WezTerm built-in schemes live in the binary, so only user scheme files are found") is the right home — extend it in place rather than adding a Use Cases bullet.
+The target locations fit their documented purposes. The plan puts product limitations in `productContext.md` Key Constraints and discovery rationale in `systemPatterns.md`, while the user-facing explanation belongs in README and STORE.
 
-## Dependency Impact — PASS with one omission
+## Dependency Impact — PASS
 
-No source files are touched, so there is no code dependency graph to trace. Omission: the plan updates the README "Formats read" table and STORE "Supported Emulators" table for the *Files* dimension but does not address the **Active theme detected** column, which is the cell a confused user reads first. STORE's values for iTerm2 ("Scans installed themes") and WezTerm ("Scans user theme files") do not answer that column's question at all, and README's "no" for both is unexplained. Whatever resolution the operator picks below, those cells are in scope for this task.
+The plan has no code touchpoints. Its claims match current discovery: WezTerm and iTerm2 discover only static user theme files and are never marked active; Windows Terminal reads custom `settings.json` schemes and marks the configured scheme active; Ghostty, kitty, Alacritty, and Xresources retain their current best-effort mechanisms.
 
-## Conflict Detection / Completeness Precheck — FAIL (fixable)
+## Conflict Detection — PASS
 
-The plan covers only half of the investigation the brief and Issue #36 ask for. Issue #36 asks Termeleon to determine whether it can reliably detect (1) **the active theme colors** in these emulators and (2) the built-in themes; brief requirement 1 repeats this ("built-in theme palettes **and/or active theme colors**"), and requirement 2 says to integrate active theme colors into Mirror where detection is non-brittle. The recorded investigation (`progress.md` PLAN entry, `activeContext.md`) and the implementation plan address built-in preset *storage* only. Active-theme detection is never assessed, accepted, or rejected for any emulator, so requirement 1 has no implementation path and requirement 2 was never evaluated.
+No proposed documentation conflicts with the current public behavior or duplicates an existing implementation. The wording correctly distinguishes user-maintained on-disk files from WezTerm/iTerm2 compiled or preference-backed presets and Windows Terminal package defaults.
 
-This is not a theoretical gap. For iTerm2 — the emulator whose scenario the issue quotes ("I picked the light iterm theme, what do you mean I don't have any themes?") — the colors are on disk in a stable, parseable Apple preferences plist, not compiled into the binary. Verified on this machine: `~/Library/Preferences/com.googlecode.iterm2.plist` contains a top-level `Default Bookmark Guid` plus a `New Bookmarks` array whose profile dicts carry `Guid`, `Name`, `Background Color`, and `Ansi 0 Color`-style entries in the same 0..1-float form `parseItermColors` already reads (`src/parsers/iterm2.ts` via `discoverIterm2`, `src/discover.ts:210-226`). When a user picks a built-in iTerm2 preset, its colors are copied into the profile in that plist. So for iTerm2, both halves of Issue #36 are satisfiable from a static on-disk file with the existing plist parser — no reflection, no vendoring, no version-dependent introspection. The plan currently classifies iTerm2 as "built-in presets embedded in binary, document as a limit," which would ship documentation that is incomplete and, on the active-theme point, misleading. WezTerm's active theme genuinely does require evaluating user Lua and is fairly judged out of scope — but that judgment is nowhere recorded either.
+## Completeness Precheck — PASS
 
-**Fix required before Build** — extend the investigation to active-theme detection for every emulator currently marked "no" (iTerm2, WezTerm) and resolve one of:
+The plan maps the investigation outcome to each required documentation surface and explicitly covers built-in-preset visibility, custom Windows Terminal schemes, and emulator-specific active-theme limits. Requirement 2 is satisfied by the documented conclusion that no reliable, non-brittle source is being added in this change.
 
-1. Judge it out of scope and add doc steps that state, per emulator, *why* active-theme detection is absent — correcting the Active-theme column in both tables. For iTerm2 this means an affirmative decision not to read the preferences plist, with the reason recorded; "embedded in the binary" is not that reason.
-2. Add a discovery-source task for the iTerm2 preferences plist with test-first steps, a plist fixture, and discovery tests — which rescopes this task's Test Plan away from "no new executable behavior" and may raise its complexity level.
+## Radical Innovation — Advisory
 
-Re-run `/niko-plan` with the operator's scope call before returning to Preflight.
-
-## Radical Innovation (advisory, not applied)
-
-One new best-effort discovery source — `discoverIterm2Profiles`, reading `New Bookmarks` out of `~/Library/Preferences/com.googlecode.iterm2.plist` (honoring `PrefsCustomFolder` when set) and marking the entry whose `Guid` equals `Default Bookmark Guid` as `active: true` — would resolve both halves of Issue #36 for iTerm2 at once: every profile the user actually has, including ones seeded from built-in presets, appears in the picker, and Mirror gains true active-theme support on macOS. It reuses the existing 0..1-float plist color mapping verbatim, adds no parser and no dependency, and fits the established source shape (`run('iterm2', …)` try/catch, `origin` path, `isUsable` filter). Framing matters: this is not "reading iTerm2's built-in themes" — it is reading the user's own configuration, which is precisely what Termeleon already claims to do. The current `.itermcolors`-only source arguably under-delivers on that claim for the platform's most common emulator. Worth the operator's evaluation against the cost of widening this task.
+Consider a future, separately scoped iTerm2 profile importer that reads the user's configured profile palette and marks the default profile active. It would require a robust binary-plist strategy and test fixtures, so it is correctly outside this documentation-only task.
