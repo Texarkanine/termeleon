@@ -98,3 +98,12 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
     - Standalone task: next step is `/niko-archive`.
 * Insights
     - Windows Documents discovery must include OneDrive Known Folder Move.
+
+## 2026-09-02 - REWORK INITIATED
+
+* Work completed
+    - Operator chose rework instead of archive: expand this Windows-emulator pass to Alacritty active-theme detection for Mirror.
+* Decisions made
+    - Keep the shipped MobaXterm parser and discovery. Remaining work is Alacritty on Windows.
+* Insights
+    - Extra directories already listed Alacritty theme files. Mirror fails because discovery never reads `%APPDATA%\alacritty\alacritty.toml` and never follows `[general].import` (this machine imports `msx.toml` from a git checkout).
