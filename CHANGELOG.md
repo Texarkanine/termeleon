@@ -33,5 +33,3 @@
 * remove misleading gray swatches and reveal terminal on import ([#21](https://github.com/Texarkanine/vscode-terminal-themes/issues/21)) ([#22](https://github.com/Texarkanine/vscode-terminal-themes/issues/22)) ([ac05ec7](https://github.com/Texarkanine/vscode-terminal-themes/commit/ac05ec7bef7ca7d17cfed198544f2fb456734332))
 * scan extraDirectories for all walkable theme formats ([#12](https://github.com/Texarkanine/vscode-terminal-themes/issues/12)) ([be320ed](https://github.com/Texarkanine/vscode-terminal-themes/commit/be320edc0a03d58b58f964420596fcb1815cd173))
 * strip trailing inline comments in parseKitty ([#11](https://github.com/Texarkanine/vscode-terminal-themes/issues/11)) ([03731e1](https://github.com/Texarkanine/vscode-terminal-themes/commit/03731e119a6b034ea60ed7b60dcb82c7bee670d9))
-
-## Changelog
