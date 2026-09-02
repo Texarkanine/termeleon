@@ -5,9 +5,9 @@
 **Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Completed investigation into terminal emulator architectures regarding built-in themes and active theme colors (WezTerm, iTerm2, Ghostty, kitty, Alacritty, Windows Terminal, Xresources).
-- Confirmed that emulators with themes compiled into binaries (WezTerm, iTerm2) do not store built-in themes on disk, and extracting them dynamically or vendoring would violate stability and licensing constraints.
-- Formulated an implementation plan in `memory-bank/active/tasks.md` to document the built-in vs addon theme behavior across `README.md`, `STORE.md`, and `memory-bank/productContext.md`.
+- Extended investigation across all supported emulators (WezTerm, iTerm2, Windows Terminal, Ghostty, kitty, Alacritty, Xresources) to include packaged defaults (`defaults.json` in Windows Terminal vs user `settings.json`, WezTerm binary schemes vs `colors/*.toml`, iTerm2 Cocoa presets vs `.itermcolors`).
+- Addressed Preflight findings by including Windows Terminal alongside WezTerm and iTerm2 in all documentation update steps and architectural memory files.
+- Updated `memory-bank/active/tasks.md` with the refined implementation plan.
 
 ## Next Step
-- Transition to Preflight phase by spawning a subagent with `/niko-preflight`.
+- Re-run Preflight validation with subagent.

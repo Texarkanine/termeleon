@@ -1,0 +1,26 @@
+FAIL (fixable)
+
+## TDD Plan Encoding — PASS
+The plan's single unit ("Documentation Updates") touches only `README.md`, `STORE.md`, and `memory-bank/productContext.md` and is explicitly marked "No tests: prose/policy artifact." No executable behavior is proposed. This correctly falls outside `always-tdd.mdc`'s scope; no test steps are owed.
+
+## Convention Compliance — PASS
+Proposed file locations (`README.md`, `STORE.md`, `memory-bank/productContext.md`) match existing documentation conventions; no new module structure, no deviation from `systemPatterns.md`.
+
+## Dependency Impact — PASS
+No source files are touched, so there is no code dependency graph to trace. Verified no other doc surface references built-in-theme behavior that the plan omits: only `README.md`, `STORE.md`, and `productContext.md` mention it (`package.json` description/contributes do not).
+
+## Conflict Detection / Completeness Precheck — FAIL (fixable)
+The investigation this plan rests on (recorded in `progress.md` PLAN entry and `activeContext.md`) concludes: "Ghostty and Windows Terminal provide filesystem-accessible themes, while WezTerm and iTerm2 embed built-in presets in compiled binaries without static on-disk files." That conclusion is incomplete for Windows Terminal.
+
+Windows Terminal ships built-in preset color schemes (Campbell, Campbell Powershell, One Half Dark, One Half Light, Solarized Dark, Solarized Light, Tango Dark, Tango Light, Vintage) compiled into a read-only `defaults.json` that is distinct from the user-editable `settings.json` and is explicitly documented by Microsoft as "not intended for user manipulation" (confirmed via Microsoft Learn / `microsoft/terminal` issue #6749). Termeleon's Windows Terminal discovery (`src/discover.ts:232-238`) only reads the `schemes` array of `settings.json` — it never sees these built-in presets unless the user manually copies one into their own `settings.json`. This is the same category of gap the plan already documents for WezTerm and iTerm2, but the plan's doc-update steps (README overview/table/Known-limits, STORE.md table, `productContext.md` constraints) only name WezTerm and iTerm2, which would ship a doc update that is factually incomplete about Windows Terminal — undermining projectbrief requirement 3 ("clearly document... only user-installed addons and theme files on disk are scanned").
+
+This also means projectbrief requirement 2 ("for emulators where reliable, non-brittle detection is possible... integrate") was not fully explored: unlike WezTerm's Lua-in-binary or iTerm2's Cocoa resource bundle, Windows Terminal's `defaults.json` is a real, static, parseable JSON file shipped with every install (three known install-channel paths already enumerated in `discover.ts`, mirroring the existing `settings.json` path list). Whether that path is stable enough to satisfy the project's "not brittle" bar was never assessed.
+
+**Fix required before Build:** extend the investigation to Windows Terminal's `defaults.json` presets and resolve one of:
+1. Treat it like WezTerm/iTerm2 (brittle/out-of-scope) and add Windows Terminal to the doc-update steps for README/STORE/productContext, or
+2. If `defaults.json`'s path is judged stable across install channels, add a discovery-source implementation task (with TDD-first plan steps, fixtures, and tests) to read it — which would also require re-scoping this task's Test Plan section, currently "no new executable behavior."
+
+Re-run `/niko-plan` to incorporate this before returning to Preflight.
+
+## Radical Innovation (advisory, not applied)
+Of the four "impossible/brittle" candidates surfaced across this investigation (WezTerm, iTerm2, and now Windows Terminal's `defaults.json`), Windows Terminal is the one case where the built-in data is not opaque compiled code — it is a plain JSON file shipped at a small, enumerable set of install-channel paths, structurally identical to the `settings.json` Termeleon already parses. A single additional best-effort discovery source (same try/catch, same `origin` pattern, same three candidate paths already used for `settings.json`, just pointed at `defaults.json`) could surface Windows Terminal's ~9 built-in presets in the picker with no vendoring, no reflection, and no new parser — reusing the existing Windows Terminal JSON parser verbatim. This is the most concretely achievable "integrate built-in themes" win available in this entire investigation and is worth the operator's evaluation against the cost of adding it to this task's scope.

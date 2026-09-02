@@ -15,9 +15,9 @@ Investigate built-in theme detection in terminal emulators, implement reliable d
 ## 2026-09-02 - PLAN - COMPLETE
 
 * Work completed
-    - Investigated built-in theme storage across supported emulators (WezTerm, iTerm2, Ghostty, kitty, Alacritty, Windows Terminal, Xresources).
-    - Determined that Ghostty and Windows Terminal provide filesystem-accessible themes, while WezTerm and iTerm2 embed built-in presets in compiled binaries without static on-disk files.
-    - Created detailed implementation plan in `memory-bank/active/tasks.md` focusing on clear user documentation in `README.md`, `STORE.md`, and `productContext.md`.
+    - Investigated built-in theme storage across supported emulators (WezTerm, iTerm2, Windows Terminal, Ghostty, kitty, Alacritty, Xresources).
+    - Determined that Ghostty provides filesystem-accessible themes in its app bundle / XDG data dirs, whereas WezTerm, iTerm2, and Windows Terminal embed built-in presets in compiled binaries / packaged defaults rather than user config files.
+    - Extended implementation plan in `memory-bank/active/tasks.md` to comprehensively document built-in vs addon theme behavior across `README.md`, `STORE.md`, `memory-bank/productContext.md`, and `memory-bank/systemPatterns.md`.
 * Decisions made
-    - Do not attempt brittle reflection or vendoring static copies of compiled-in emulator palettes.
-    - Document clearly that Termeleon scans theme files and addons on disk, so built-in binary presets do not appear unless exported or installed as files.
+    - Do not attempt brittle reflection or vendoring static copies of compiled-in emulator palettes or package internals.
+    - Document clearly that Termeleon scans theme files and addons on disk (and `schemes` in `settings.json`), so built-in binary/package presets do not appear unless exported or installed as user theme files.
