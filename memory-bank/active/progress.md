@@ -115,3 +115,13 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
 * Decisions made
     - Not Level 1: following `import` is more than adding a path, and a filename-only `alacritty.toml` active flag would still fail on this machine's import-only config.
     - Not Level 3: one emulator source, existing parser, no architecture change.
+
+## 2026-09-02 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote TDD plan for Alacritty Windows config root plus import following (general.import and top-level import).
+* Decisions made
+    - Usable inline `alacritty.toml` stays active; otherwise last usable import is active. No field-by-field merge.
+    - Resolve Windows drive letters with `path.win32.isAbsolute`. Do not expand `%VAR%`.
+* Insights
+    - Mirror needs the imported file in the discovered list even when it lives outside extraDirectories.
