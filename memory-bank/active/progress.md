@@ -158,3 +158,15 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
 * Insights
     - `parseAlacritty` throws on malformed TOML, so the new import pass needs the same per-file try/catch the walk already uses — otherwise one bad theme file drops the whole Alacritty source from the picker.
     - `walk` skips symlinks (`Dirent.isFile()` is false for them), so the extraDirs "same file, two roots" case must be written as overlapping directories, not a symlink.
+
+## 2026-09-02 - BUILD - COMPLETE
+
+* Work completed
+    - Parser helpers: `alacrittyImports` (`[general].import` wins over top-level `import`) and `resolveAlacrittyImport` (`~/`, POSIX/Windows absolute, else config-relative; no `%VAR%` expansion).
+    - Discovery: `%APPDATA%\alacritty` root; exact-basename `alacritty.toml` configs collected before the usability gate; last usable import is `active` when the config is not; imported files outside extraDirs are listed; malformed imports skipped.
+    - Docs: README, STORE, systemPatterns Alacritty clause. productContext unchanged.
+    - Verification: `npm run test:parsers` 73+23 pass; `npm run compile` clean. Host suite not run (known Electron/X11 hang; CI does not run `test:host`).
+* Decisions made
+    - No recursive field-merge of imports. Per-import try/catch as preflight advised.
+* Insights
+    - Filename suffix `/alacritty\\.toml$/i` was marking `extra-alacritty.toml` active; exact basename is the fix that also matches Alacritty's config name.

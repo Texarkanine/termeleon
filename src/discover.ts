@@ -5,7 +5,7 @@ import * as path from 'path';
 import { DiscoveredTheme, Palette, isUsable } from './palette';
 import { parseGhostty, activeGhosttyThemes } from './parsers/ghostty';
 import { parseKitty, parseXresources } from './parsers/kitty';
-import { parseAlacritty, parseWezterm, weztermSchemeName } from './parsers/toml';
+import { parseAlacritty, alacrittyImports, resolveAlacrittyImport, parseWezterm, weztermSchemeName } from './parsers/toml';
 import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from './parsers/iterm2';
 import { parseMobaXterm } from './parsers/mobaxterm';
 
@@ -160,12 +160,28 @@ function discoverAlacritty(extraDirs: string[]): DiscoveredTheme[] {
   const bases = [
     path.join(xdgConfigDir(), 'alacritty'),
     path.join(homeDir(), '.alacritty'),
-    ...extraDirs,
   ];
+  if (process.env.APPDATA) {
+    bases.push(path.join(process.env.APPDATA, 'alacritty'));
+  }
+  bases.push(...extraDirs);
+
+  const seen = new Set<string>();
   const out: DiscoveredTheme[] = [];
+  const configs: string[] = [];
+
+  const resolvedKey = (file: string): string => {
+    try { return fs.realpathSync(file); } catch { return path.resolve(file); }
+  };
 
   for (const base of bases) {
     for (const file of walk(base, ['.toml'])) {
+      const key = resolvedKey(file);
+      if (seen.has(key)) { continue; }
+      seen.add(key);
+      if (path.basename(file).toLowerCase() === 'alacritty.toml') {
+        configs.push(file);
+      }
       const text = readText(file);
       if (!text) { continue; }
       let palette: Palette;
@@ -175,10 +191,54 @@ function discoverAlacritty(extraDirs: string[]): DiscoveredTheme[] {
         name: stem(file),
         source: 'alacritty',
         origin: file,
-        active: /alacritty\.toml$/i.test(file),
+        active: false,
         palette,
       });
     }
+  }
+
+  const home = process.env.USERPROFILE || homeDir();
+  const activeKeys = new Set<string>();
+
+  for (const config of configs) {
+    const text = readText(config);
+    if (!text) { continue; }
+    let configPalette: Palette | undefined;
+    try {
+      configPalette = parseAlacritty(text);
+    } catch {
+      configPalette = undefined;
+    }
+    if (configPalette && isUsable(configPalette)) {
+      activeKeys.add(resolvedKey(config));
+      continue;
+    }
+    let lastUsable: string | undefined;
+    for (const spec of alacrittyImports(text)) {
+      const resolved = resolveAlacrittyImport(spec, config, home);
+      const importText = readText(resolved);
+      if (!importText) { continue; }
+      let palette: Palette;
+      try { palette = parseAlacritty(importText); } catch { continue; }
+      if (!isUsable(palette)) { continue; }
+      lastUsable = resolved;
+      const key = resolvedKey(resolved);
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push({
+          name: stem(resolved),
+          source: 'alacritty',
+          origin: resolved,
+          active: false,
+          palette,
+        });
+      }
+    }
+    if (lastUsable) { activeKeys.add(resolvedKey(lastUsable)); }
+  }
+
+  for (const t of out) {
+    t.active = activeKeys.has(resolvedKey(t.origin));
   }
   return out;
 }

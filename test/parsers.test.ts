@@ -6,7 +6,7 @@ import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeCol
 import { discoverThemes, toGhosttyDiscovered, activeGhosttyPair, mirrorCandidates } from '../src/discover';
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
-import { parseAlacritty } from '../src/parsers/toml';
+import { parseAlacritty, alacrittyImports, resolveAlacrittyImport } from '../src/parsers/toml';
 import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from '../src/parsers/iterm2';
 import { parseMobaXterm } from '../src/parsers/mobaxterm';
 
@@ -138,6 +138,65 @@ test('parses TOML with 0x-prefixed colors', () => {
   assert.strictEqual(p.ansi[1], '#cc241d');
   assert.strictEqual(p.ansi[9], '#fb4934');
   assert.strictEqual(p.cursorText, '#282828');
+});
+
+test('reads [general].import paths in order', () => {
+  const paths = alacrittyImports(`
+[general]
+import = ["themes/a.toml", "themes/b.toml"]
+`);
+  assert.deepStrictEqual(paths, ['themes/a.toml', 'themes/b.toml']);
+});
+
+test('reads top-level import when general.import is absent', () => {
+  const paths = alacrittyImports(`
+import = ["legacy.toml"]
+`);
+  assert.deepStrictEqual(paths, ['legacy.toml']);
+});
+
+test('[general].import wins over top-level import', () => {
+  const paths = alacrittyImports(`
+import = ["old.toml"]
+[general]
+import = ["new.toml"]
+`);
+  assert.deepStrictEqual(paths, ['new.toml']);
+});
+
+test('unparseable Alacritty text yields no imports', () => {
+  assert.deepStrictEqual(alacrittyImports('[[['), []);
+  assert.deepStrictEqual(alacrittyImports('[window]\nopacity = 1'), []);
+});
+
+test('resolves ~/ against the given home', () => {
+  assert.strictEqual(
+    resolveAlacrittyImport('~/themes/x.toml', '/cfg/alacritty.toml', '/home/u'),
+    path.join('/home/u', 'themes/x.toml'),
+  );
+});
+
+test('resolves a relative import against the config directory', () => {
+  assert.strictEqual(
+    resolveAlacrittyImport('themes/msx.toml', '/cfg/alacritty/alacritty.toml', '/home/u'),
+    path.join('/cfg/alacritty', 'themes/msx.toml'),
+  );
+});
+
+test('treats a Windows drive path as absolute', () => {
+  assert.strictEqual(
+    resolveAlacrittyImport('V:/Users/a/t.toml', '/cfg/alacritty.toml', '/home/u'),
+    'V:/Users/a/t.toml',
+  );
+});
+
+test('does not expand %APPDATA% in an import spec', () => {
+  const spec = '%APPDATA%\\alacritty\\x.toml';
+  const configFile = '/cfg/alacritty/alacritty.toml';
+  assert.strictEqual(
+    resolveAlacrittyImport(spec, configFile, '/home/u'),
+    path.join(path.dirname(configFile), spec),
+  );
 });
 
 console.log('\niterm2');

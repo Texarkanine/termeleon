@@ -1,4 +1,5 @@
 import { parse as parseToml } from 'smol-toml';
+import * as path from 'path';
 import { Palette, normalizeColor } from '../palette';
 
 type Table = Record<string, any>;
@@ -42,6 +43,39 @@ export function parseAlacritty(text: string): Palette {
   p.selectionForeground = normalizeColor(pick(doc, 'colors', 'selection', 'text'));
 
   return p;
+}
+
+/**
+ * Import paths from an Alacritty config. `[general].import` wins when both
+ * that key and a top-level `import` exist (0.13+ schema). Missing or
+ * unparseable files yield `[]`.
+ */
+export function alacrittyImports(text: string): string[] {
+  let doc: Table;
+  try {
+    doc = parseToml(text) as Table;
+  } catch {
+    return [];
+  }
+  const fromGeneral = pick(doc, 'general', 'import');
+  const raw = Array.isArray(fromGeneral) ? fromGeneral : pick(doc, 'import');
+  if (!Array.isArray(raw)) { return []; }
+  return raw.filter((s): s is string => typeof s === 'string');
+}
+
+/**
+ * Resolves one Alacritty import spec: `~/` from `home`, POSIX or Windows
+ * absolute paths unchanged, otherwise relative to the config file.
+ * `%VAR%` is not expanded.
+ */
+export function resolveAlacrittyImport(spec: string, configFile: string, home: string): string {
+  if (spec.startsWith('~/')) {
+    return path.join(home, spec.slice(2));
+  }
+  if (path.posix.isAbsolute(spec) || path.win32.isAbsolute(spec)) {
+    return spec;
+  }
+  return path.join(path.dirname(configFile), spec);
 }
 
 /**

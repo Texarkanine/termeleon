@@ -31,7 +31,7 @@ Prefixed with `Termeleon: `
 
 | Emulator | Files | Active theme detected |
 | --- | --- | --- |
-| Alacritty | `~/.config/alacritty/**/*.toml` | `alacritty.toml` assumed active |
+| Alacritty | `~/.config/alacritty/**/*.toml`, `~/.alacritty/**/*.toml`, `%APPDATA%\alacritty\**\*.toml` | usable inline `alacritty.toml` (exact basename), else last usable `import` / `[general].import`. Relative import paths are from the config file; `%VAR%` is not expanded |
 | Ghostty | `$XDG_CONFIG_HOME/ghostty/themes/*`, bundled app themes, inline config palettes | yes, including `theme = dark:X,light:Y` |
 | iTerm2 | `*.itermcolors` under iTerm2 app support, bundled presets from `iTerm.app/Contents/Resources/ColorPresets.plist` | no (profile colors are saved in macOS preferences) |
 | kitty | `~/.config/kitty/themes/*.conf`, `current-theme.conf`, `kitty.conf` | yes, via `current-theme.conf` |

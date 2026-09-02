@@ -317,6 +317,167 @@ test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applicati
   });
 });
 
+console.log('\nalacritty discovery');
+
+function writeExtraAlacritty(dest: string): string {
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.copyFileSync(path.join(fixtures, 'extra', 'extra-alacritty.toml'), dest);
+  return dest;
+}
+
+function writeAlacrittyConfig(file: string, imports: string[]): void {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const quoted = imports.map((p) => JSON.stringify(p)).join(', ');
+  fs.writeFileSync(file, `[general]\nimport = [${quoted}]\n`, 'utf8');
+}
+
+test('APPDATA import-only config marks the imported theme active', () => {
+  withFixtureHome((_xdg, home) => {
+    const appdata = path.join(home, 'appdata');
+    process.env.APPDATA = appdata;
+    const theme = path.join(home, 'git', 'alacritty-theme', 'themes', 'msx.toml');
+    writeExtraAlacritty(theme);
+    writeAlacrittyConfig(
+      path.join(appdata, 'alacritty', 'alacritty.toml'),
+      [theme],
+    );
+  }, (_xdg, home) => {
+    const theme = path.join(home, 'git', 'alacritty-theme', 'themes', 'msx.toml');
+    const config = path.join(home, 'appdata', 'alacritty', 'alacritty.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const imported = results.find((t) => t.origin === theme);
+    const cfg = results.find((t) => t.origin === config);
+    assert.ok(imported, `expected imported origin ${theme}`);
+    assert.strictEqual(imported.source, 'alacritty');
+    assert.strictEqual(imported.active, true);
+    assert.ok(isUsable(imported.palette));
+    assert.ok(!cfg, 'import-only alacritty.toml is not itself a usable theme');
+  });
+});
+
+test('inline-color alacritty.toml remains active', () => {
+  withFixtureHome((xdg) => {
+    writeExtraAlacritty(path.join(xdg, 'alacritty', 'alacritty.toml'));
+  }, (xdg) => {
+    const origin = path.join(xdg, 'alacritty', 'alacritty.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const found = results.find((t) => t.origin === origin);
+    assert.ok(found, `expected origin ${origin}`);
+    assert.strictEqual(found.active, true);
+    assert.strictEqual(found.name, 'alacritty');
+  });
+});
+
+test('last usable import is active when several define palettes', () => {
+  withFixtureHome((xdg) => {
+    const first = path.join(xdg, 'alacritty', 'themes', 'first.toml');
+    const second = path.join(xdg, 'alacritty', 'themes', 'second.toml');
+    writeExtraAlacritty(first);
+    fs.mkdirSync(path.dirname(second), { recursive: true });
+    fs.writeFileSync(
+      second,
+      fs.readFileSync(path.join(fixtures, 'extra', 'extra-alacritty.toml'), 'utf8')
+        .replace('0x300000', '0x010101'),
+      'utf8',
+    );
+    writeAlacrittyConfig(path.join(xdg, 'alacritty', 'alacritty.toml'), [
+      path.join('themes', 'first.toml'),
+      path.join('themes', 'second.toml'),
+    ]);
+  }, (xdg) => {
+    const first = path.join(xdg, 'alacritty', 'themes', 'first.toml');
+    const second = path.join(xdg, 'alacritty', 'themes', 'second.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const a = results.find((t) => t.origin === first);
+    const b = results.find((t) => t.origin === second);
+    assert.ok(a && b);
+    assert.strictEqual(a.active, false);
+    assert.strictEqual(b.active, true);
+    assert.strictEqual(b.palette.background, '#010101');
+  });
+});
+
+test('missing import is skipped and a later usable import can still be active', () => {
+  withFixtureHome((xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    writeExtraAlacritty(theme);
+    writeAlacrittyConfig(path.join(xdg, 'alacritty', 'alacritty.toml'), [
+      path.join('themes', 'missing.toml'),
+      path.join('themes', 'msx.toml'),
+    ]);
+  }, (xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const found = results.find((t) => t.origin === theme);
+    assert.ok(found);
+    assert.strictEqual(found.active, true);
+  });
+});
+
+test('malformed import is skipped and a later usable import can still be active', () => {
+  withFixtureHome((xdg) => {
+    const bad = path.join(xdg, 'alacritty', 'themes', 'bad.toml');
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    fs.mkdirSync(path.dirname(bad), { recursive: true });
+    fs.writeFileSync(bad, '[[[', 'utf8');
+    writeExtraAlacritty(theme);
+    writeAlacrittyConfig(path.join(xdg, 'alacritty', 'alacritty.toml'), [
+      path.join('themes', 'bad.toml'),
+      path.join('themes', 'msx.toml'),
+    ]);
+  }, (xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const found = results.find((t) => t.origin === theme);
+    assert.ok(found);
+    assert.strictEqual(found.active, true);
+    assert.ok(results.every((t) => t.origin !== path.join(xdg, 'alacritty', 'themes', 'bad.toml')));
+  });
+});
+
+test('extraDirs overlapping the imported file lists it once and active', () => {
+  withFixtureHome((xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    writeExtraAlacritty(theme);
+    writeAlacrittyConfig(path.join(xdg, 'alacritty', 'alacritty.toml'), [
+      path.join('themes', 'msx.toml'),
+    ]);
+  }, (xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    const extra = path.join(xdg, 'alacritty', 'themes');
+    const results = discoverThemes({ sources: ['alacritty'], extraDirs: [extra] });
+    const matches = results.filter((t) => t.origin === theme);
+    assert.strictEqual(matches.length, 1);
+    assert.strictEqual(matches[0].active, true);
+  });
+});
+
+test('extra-alacritty.toml is not treated as a config', () => {
+  withFixtureHome((_xdg, home) => {
+    writeExtraAlacritty(path.join(home, 'pack', 'extra-alacritty.toml'));
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'pack', 'extra-alacritty.toml');
+    const results = discoverThemes({
+      sources: ['alacritty'],
+      extraDirs: [path.join(home, 'pack')],
+    });
+    const found = results.find((t) => t.origin === origin);
+    assert.ok(found);
+    assert.strictEqual(found.active, false);
+  });
+});
+
+test('does not throw when Alacritty directories are missing', () => {
+  withFixtureHome(() => {
+    // no alacritty directories, APPDATA unset by withFixtureHome
+  }, () => {
+    assert.doesNotThrow(() => {
+      const results = discoverThemes({ sources: ['alacritty'] });
+      assert.deepStrictEqual(results, []);
+    });
+  });
+});
+
 console.log('\nmobaxterm discovery');
 
 function writeMobaIni(dir: string, name: string, fromFixture = 'mobaxterm-colors.ini'): string {

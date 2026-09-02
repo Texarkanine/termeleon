@@ -25,7 +25,7 @@ Termeleon scans the theme files and addons sitting on your local disk — Ghostt
 
 | Emulator | Formats and Locations | Active Theme Detection |
 | --- | --- | --- |
-| **Alacritty** | `~/.config/alacritty/**/*.toml` | `alacritty.toml` |
+| **Alacritty** | `~/.config/alacritty/**/*.toml`, `~/.alacritty/**/*.toml`, `%APPDATA%\alacritty\**\*.toml` | usable inline `alacritty.toml` (exact basename), else last usable `import` / `[general].import`. Relative import paths are from the config file; `%VAR%` is not expanded |
 | **Ghostty** | Config files, bundled app themes, `$XDG_CONFIG_HOME/ghostty/themes/*` | Yes, including `theme = dark:X,light:Y` pairs |
 | **iTerm2** | `*.itermcolors` files under Application Support, bundled `ColorPresets.plist` in `iTerm.app` | No (active profile saved in macOS preferences) |
 | **kitty** | `current-theme.conf`, `kitty.conf`, `~/.config/kitty/themes/*.conf` | Yes, via `current-theme.conf` |
