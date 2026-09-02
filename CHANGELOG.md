@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/Texarkanine/termeleon/compare/v0.3.0...v0.4.0) (2026-09-02)
+
+
+### Features
+
+* **packaging:** add marketplace icon and separate store readme [[#8](https://github.com/Texarkanine/termeleon/issues/8)] ([#29](https://github.com/Texarkanine/termeleon/issues/29)) ([bd2a43f](https://github.com/Texarkanine/termeleon/commit/bd2a43f9e1e5c916a78700f1a6701f41c5a2ae32))
+
 ## [0.3.0](https://github.com/Texarkanine/termeleon/compare/v0.2.0...v0.3.0) (2026-09-01)
 
 
