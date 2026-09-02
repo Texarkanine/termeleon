@@ -15,6 +15,7 @@ coverage/**
 .cursor/**
 .summem/**
 memory-bank/**
+README.md
 AGENTS.md
 CLAUDE.md
 ai-rizz.skbd

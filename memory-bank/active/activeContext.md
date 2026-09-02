@@ -1,12 +1,14 @@
 # Active Context
 
 ## Current Task: marketplace-store-readme
-**Phase:** PLAN - COMPLETE
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Planned dedicated marketplace sales pitch document (`STORE.md`) and packaging pipeline with `--readme-path STORE.md`.
-- Planned `.vscodeignore` update to exclude developer `README.md` and avoid VSIX archive collisions.
-- Designed TDD contract assertions for `STORE.md` existence, script configuration, and ignore rules.
+- Created dedicated store-facing sales pitch in `STORE.md`.
+- Updated `package.json` package script to `"vsce package --no-dependencies --readme-path STORE.md"`.
+- Added `README.md` to `.vscodeignore` to avoid packaging collisions.
+- Added contract tests in `test/parsers.test.ts` to enforce `STORE.md` presence, package script flag, and ignore configuration.
+- Executed full test suites (`test:parsers`, `test:coverage`, `test:host`) and verified VSIX archive packaging.
 
 ## Next Step
-- Run Preflight validation subagent (`/niko-preflight`).
+- Run QA semantic review subagent (`/niko-qa`).

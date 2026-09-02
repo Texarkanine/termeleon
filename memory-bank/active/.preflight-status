@@ -1,23 +1,18 @@
 PASS WITH ADVISORY
 
-Preflight re-run of the revised packaging-icon plan (Level 2). All blocking checks pass; advisory findings recorded below.
+TDD Plan Encoding: the single executable unit (STORE.md + package script + .vscodeignore + parsers.test.ts contracts) orders stub tests, write tests red, then production green. Assertions are packaging contracts (script flag, file existence/non-empty, ignore lines), not phrase/heading change-detectors on STORE.md body. STORE.md copy is prose/policy and correctly has no content tests. No strike or reorder.
 
-Prerequisites: PASS. tasks.md shows initialization, test planning, implementation plan, technology validation, and pre-mortem complete. Level 2 requires no creative phase documents; none exist.
+Convention: contract tests belong in test/parsers.test.ts (existing ci/packaging section). Manifest and ignore edits match current packaging layout. STORE.md at repo root matches vsce --readme-path.
 
-TDD Plan Encoding: PASS. The single executable unit (icon asset, manifest declaration, ignore contract) orders its substeps unambiguously test-first: (1) stub tests, (2) stub interface, (3) implement tests and run red via `npm run test:parsers`, (4) write code and run green, (5) post-green acceptance verification. No implementer could follow the plan by coding first. No change-detectors are scheduled: the `publisher === 'texarkanine'` assertion locks the publishing-identity contract (Open VSX namespace; brief requirement 4) and goes red when that contract breaks, not on casual edits; the PNG magic-header assertion is explicitly designed to survive image replacement; the `.vscodeignore` non-exclusion assertion is a cross-file packaging contract. No strike or step swap was needed.
+Dependency: consumers are npm run package, CI package job, and release-please VSIX upload. Plan's post-green step covers compile, parser/host suites, and VSIX inspection. No vscode-free core or apply.ts impact.
 
-Convention Compliance: PASS. `test/parsers.test.ts` is the documented home for packaging/CI contract tests (techContext), and the planned test matches the existing harness (`test(name, fn)` + Node assert, `repoRoot` helper, per-test inline `as { ... }` casts). `images/icon.png` introduces a new top-level directory with no conflicting convention; `.vscodeignore` contains no `images/**` or `*.png` exclusion, so vsce bundles the icon by default.
+Conflict: icon/publisher PNG-magic tests and package.json icon/publisher already exist (prior packaging-icon work; images/icon.png present; .scratch/** already in .vscodeignore). Test Plan item [Icon & Publisher Contract] overlaps that landed work; do not re-implement or duplicate those tests.
 
-Dependency Impact: PASS. The `icon` field is additive; existing contract tests (`publisher present`, `package.json declares termeleon identity`) use additive assertions and cannot break. CI runs `npm run package`, so the new contract is exercised in CI. The `.gitignore` addition of `.scratch/` is isolated.
+Completeness: remaining brief items 3–4, README ignore, STORE.md tests, and package verification have concrete files and steps. Brief items 1–2 (process .scratch/termeleon-logo-1024.png, set icon/publisher) are already satisfied in tree; .scratch source is absent and is not needed if the icon stays as-is. Implementation numbered tests omit the already-green icon assertions; that is consistent with not redoing that work.
 
-Conflict Detection: PASS. No existing icon implementation or `images/` tree; no public-contract break (additive change to a 0.x extension). The existing `publisher present` test overlaps mildly with the planned exact-publisher assertion but is complementary, not duplication-in-waiting.
+Advisories:
+- Treat icon generation as already done; follow the STORE.md / --readme-path / README.md-ignore unit only.
+- Source-level ignore tests can stay green if vsce still ships README.md; the plan's zip inspect in step 5 is the real packaging gate. vsce maps --readme-path onto extension/readme.md and force-includes that path.
+- After build, techContext.md still describes package as `vsce package --no-dependencies` without --readme-path; update that pointer when the script changes (not a plan defect).
 
-Completeness Precheck: PASS. All six brief requirements and all six acceptance criteria map to concrete plan steps: icon generation (step 4), `package.json` icon field (step 4), `.vscodeignore` non-exclusion (test step 3 plus VSIX content inspection in step 5), publisher verification (test step 3), non-fragile test coverage (steps 1-3), and clean compile/coverage/host/package runs (step 5).
-
-Advisory findings:
-
-1. Plan step 2 says to add `icon?: string` and `publisher?: string` to "the `package.json` type shape" in `test/parsers.test.ts`, but no shared type shape exists there — each contract test declares its own inline cast. The implementer should follow the existing per-test inline-cast pattern rather than inventing a shared type.
-
-2. The generation target already exists in scratch: `.scratch/icon-256-exact.png` is a 256x256 8-bit RGBA PNG (verified via `file`). The build step can verify and reuse that asset instead of regenerating from the 1024x1130 source, provided transparency and aspect fit are confirmed.
-
-3. Radical innovation (advisory, not applied): make the icon reproducible instead of a one-off manual artifact. Concrete sketch: commit a small `scripts/icon` npm script wrapping the macOS render/pad pipeline that produced `.scratch/icon-256-exact.png`, so a future logo tweak regenerates `images/icon.png` deterministically rather than through tribal knowledge. The committed PNG remains the packaging source of truth; the script only documents and produces it. Evaluate against the cost of adding a maintainer-only script for an asset that changes rarely.
+Radical innovation (advisory, not applied): replace eyeballing the VSIX with a parsers.test.ts contract that invokes `vsce ls` (same flags as scripts.package) and asserts the file list includes the store readme as extension/readme.md and excludes README.md. That tests the user-visible archive, which is what Open VSX and the Marketplace actually ship.

@@ -387,6 +387,17 @@ test('package script invokes vsce', () => {
   ) as { scripts?: Record<string, string> };
   const script = pkg.scripts?.package ?? '';
   assert.ok(script.includes('vsce package'), 'scripts.package must invoke vsce package');
+  assert.ok(script.includes('--readme-path STORE.md'), 'scripts.package must specify --readme-path STORE.md');
+});
+test('store readme contract', () => {
+  const storePath = path.join(repoRoot, 'STORE.md');
+  assert.ok(fs.existsSync(storePath), 'STORE.md must exist at repo root');
+  assert.ok(fs.statSync(storePath).size > 0, 'STORE.md must be a non-empty file');
+
+  const vscodeignore = fs.readFileSync(path.join(repoRoot, '.vscodeignore'), 'utf8');
+  const ignoreLines = vscodeignore.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  assert.ok(ignoreLines.includes('README.md'), 'vscodeignore must exclude README.md to avoid root VSIX collision');
+  assert.ok(!ignoreLines.includes('STORE.md'), 'vscodeignore must not exclude STORE.md');
 });
 test('test:coverage script is declared in package.json', () => {
   const pkg = JSON.parse(
