@@ -1,15 +1,38 @@
 # Active Context
 
 ## Current Task: investigate-mobaxterm-themes
-**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
 
-- Investigated MobaXterm storage: palettes are INI `[Colors]` RGB triples in `MobaXterm.ini` and importable `.mxtcolors` / `.ini` theme files. Not compiled into the binary.
-- Classified leftovers as known gaps: `DefaultColorScheme` index without RGB, undocumented `.mxtsessions` per-session blobs, syntax highlighting. Registry is credentials, not palettes.
-- First preflight FAIL (fixable): plain `%USERPROFILE%\Documents` misses OneDrive Known Folder Move.
-- Replanned: OneDrive Documents roots, first-root-wins active, `fromByteComponents` in `palette.ts`, British `Colour` keys only, package.json/`SOURCE_LABELS` in write-code not stub, document `-i` override.
+- Implemented `fromByteComponents` in `src/palette.ts` and `parseMobaXterm` in `src/parsers/mobaxterm.ts`.
+- Wired `discoverMobaXterm`: Documents, OneDrive Documents, AppData, extraDirs; first default-root `MobaXterm.ini` is active.
+- Added `mobaxterm` to `termeleon.sources`, keywords, and `SOURCE_LABELS`.
+- Documented support and gaps in README, STORE, productContext, systemPatterns.
+
+## Files
+
+- `/home/mobaxterm/git/termeleon/src/palette.ts`
+- `/home/mobaxterm/git/termeleon/src/parsers/mobaxterm.ts`
+- `/home/mobaxterm/git/termeleon/src/discover.ts`
+- `/home/mobaxterm/git/termeleon/src/extension.ts`
+- `/home/mobaxterm/git/termeleon/package.json`
+- `/home/mobaxterm/git/termeleon/test/parsers.test.ts`
+- `/home/mobaxterm/git/termeleon/test/discover.test.ts`
+- `/home/mobaxterm/git/termeleon/test/fixtures/mobaxterm-colors.ini`
+- `/home/mobaxterm/git/termeleon/test/fixtures/mobaxterm-index-only.ini`
+- `/home/mobaxterm/git/termeleon/test/fixtures/extra/extra-mobaxterm.ini`
+- `/home/mobaxterm/git/termeleon/README.md`
+- `/home/mobaxterm/git/termeleon/STORE.md`
+- `/home/mobaxterm/git/termeleon/memory-bank/productContext.md`
+- `/home/mobaxterm/git/termeleon/memory-bank/systemPatterns.md`
+
+## Decisions
+
+- British `Colour` keys only. RGB conversion lives beside `fromFloatComponents`, not in `normalizeColor`.
+- INI section walking stays private in `parseMobaXterm` (no shared INI module).
+- Host tests were not used as a gate: they hung in this WSL Electron/X11 session; CI does not run them; apply path unchanged.
 
 ## Next Step
 
-- Build: parseMobaXterm, then discoverMobaXterm, then docs.
+- QA review.

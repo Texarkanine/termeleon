@@ -71,6 +71,18 @@ export function normalizeColor(raw: string | undefined): string | undefined {
   return undefined;
 }
 
+/**
+ * Builds a #rrggbb from three 0..255 integer components (MobaXterm / PuTTY
+ * `r,g,b` form). Returns undefined unless every component is an integer in
+ * that range — unlike `fromFloatComponents`, this does not clamp.
+ */
+export function fromByteComponents(r: number, g: number, b: number): string | undefined {
+  const ok = (n: number) => Number.isInteger(n) && n >= 0 && n <= 255;
+  if (!ok(r) || !ok(g) || !ok(b)) { return undefined; }
+  const c = (n: number) => n.toString(16).padStart(2, '0');
+  return `#${c(r)}${c(g)}${c(b)}`;
+}
+
 /** Builds a #rrggbb from three 0..1 floats (iTerm2 plist component form). */
 export function fromFloatComponents(r: number, g: number, b: number): string {
   const c = (n: number) => Math.round(Math.min(1, Math.max(0, n)) * 255)

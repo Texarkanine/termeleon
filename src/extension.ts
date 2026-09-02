@@ -15,6 +15,7 @@ const SOURCE_LABELS: Record<string, string> = {
   'iterm2': 'iTerm2',
   'windows-terminal': 'Windows Terminal',
   'xresources': 'Xresources',
+  'mobaxterm': 'MobaXterm',
 };
 
 function settings() {

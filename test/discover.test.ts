@@ -37,11 +37,17 @@ function withFixtureHome(
     XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME,
     XDG_DATA_DIRS: process.env.XDG_DATA_DIRS,
     LOCALAPPDATA: process.env.LOCALAPPDATA,
+    USERPROFILE: process.env.USERPROFILE,
+    APPDATA: process.env.APPDATA,
+    ONEDRIVE: process.env.ONEDRIVE,
   };
   process.env.HOME = home;
   process.env.XDG_CONFIG_HOME = xdg;
   process.env.XDG_DATA_DIRS = path.join(home, 'xdg-data-missing');
   delete process.env.LOCALAPPDATA;
+  delete process.env.USERPROFILE;
+  delete process.env.APPDATA;
+  delete process.env.ONEDRIVE;
 
   try {
     populate(xdg, home);
@@ -51,6 +57,9 @@ function withFixtureHome(
     restoreEnv('XDG_CONFIG_HOME', prev.XDG_CONFIG_HOME);
     restoreEnv('XDG_DATA_DIRS', prev.XDG_DATA_DIRS);
     restoreEnv('LOCALAPPDATA', prev.LOCALAPPDATA);
+    restoreEnv('USERPROFILE', prev.USERPROFILE);
+    restoreEnv('APPDATA', prev.APPDATA);
+    restoreEnv('ONEDRIVE', prev.ONEDRIVE);
     fs.rmSync(home, { recursive: true, force: true });
   }
 }
@@ -305,6 +314,124 @@ test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applicati
     assert.strictEqual(unique.source, 'iterm2');
     assert.strictEqual(unique.active, false);
     assert.ok(isUsable(unique.palette));
+  });
+});
+
+console.log('\nmobaxterm discovery');
+
+function writeMobaIni(dir: string, name: string, fromFixture = 'mobaxterm-colors.ini'): string {
+  fs.mkdirSync(dir, { recursive: true });
+  const dest = path.join(dir, name);
+  fs.copyFileSync(path.join(fixtures, fromFixture), dest);
+  return dest;
+}
+
+test('discovers USERPROFILE Documents MobaXterm.ini as active', () => {
+  withFixtureHome((_xdg, home) => {
+    process.env.USERPROFILE = home;
+    writeMobaIni(path.join(home, 'Documents', 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'Documents', 'MobaXterm', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const found = results.filter((t) => t.origin === origin);
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].source, 'mobaxterm');
+    assert.strictEqual(found[0].name, 'MobaXterm');
+    assert.strictEqual(found[0].active, true);
+    assert.ok(isUsable(found[0].palette));
+  });
+});
+
+test('discovers ONEDRIVE Documents MobaXterm.ini when plain Documents is absent', () => {
+  withFixtureHome((_xdg, home) => {
+    const od = path.join(home, 'od');
+    process.env.ONEDRIVE = od;
+    writeMobaIni(path.join(od, 'Documents', 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'od', 'Documents', 'MobaXterm', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const found = results.find((t) => t.origin === origin);
+    assert.ok(found, `expected origin ${origin}`);
+    assert.strictEqual(found.source, 'mobaxterm');
+    assert.strictEqual(found.active, true);
+  });
+});
+
+test('discovers APPDATA MobaXterm.ini when Documents and OneDrive are absent', () => {
+  withFixtureHome((_xdg, home) => {
+    const appdata = path.join(home, 'appdata');
+    process.env.APPDATA = appdata;
+    writeMobaIni(path.join(appdata, 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'appdata', 'MobaXterm', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const found = results.find((t) => t.origin === origin);
+    assert.ok(found, `expected origin ${origin}`);
+    assert.strictEqual(found.active, true);
+  });
+});
+
+test('only the first default-root MobaXterm.ini is active', () => {
+  withFixtureHome((_xdg, home) => {
+    process.env.USERPROFILE = home;
+    process.env.APPDATA = path.join(home, 'appdata');
+    writeMobaIni(path.join(home, 'Documents', 'MobaXterm'), 'MobaXterm.ini');
+    writeMobaIni(path.join(home, 'appdata', 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const docs = path.join(home, 'Documents', 'MobaXterm', 'MobaXterm.ini');
+    const app = path.join(home, 'appdata', 'MobaXterm', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const a = results.find((t) => t.origin === docs);
+    const b = results.find((t) => t.origin === app);
+    assert.ok(a && b);
+    assert.strictEqual(a.active, true);
+    assert.strictEqual(b.active, false);
+  });
+});
+
+test('discovers extraDirs .mxtcolors and .ini as inactive', () => {
+  withFixtureHome((_xdg, home) => {
+    const extra = path.join(home, 'themes');
+    writeMobaIni(extra, 'mocha.mxtcolors');
+    writeMobaIni(extra, 'pack.ini');
+  }, (_xdg, home) => {
+    const extra = path.join(home, 'themes');
+    const results = discoverThemes({ sources: ['mobaxterm'], extraDirs: [extra] });
+    const mocha = results.find((t) => t.origin === path.join(extra, 'mocha.mxtcolors'));
+    const pack = results.find((t) => t.origin === path.join(extra, 'pack.ini'));
+    assert.ok(mocha && pack);
+    assert.strictEqual(mocha.active, false);
+    assert.strictEqual(pack.active, false);
+    assert.strictEqual(mocha.name, 'mocha');
+    assert.strictEqual(pack.name, 'pack');
+    assert.ok(results.every((t) => t.origin.startsWith(extra + path.sep)));
+  });
+});
+
+test('does not parse .mxtsessions beside a valid theme', () => {
+  withFixtureHome((_xdg, home) => {
+    const extra = path.join(home, 'themes');
+    writeMobaIni(extra, 'ok.ini');
+    fs.writeFileSync(
+      path.join(extra, 'sessions.mxtsessions'),
+      fs.readFileSync(path.join(fixtures, 'mobaxterm-colors.ini'), 'utf8'),
+    );
+  }, (_xdg, home) => {
+    const extra = path.join(home, 'themes');
+    const results = discoverThemes({ sources: ['mobaxterm'], extraDirs: [extra] });
+    assert.strictEqual(results.length, 1);
+    assert.strictEqual(results[0].origin, path.join(extra, 'ok.ini'));
+  });
+});
+
+test('does not throw when MobaXterm directories are missing', () => {
+  withFixtureHome(() => {
+    // no MobaXterm directories
+  }, () => {
+    assert.doesNotThrow(() => {
+      const results = discoverThemes({ sources: ['mobaxterm'] });
+      assert.deepStrictEqual(results, []);
+    });
   });
 });
 

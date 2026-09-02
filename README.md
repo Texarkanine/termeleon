@@ -5,7 +5,7 @@
 
 You've already picked how you want your terminal to look in your normal terminal emulator. Now make VS Code's terminal match it.
 
-Termeleon scans the theme files and addons sitting on your local disk — Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, and Xresources — and applies them directly to the VS Code integrated terminal. You can quickly mirror what your emulator is currently running or pick from any of your installed themes.
+Termeleon scans the theme files and addons sitting on your local disk — Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, MobaXterm, and Xresources — and applies them directly to the VS Code integrated terminal. You can quickly mirror what your emulator is currently running or pick from any of your installed themes.
 
 ## Requirements
 
@@ -35,6 +35,7 @@ Prefixed with `Termeleon: `
 | Ghostty | `$XDG_CONFIG_HOME/ghostty/themes/*`, bundled app themes, inline config palettes | yes, including `theme = dark:X,light:Y` |
 | iTerm2 | `*.itermcolors` under iTerm2 app support, bundled presets from `iTerm.app/Contents/Resources/ColorPresets.plist` | no (profile colors are saved in macOS preferences) |
 | kitty | `~/.config/kitty/themes/*.conf`, `current-theme.conf`, `kitty.conf` | yes, via `current-theme.conf` |
+| MobaXterm | `%USERPROFILE%\Documents\MobaXterm\MobaXterm.ini`, `%OneDrive%\Documents\MobaXterm\MobaXterm.ini`, `%APPDATA%\MobaXterm\MobaXterm.ini`; `.mxtcolors` / theme `.ini` via `extraDirectories` | yes, first default-root `MobaXterm.ini` |
 | WezTerm | `~/.config/wezterm/colors/*.toml`, `~/.config/wezterm/*.toml` (user/addon files only) | no (config is dynamic Lua) |
 | Windows Terminal | entries in `schemes` array of `settings.json` (custom/imported schemes only) | yes, via `profiles.defaults.colorScheme` or the default profile |
 | Xresources | `~/.Xresources`, `~/.Xdefaults` | assumed active |
@@ -60,6 +61,7 @@ Emulators disagree about what to call the same pixel:
 - Ghostty `cursor-color` / kitty `cursor` → `terminalCursor.foreground`
 - Ghostty `cursor-text` / kitty `cursor_text_color` → `terminalCursor.background`
 - Windows Terminal calls the magenta slot `purple`
+- MobaXterm writes ANSI colors as `r,g,b` decimals and names fg/bg/cursor with British `Colour`
 - Alacritty writes colors as `0xrrggbb`; Xresources uses `rgb:rr/gg/bb`
 - iTerm2 stores 0..1 float components in an XML plist
 
@@ -69,6 +71,7 @@ Emulators disagree about what to call the same pixel:
   - **iTerm2:** Bundled presets (e.g. Pastel, Solarized, Tango) are scanned from `ColorPresets.plist` in the application bundle. Active profile colors configured dynamically in macOS preferences plist (`com.googlecode.iterm2.plist`) are not scanned.
   - **WezTerm:** Built-in schemes live compiled in Rust inside the binary and config is dynamic Lua, so only user `.toml` scheme files in `~/.config/wezterm/` are found.
   - **Windows Terminal:** Built-in preset schemes (e.g. Campbell, Vintage) are packaged in internal `defaults.json`. Only custom schemes defined in the `schemes` array of `settings.json` are discovered.
+  - **MobaXterm:** Unused built-in dropdown schemes exist only as a `DefaultColorScheme` index and are not scanned. The applied `[Colors]` RGB in `MobaXterm.ini` is. Per-session colors in `.mxtsessions` are not. A portable INI next to the exe, or `MobaXterm.exe -i <path>`, is found only if you add that folder to `termeleon.extraDirectories`.
 - **Alacritty YAML** (pre-0.13) is not read. The schema moved; supporting both doubles the parser for a deprecated format.
 - **iTerm2 color spaces.** Entries tagged `Calibrated` rather than `sRGB` are read as sRGB. Slightly wrong, and the same approximation every porting tool makes.
 - **256-color slots are ignored.** kitty and others define `color16`–`color255`; VS Code derives those from the base 16.

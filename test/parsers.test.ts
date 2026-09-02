@@ -2,12 +2,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as assert from 'assert';
 
-import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeColor, pairScopes, preferredPairScopes, mergeColors, mergePairedColors, stripOwnedKeys, restoreApplySnapshot } from '../src/palette';
+import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeColor, fromByteComponents, pairScopes, preferredPairScopes, mergeColors, mergePairedColors, stripOwnedKeys, restoreApplySnapshot } from '../src/palette';
 import { discoverThemes, toGhosttyDiscovered, activeGhosttyPair, mirrorCandidates } from '../src/discover';
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
 import { parseAlacritty } from '../src/parsers/toml';
 import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from '../src/parsers/iterm2';
+import { parseMobaXterm } from '../src/parsers/mobaxterm';
 
 const fix = (name: string) =>
   fs.readFileSync(path.join(__dirname, 'fixtures', name), 'utf8');
@@ -36,6 +37,15 @@ test('accepts the spellings emulators actually use', () => {
   assert.strictEqual(normalizeColor('rgb:1d/1f/21'), '#1d1f21');
   assert.strictEqual(normalizeColor('not a color'), undefined);
   assert.strictEqual(normalizeColor(undefined), undefined);
+});
+
+test('fromByteComponents maps 0-255 integers to #rrggbb', () => {
+  assert.strictEqual(fromByteComponents(1, 2, 3), '#010203');
+  assert.strictEqual(fromByteComponents(255, 255, 255), '#ffffff');
+  assert.strictEqual(fromByteComponents(0, 0, 0), '#000000');
+  assert.strictEqual(fromByteComponents(256, 0, 0), undefined);
+  assert.strictEqual(fromByteComponents(-1, 0, 0), undefined);
+  assert.strictEqual(fromByteComponents(1.5, 0, 0), undefined);
 });
 
 console.log('\nghostty');
@@ -284,6 +294,7 @@ test('extra directories are scanned for every walkable format, not only iterm2',
   assert.deepStrictEqual(names('alacritty'), ['extra-alacritty']);
   assert.deepStrictEqual(names('wezterm'), ['extra-wezterm']);
   assert.deepStrictEqual(names('iterm2'), ['extra-iterm2']);
+  assert.deepStrictEqual(names('mobaxterm'), ['extra-mobaxterm']);
 });
 
 test('defaults.colorScheme is the active scheme when the default profile has none', () => {
@@ -668,6 +679,14 @@ test('package.json declares termeleon identity, commands, and settings', () => {
   assert.ok('termeleon.livePreview' in props);
 });
 
+test('termeleon.sources enum includes mobaxterm', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')) as {
+    contributes?: { configuration?: { properties?: Record<string, { items?: { enum?: string[] } }> } };
+  };
+  const sources = pkg.contributes?.configuration?.properties?.['termeleon.sources']?.items?.enum ?? [];
+  assert.ok(sources.includes('mobaxterm'), 'termeleon.sources enum must include mobaxterm');
+});
+
 test('launch.json contract', () => {
   const file = path.join(repoRoot, '.vscode', 'launch.json');
   assert.ok(fs.existsSync(file), '.vscode/launch.json must exist');
@@ -903,6 +922,54 @@ test('preview cancel restores owned keys with colors so the next strip clears pa
   const next = stripOwnedKeys(afterCancel.colors, afterCancel.ownedKeys);
   assert.ok(!(darkScope in next));
   assert.ok(!(lightScope in next));
+});
+
+console.log('\nmobaxterm');
+test('parses [Colors] RGB triples into a complete palette', () => {
+  const p = parseMobaXterm(fix('mobaxterm-colors.ini'));
+  assert.ok(isUsable(p), 'palette should have all 16 ANSI slots');
+  assert.strictEqual(p.ansi[0], '#010203');
+  assert.strictEqual(p.ansi[1], '#040506');
+  assert.strictEqual(p.ansi[8], '#08090a');
+  assert.strictEqual(p.ansi[9], '#0b0c0d');
+  assert.strictEqual(p.background, '#0a141e');
+  assert.strictEqual(p.foreground, '#c8c9ca');
+  assert.strictEqual(p.cursor, '#28323c');
+});
+
+test('ignores keys outside the [Colors] section', () => {
+  const p = parseMobaXterm(fix('mobaxterm-colors.ini'));
+  assert.strictEqual(p.ansi[0], '#010203', 'Misc Black=255,0,0 must not win');
+});
+
+test('index-only [Colors] is not usable', () => {
+  const p = parseMobaXterm(fix('mobaxterm-index-only.ini'));
+  assert.ok(!isUsable(p));
+});
+
+test('malformed RGB triples leave that slot undefined', () => {
+  const p = parseMobaXterm(`[Colors]
+Black=1,2,3
+Red=not-a-color
+Green=256,0,0
+Yellow=4,5,6
+Blue=7,8,9
+Magenta=10,11,12
+Cyan=13,14,15
+White=16,17,18
+BoldBlack=19,20,21
+BoldRed=22,23,24
+BoldGreen=25,26,27
+BoldYellow=28,29,30
+BoldBlue=31,32,33
+BoldMagenta=34,35,36
+BoldCyan=37,38,39
+BoldWhite=40,41,42
+`);
+  assert.strictEqual(p.ansi[0], '#010203');
+  assert.strictEqual(p.ansi[1], undefined);
+  assert.strictEqual(p.ansi[2], undefined);
+  assert.strictEqual(p.ansi[3], '#040506');
 });
 
 console.log(`\n${passed} passed\n`);

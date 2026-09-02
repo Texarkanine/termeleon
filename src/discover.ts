@@ -7,6 +7,7 @@ import { parseGhostty, activeGhosttyThemes } from './parsers/ghostty';
 import { parseKitty, parseXresources } from './parsers/kitty';
 import { parseAlacritty, parseWezterm, weztermSchemeName } from './parsers/toml';
 import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from './parsers/iterm2';
+import { parseMobaXterm } from './parsers/mobaxterm';
 
 /** Hard ceilings so a pathological directory can't stall the picker. */
 const MAX_DEPTH = 3;
@@ -59,7 +60,7 @@ function walk(dir: string, exts: string[] | null, budget = { n: MAX_FILES_PER_SO
 }
 
 function stem(p: string): string {
-  return path.basename(p).replace(/\.(conf|toml|itermcolors|json|yml|yaml)$/i, '');
+  return path.basename(p).replace(/\.(conf|toml|itermcolors|json|yml|yaml|ini|mxtcolors)$/i, '');
 }
 
 // --------------------------------------------------------------------------
@@ -287,6 +288,48 @@ function discoverWindowsTerminal(): DiscoveredTheme[] {
   return out;
 }
 
+function discoverMobaXterm(extraDirs: string[]): DiscoveredTheme[] {
+  const user = process.env.USERPROFILE || homeDir();
+  const defaultRoots: string[] = [path.join(user, 'Documents', 'MobaXterm')];
+  if (process.env.ONEDRIVE) {
+    defaultRoots.push(path.join(process.env.ONEDRIVE, 'Documents', 'MobaXterm'));
+  }
+  defaultRoots.push(path.join(user, 'OneDrive', 'Documents', 'MobaXterm'));
+  if (process.env.APPDATA) {
+    defaultRoots.push(path.join(process.env.APPDATA, 'MobaXterm'));
+  }
+
+  const defaultSet = new Set(defaultRoots.map((d) => path.resolve(d)));
+  const seen = new Set<string>();
+  const out: DiscoveredTheme[] = [];
+  let haveActive = false;
+
+  for (const dir of [...defaultRoots, ...extraDirs]) {
+    const fromDefault = defaultSet.has(path.resolve(dir));
+    for (const file of walk(dir, ['.ini', '.mxtcolors'])) {
+      let key = file;
+      try { key = fs.realpathSync(file); } catch { /* keep walk path */ }
+      if (seen.has(key)) { continue; }
+      seen.add(key);
+      const text = readText(file);
+      if (!text) { continue; }
+      const palette = parseMobaXterm(text);
+      if (!isUsable(palette)) { continue; }
+      const active = !haveActive && fromDefault
+        && path.basename(file).toLowerCase() === 'mobaxterm.ini';
+      if (active) { haveActive = true; }
+      out.push({
+        name: stem(file),
+        source: 'mobaxterm',
+        origin: file,
+        active,
+        palette,
+      });
+    }
+  }
+  return out;
+}
+
 function discoverXresources(): DiscoveredTheme[] {
   const out: DiscoveredTheme[] = [];
   for (const file of [path.join(homeDir(), '.Xresources'), path.join(homeDir(), '.Xdefaults')]) {
@@ -385,6 +428,7 @@ export function discoverThemes(opts: DiscoverOptions = {}): DiscoveredTheme[] {
   run('iterm2', () => discoverIterm2(extraDirs));
   run('windows-terminal', discoverWindowsTerminal);
   run('xresources', discoverXresources);
+  run('mobaxterm', () => discoverMobaXterm(extraDirs));
 
   // Active themes first, then alphabetical within source.
   return results.sort((a, b) =>

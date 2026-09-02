@@ -2,7 +2,7 @@
 
 You've already picked how you want your terminal to look in your normal terminal emulator. Now make VS Code's terminal match it.
 
-Termeleon scans the theme files and addons sitting on your local disk — Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, and Xresources — and applies them directly to the VS Code integrated terminal. You can quickly mirror what your emulator is currently running or pick from any of your installed themes.
+Termeleon scans the theme files and addons sitting on your local disk — Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, MobaXterm, and Xresources — and applies them directly to the VS Code integrated terminal. You can quickly mirror what your emulator is currently running or pick from any of your installed themes.
 
 ## Features
 
@@ -29,6 +29,7 @@ Termeleon scans the theme files and addons sitting on your local disk — Ghostt
 | **Ghostty** | Config files, bundled app themes, `$XDG_CONFIG_HOME/ghostty/themes/*` | Yes, including `theme = dark:X,light:Y` pairs |
 | **iTerm2** | `*.itermcolors` files under Application Support, bundled `ColorPresets.plist` in `iTerm.app` | No (active profile saved in macOS preferences) |
 | **kitty** | `current-theme.conf`, `kitty.conf`, `~/.config/kitty/themes/*.conf` | Yes, via `current-theme.conf` |
+| **MobaXterm** | Applied `[Colors]` in `MobaXterm.ini` (Documents, including OneDrive; AppData); `.mxtcolors` / theme `.ini` via extra directories (dropdown indexes and `.mxtsessions` not scanned) | Yes, first default-root `MobaXterm.ini` |
 | **WezTerm** | User `*.toml` files in `~/.config/wezterm/` (compiled-in binary schemes not scanned) | No (dynamic Lua configuration) |
 | **Windows Terminal** | Custom `schemes` in `settings.json` (packaged defaults not scanned) | Yes, via profile `colorScheme` |
 | **Xresources** | `~/.Xresources`, `~/.Xdefaults` | Yes |

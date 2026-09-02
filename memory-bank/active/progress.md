@@ -65,3 +65,15 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
     - Keep a reusable section-scoped INI reader as an optional PuTTY-family on-ramp rather than expanding this task.
 * Insights
     - Resolved-path deduplication plus first-usable-default-root activation prevents overlapping OneDrive candidates from creating duplicate active themes.
+
+## 2026-09-02 - BUILD - COMPLETE
+
+* Work completed
+    - Parser: `[Colors]` RGB triples via `fromByteComponents` and `parseMobaXterm`.
+    - Discovery: Documents, OneDrive, AppData, extraDirs; first default-root `MobaXterm.ini` active; `.mxtsessions` skipped.
+    - Docs and `termeleon.sources` enum updated.
+    - Verification: `npm run test:parsers` 65+15 pass; `npm run compile` clean. Host suite hung on Electron/X11 in this WSL session (CI does not run `test:host`).
+* Decisions made
+    - No shared INI helper this task. No American `Color` aliases.
+* Insights
+    - Theme-pack `.mxtcolors` files are the same `[Colors]` block as `MobaXterm.ini`.

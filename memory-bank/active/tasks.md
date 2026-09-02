@@ -46,7 +46,7 @@ flowchart LR
 
 ## Implementation Plan
 
-### 1. parseMobaXterm — executable
+### 1. parseMobaXterm — executable [x]
 
 - Files: `src/palette.ts`, `src/parsers/mobaxterm.ts`, `test/parsers.test.ts`, `test/fixtures/mobaxterm-colors.ini`, `test/fixtures/mobaxterm-index-only.ini`
 
@@ -55,7 +55,7 @@ flowchart LR
 3. Write tests and run red: `fromByteComponents(1, 2, 3)` is `#010203`, `256` / non-integer / negative is `undefined`. Fixture with distinctive `r,g,b` (including spaced triples and `;` comments) asserts `#010203`-style slots using British `Colour` keys only; full INI with `[Misc]` decoy; index-only `isUsable` false; `not-a-color` / `256,0,0` slots undefined. `npx tsx test/parsers.test.ts` fails because the stubs return empty/undefined
 4. Write code and run green: implement `fromByteComponents` beside `fromFloatComponents` (no clamping; reject anything not an integer 0–255). `parseMobaXterm` reads only the `[Colors]` section (INI section headers, `;` / `#` comments, CRLF). Map `Black`/`BoldBlack`/… and `ForegroundColour`/`BackgroundColour`/`CursorColour` (British spelling only). Split `r,g,b`, feed integers to `fromByteComponents`. Do not extend `normalizeColor` to raw triples. Do not accept `ForegroundColor` aliases. Re-run until green
 
-### 2. discoverMobaXterm — executable
+### 2. discoverMobaXterm — executable [x]
 
 - Files: `src/discover.ts`, `src/extension.ts`, `package.json`, `test/discover.test.ts`, `test/parsers.test.ts`
 
@@ -64,7 +64,7 @@ flowchart LR
 3. Write tests and run red: set `USERPROFILE` to the temp home and write `Documents/MobaXterm/MobaXterm.ini` from the colors fixture → origin match, `active` true, name `MobaXterm`. OneDrive case: no plain Documents file, `ONEDRIVE` points at a temp OneDrive root with `Documents/MobaXterm/MobaXterm.ini` → found, `active` true. AppData-only case. Two default-root copies: only the earlier priority path is `active`. extraDirs origin under the extra dir, `active` false. `.mxtsessions` sibling ignored. Missing dirs do not throw. Enum includes `mobaxterm` fails until step 4. Discovery tests fail because the stub returns `[]`
 4. Write code and run green: build default roots in this order, skipping any whose env is unset/empty: `path.join(USERPROFILE or homedir, 'Documents', 'MobaXterm')`, `path.join(ONEDRIVE, 'Documents', 'MobaXterm')`, `path.join(USERPROFILE or homedir, 'OneDrive', 'Documents', 'MobaXterm')`, `path.join(APPDATA, 'MobaXterm')`. Walk those plus `extraDirs` for `.ini` and `.mxtcolors` only. Deduplicate by resolved path. First usable `MobaXterm.ini` from a default root (priority order) is `active`; later default-root copies and every extraDirs file are not. Do not search Program Files or parse `.mxtsessions`. Add `mobaxterm` to `package.json` `termeleon.sources` enum and keywords, and to `SOURCE_LABELS` in `src/extension.ts`. Re-run `test:parsers` until green
 
-### 3. User and architecture docs — prose/policy
+### 3. User and architecture docs — prose/policy [x]
 
 - Files: `README.md`, `STORE.md`, `memory-bank/productContext.md`, `memory-bank/systemPatterns.md`
 - No tests: prose/policy artifact
@@ -110,6 +110,6 @@ No new technology - validation not required
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA
