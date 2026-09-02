@@ -1,25 +1,21 @@
 PASS WITH ADVISORY
 
-## TDD Plan Encoding — PASS
+TDD Plan Encoding: PASS. Unit 1 (executable) orders stub tests, stub `parseItermColorPresets`, red tests, then production code. Unit 2 is prose/policy (`README.md`, `STORE.md`, `memory-bank/productContext.md`, `memory-bank/systemPatterns.md`) and correctly has no tests. No change-detector steps. No TDD reordering.
 
-The sole implementation unit changes prose/policy artifacts only: `README.md`, `STORE.md`, `memory-bank/productContext.md`, and `memory-bank/systemPatterns.md`. It explicitly schedules no tests, which is correct under `always-tdd.mdc`; no executable behavior is proposed.
+Prerequisites: Level 2 plan is complete. No creative-phase docs are required or present.
 
-## Convention Compliance — PASS
+Convention: Proposed files match the vscode-free core (`src/parsers/iterm2.ts`, `src/discover.ts`) and existing Node assert suites (`test/parsers.test.ts`, `test/discover.test.ts`). `parseItermColorPresets` returning `{ name, palette }[]` matches `parseWindowsTerminal`. Bundled paths under `/Applications/iTerm.app` and `~/Applications/iTerm.app` match Ghostty's darwin app-bundle scan. Discovery stays silent on missing files.
 
-The target locations fit their documented purposes. The plan puts product limitations in `productContext.md` Key Constraints and discovery rationale in `systemPatterns.md`, while the user-facing explanation belongs in README and STORE.
+Dependency: `discover.ts` already imports from `src/parsers/iterm2.ts` and calls `discoverIterm2` from `discoverThemes`; the picker and Mirror consume that list with no extra vscode-bound work. Host tests under `test/host/` are unaffected. Updating `parseItermColors` to accept `<string>` floats also changes how user `.itermcolors` files parse — that is intended and covered by the listed parser tests.
 
-## Dependency Impact — PASS
+Conflict: No overlap with WezTerm (compiled-in / Lua) or Windows Terminal package `defaults.json`. Current docs and `systemPatterns.md` still claim iTerm2 built-ins are undiscoverable; Unit 2 is supposed to correct that. Public contract is the VS Code commands and settings, not a published JS API.
 
-The plan has no code touchpoints. Its claims match current discovery: WezTerm and iTerm2 discover only static user theme files and are never marked active; Windows Terminal reads custom `settings.json` schemes and marks the configured scheme active; Ghostty, kitty, Alacritty, and Xresources retain their current best-effort mechanisms.
+Completeness: Brief requirement to integrate non-brittle built-ins maps to ColorPresets.plist parse + darwin discovery. Active iTerm2 profile colors and WezTerm/Windows Terminal built-ins stay documented limits. `parseItermColors` today only matches `<real>` component tags; Tango Light/Dark in the real plist use `<string>` floats, so that parser change is load-bearing.
 
-## Conflict Detection — PASS
+Advisory: Discover tests cannot see `/Applications/iTerm.app` on Linux CI. Plant a small ColorPresets.plist fixture under `$HOME/Applications/iTerm.app/Contents/Resources/` (discover tests already replace `HOME`) and assert on that origin, and keep grammar coverage in `test/parsers.test.ts` with inline XML (one `<real>` preset, one `<string>` preset). Do not assert on result length while Darwin still walks a real iTerm.app.
 
-No proposed documentation conflicts with the current public behavior or duplicates an existing implementation. The wording correctly distinguishes user-maintained on-disk files from WezTerm/iTerm2 compiled or preference-backed presets and Windows Terminal package defaults.
+Advisory: `parseItermColors` uses a non-greedy `<dict>…</dict>` match that is safe for flat `.itermcolors` and wrong for ColorPresets.plist (first match binds a preset name to only its first color block). `parseItermColorPresets` must slice each top-level preset with balanced dict matching (or equivalent), then call `parseItermColors` on that inner XML.
 
-## Completeness Precheck — PASS
+Advisory: Specify scan order. User `*.itermcolors` under Application Support should keep winning over bundled names if a shared `seen` Set is introduced; the plan's Set is only described for the two app-bundle plists.
 
-The plan maps the investigation outcome to each required documentation surface and explicitly covers built-in-preset visibility, custom Windows Terminal schemes, and emulator-specific active-theme limits. Requirement 2 is satisfied by the documented conclusion that no reliable, non-brittle source is being added in this change.
-
-## Radical Innovation — Advisory
-
-Consider a future, separately scoped iTerm2 profile importer that reads the user's configured profile palette and marks the default profile active. It would require a robust binary-plist strategy and test fixtures, so it is correctly outside this documentation-only task.
+Advisory (radical innovation): Also treat a `ColorPresets.plist` found in `extraDirs` as a preset document, the way extra dirs already work for walkable formats. That makes bundled-preset discovery testable on every CI OS without ungating macOS-only `/Applications`, and lets a user point at a copied plist without installing iTerm2.
