@@ -103,7 +103,6 @@ export function parseItermColorPresets(text: string): { name: string; palette: P
   return presets;
 }
 
-
 /** Strips // and /* *\/ comments so JSON.parse can handle JSONC. */
 export function stripJsonComments(text: string): string {
   let out = '';

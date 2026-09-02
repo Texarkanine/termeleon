@@ -73,4 +73,11 @@ None
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA
+
+## QA Results
+
+- **Verdict:** PASS (advisories only) — see `memory-bank/active/.qa-validation-status`.
+- Verified: 64/64 parser+discovery tests pass; `tsc --noEmit` clean; all 4 planned behaviors implemented and tested; docs updated consistently.
+- Advisory 1 (cosmetic): double blank line after `parseItermColorPresets` in `src/parsers/iterm2.ts`.
+- Advisory 2 (redundancy): `discoverIterm2` re-checks `isUsable` on presets already filtered by the parser; harmless and consistent with other discoverers.

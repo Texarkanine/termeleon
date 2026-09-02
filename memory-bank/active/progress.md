@@ -44,3 +44,20 @@ Investigate built-in theme detection in terminal emulators, implement reliable d
 * Decisions made
     - Integrate iTerm2 bundled presets from `ColorPresets.plist` directly into discovery.
     - Document limits for WezTerm (Lua/binary), Windows Terminal (package defaults), and iTerm2 active profile (preferences plist).
+
+## 2026-09-02 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Executed semantic review via QA subagent against the updated implementation and tests.
+    - Verified all 4 planned behaviors are complete, 64/64 tests pass, types are clean, and vscode-free core boundary remains intact.
+    - Resolved minor cosmetic formatting advisory in `src/parsers/iterm2.ts`.
+* Decisions made
+    - QA status recorded as PASS in `.qa-validation-status`.
+
+## 2026-09-02 - REFLECT - COMPLETE
+
+* Work completed
+    - Created reflection document `memory-bank/active/reflection/reflection-investigate-builtin-themes.md`.
+    - Reconciled persistent files: `productContext.md`, `systemPatterns.md`, and `techContext.md` (skip).
+* Decisions made
+    - Documented lessons on XML float tag variability (`<string>` vs `<real>`) and cross-platform testing for platform-specific discovery paths.

@@ -1,0 +1,20 @@
+PASS
+
+QA semantic review of investigate-builtin-themes (Level 2) against the plan in tasks.md.
+
+Scope reviewed: src/parsers/iterm2.ts, src/discover.ts, test/parsers.test.ts, test/discover.test.ts, README.md, STORE.md, memory-bank/productContext.md, memory-bank/systemPatterns.md (diff 52748cb..HEAD).
+
+Verification: npm run test:parsers (56 + 8 = 64 tests, all pass, matching build claim); tsc --noEmit clean.
+
+Findings (advisories only, none blocking):
+1. Cosmetic: double blank line left after parseItermColorPresets in src/parsers/iterm2.ts (lines 105-106). Formatting debris; does not affect behavior.
+2. Redundancy: discoverIterm2 re-checks isUsable(palette) on presets already filtered by parseItermColorPresets (src/discover.ts:253). Defensive and consistent with other discoverers' post-parse checks; harmless.
+
+Checks performed:
+- KISS: balanced-dict extraction in parseItermColorPresets is the minimal correct approach for nested plist dicts; no over-abstraction.
+- DRY: presets reuse parseItermColors per preset dict; no duplicated mapping logic; single Palette hub preserved.
+- YAGNI: iTerm2.app path variants are justified (historical app name); no speculative features.
+- Completeness: all 4 planned behaviors implemented and tested (string/real components, multi-preset extraction, extraDirs discovery, darwin-gated bundle discovery). No TODOs or stubs.
+- Regression: vscode-free core boundary intact (no vscode imports); discovery still never throws; global sort preserved; user .itermcolors files keep priority over bundled presets via name dedup (seen set), matching preflight advisory.
+- Integrity: no hardcoded shortcuts, magic values, or debug artifacts; darwin gating is explicit; tests are hermetic via withFixtureHome and CI-safe.
+- Documentation: README, STORE.md, productContext.md, systemPatterns.md all updated consistently with the new iTerm2 bundled-preset behavior and WezTerm/Windows Terminal boundaries.
