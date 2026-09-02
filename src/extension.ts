@@ -200,6 +200,61 @@ async function commandImport(ctx: vscode.ExtensionContext, forced?: Target) {
   await pickAndApply(ctx, themes, target);
 }
 
+/**
+ * Shows the multi-candidate mirror picker with optional live preview.
+ */
+export async function pickMirrorCandidate(
+  ctx: vscode.ExtensionContext,
+  candidates: MirrorCandidate[],
+  target: Target,
+): Promise<MirrorCandidate | undefined> {
+  ensureTerminalVisible();
+  const opts = applyOptions(target);
+  const preview = settings().livePreview;
+  const session = preview ? new LivePreview(ctx, opts) : undefined;
+
+  return new Promise<MirrorCandidate | undefined>((resolve) => {
+    const qp = vscode.window.createQuickPick<MirrorItem>();
+    qp.items = candidates.map(toMirrorItem);
+    qp.title = 'Several terminals report an active theme';
+    qp.placeholder = `${candidates.length} active themes found. Arrow keys preview, Enter applies.`;
+    qp.matchOnDescription = true;
+    qp.matchOnDetail = true;
+    qp.ignoreFocusOut = true;
+
+    let accepted = false;
+
+    if (session) {
+      qp.onDidChangeActive((active) => {
+        const item = active[0];
+        if (!item) { return; }
+        if (item.candidate.kind === 'pair') {
+          session.schedulePair(item.candidate.dark.palette, item.candidate.light.palette);
+        } else {
+          session.schedule(item.candidate.theme.palette);
+        }
+      });
+    }
+
+    qp.onDidAccept(() => {
+      accepted = true;
+      resolve(qp.selectedItems[0]?.candidate ?? qp.activeItems[0]?.candidate);
+      qp.hide();
+    });
+
+    qp.onDidHide(async () => {
+      if (session) {
+        if (accepted) { session.stop(); }
+        else { await session.cancel(); }
+      }
+      qp.dispose();
+      if (!accepted) { resolve(undefined); }
+    });
+
+    qp.show();
+  });
+}
+
 /** Applies whatever theme the emulator itself is currently configured to use. */
 async function commandMirror(ctx: vscode.ExtensionContext) {
   const target = await resolveTarget();
@@ -214,14 +269,10 @@ async function commandMirror(ctx: vscode.ExtensionContext) {
   }
 
   const candidates = mirrorCandidates(active);
-  let chosen = candidates[0];
+  let chosen: MirrorCandidate | undefined = candidates[0];
   if (candidates.length > 1) {
-    const pick = await vscode.window.showQuickPick(candidates.map(toMirrorItem), {
-      title: 'Several terminals report an active theme',
-      ignoreFocusOut: true,
-    });
-    if (!pick) { return; }
-    chosen = pick.candidate;
+    chosen = await pickMirrorCandidate(ctx, candidates, target);
+    if (!chosen) { return; }
   }
 
   const opts = applyOptions(target);

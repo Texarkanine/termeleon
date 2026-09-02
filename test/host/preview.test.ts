@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import {
-  applyPalette, LivePreview, PREVIEW_DEBOUNCE_MS, ApplyOptions, removeApplied,
+  applyPalette, applyPalettePair, LivePreview, PREVIEW_DEBOUNCE_MS, ApplyOptions, removeApplied,
 } from '../../src/apply';
 import { toColorCustomizations } from '../../src/palette';
 import { fakeContext, inspectColors, resetSettings, samplePalette } from './helpers';
@@ -129,5 +129,81 @@ suite('LivePreview', () => {
       !('terminal.background' in inspectColors('workspace')),
       'pending preview must not re-apply after accept-then-remove',
     );
+  });
+
+  test('schedulePair debounces applyPalettePair and cancel restores snapshot', async () => {
+    const darkPalette = samplePalette({ background: '#0a0a0a', foreground: '#ffffff' });
+    const lightPalette = samplePalette({ background: '#f0f0f0', foreground: '#000000' });
+
+    const preview = new LivePreview(ctx, opts);
+    preview.schedulePair(darkPalette, lightPalette);
+    await delay(PREVIEW_DEBOUNCE_MS + 100);
+
+    const colors = inspectColors('workspace');
+    const workbench = vscode.workspace.getConfiguration('workbench');
+    const darkScope = `[${workbench.get<string>('preferredDarkColorTheme') ?? ''}]`;
+    const lightScope = `[${workbench.get<string>('preferredLightColorTheme') ?? ''}]`;
+
+    assert.ok(darkScope in colors, `expected ${darkScope} in colors`);
+    assert.ok(lightScope in colors, `expected ${lightScope} in colors`);
+    assert.strictEqual(colors[darkScope]['terminal.background'], '#0a0a0a');
+    assert.strictEqual(colors[lightScope]['terminal.background'], '#f0f0f0');
+
+    await preview.cancel();
+    assert.deepStrictEqual(inspectColors('workspace'), {});
+  });
+
+  test('schedule followed by schedulePair within debounce window applies only the pair', async () => {
+    const single = samplePalette({ background: '#111111' });
+    const dark = samplePalette({ background: '#222222' });
+    const light = samplePalette({ background: '#eeeeee' });
+
+    const preview = new LivePreview(ctx, opts);
+    preview.schedule(single);
+    preview.schedulePair(dark, light);
+    await delay(PREVIEW_DEBOUNCE_MS + 50);
+
+    const colors = inspectColors('workspace');
+    assert.ok(!('terminal.background' in colors), 'flat single palette must not be applied');
+    const workbench = vscode.workspace.getConfiguration('workbench');
+    const darkScope = `[${workbench.get<string>('preferredDarkColorTheme') ?? ''}]`;
+    assert.ok(darkScope in colors);
+    assert.strictEqual(colors[darkScope]['terminal.background'], '#222222');
+
+    await preview.cancel();
+    assert.deepStrictEqual(inspectColors('workspace'), {});
+  });
+
+  test('schedulePair followed by schedule within debounce window applies only the single palette', async () => {
+    const dark = samplePalette({ background: '#222222' });
+    const light = samplePalette({ background: '#eeeeee' });
+    const single = samplePalette({ background: '#111111' });
+
+    const preview = new LivePreview(ctx, opts);
+    preview.schedulePair(dark, light);
+    preview.schedule(single);
+    await delay(PREVIEW_DEBOUNCE_MS + 50);
+
+    const colors = inspectColors('workspace');
+    assert.strictEqual(colors['terminal.background'], '#111111');
+    const workbench = vscode.workspace.getConfiguration('workbench');
+    const darkScope = `[${workbench.get<string>('preferredDarkColorTheme') ?? ''}]`;
+    assert.ok(!(darkScope in colors), 'paired scope must not be applied');
+
+    await preview.cancel();
+    assert.deepStrictEqual(inspectColors('workspace'), {});
+  });
+
+  test('stop() on accept after schedulePair prevents leftover apply after remove', async () => {
+    const dark = samplePalette({ background: '#222222' });
+    const light = samplePalette({ background: '#eeeeee' });
+    const preview = new LivePreview(ctx, opts);
+    preview.schedulePair(dark, light);
+    preview.stop();
+    await applyPalettePair(ctx, dark, light, opts);
+    const result = await removeApplied(ctx, 'workspace', false);
+    assert.ok(result.removed > 0);
+    await delay(PREVIEW_DEBOUNCE_MS + 50);
+    assert.deepStrictEqual(inspectColors('workspace'), {});
   });
 });

@@ -9,16 +9,16 @@
 - [x] Preflight plan validation
 
 ## Build Phase (TDD)
-- [ ] Add host test cases for `LivePreview.schedulePair` (preview and cancel)
-- [ ] Add host test cases for mirror multi-candidate preview and cancel
-- [ ] Run host tests to verify new test failure (Red)
-- [ ] Implement `LivePreview.schedulePair` in `src/apply.ts`
-- [ ] Implement `pickMirrorCandidate` with `LivePreview` and `ensureTerminalVisible` in `src/extension.ts`
-- [ ] Run test suite (`npm run compile`, `npm run test:parsers`, `npm run test:host`) (Green)
+- [x] Add host test cases for `LivePreview.schedulePair` (preview and cancel)
+- [x] Add host test cases for mirror multi-candidate preview and cancel
+- [x] Run host tests to verify new test failure (Red)
+- [x] Implement `LivePreview.schedulePair` in `src/apply.ts`
+- [x] Implement `pickMirrorCandidate` with `LivePreview` and `ensureTerminalVisible` in `src/extension.ts`
+- [x] Run test suite (`npm run compile`, `npm run test:parsers`, `npm run test:host`) (Green)
 
 ## Verification Phase
-- [ ] Run full test suite (`npm test`)
-- [ ] Check linter and typecheck (`npm run compile`)
+- [x] Run full test suite (`npm test`)
+- [x] Check linter and typecheck (`npm run compile`)
 
 ## QA & Reflection Phase
 - [ ] QA semantic check
