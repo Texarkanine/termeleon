@@ -1,0 +1,1 @@
+Orchestrator default: prepare, archive, test, and triage review bots on worker PRs, but leave PRs open for operator review and merge unless auto-merge is explicitly requested.
