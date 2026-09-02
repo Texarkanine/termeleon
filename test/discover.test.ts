@@ -187,7 +187,45 @@ test('does not throw when a source directory is missing', () => {
   });
 });
 
-test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applications', () => {
+test('discovers iTerm2 presets from ColorPresets.plist via extraDirs', () => {
+  withFixtureHome((_xdg, home) => {
+    const customDir = path.join(home, 'custom-presets');
+    fs.mkdirSync(customDir, { recursive: true });
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>ExtraPreset</key>
+  <dict>
+    ${Array.from({ length: 16 }, (_, i) => `
+    <key>Ansi ${i} Color</key>
+    <dict>
+      <key>Red Component</key><real>0.4</real>
+      <key>Green Component</key><real>0.4</real>
+      <key>Blue Component</key><real>0.4</real>
+    </dict>`).join('')}
+    <key>Background Color</key>
+    <dict><key>Red Component</key><real>0.1</real><key>Green Component</key><real>0.1</real><key>Blue Component</key><real>0.1</real></dict>
+    <key>Foreground Color</key>
+    <dict><key>Red Component</key><real>0.9</real><key>Green Component</key><real>0.9</real><key>Blue Component</key><real>0.9</real></dict>
+  </dict>
+</dict>
+</plist>`;
+    fs.writeFileSync(path.join(customDir, 'ColorPresets.plist'), xml, 'utf8');
+  }, (_xdg, home) => {
+    const customDir = path.join(home, 'custom-presets');
+    const origin = path.join(customDir, 'ColorPresets.plist');
+    const results = discoverThemes({ sources: ['iterm2'], extraDirs: [customDir] });
+    const found = results.find((t) => t.origin === origin && t.name === 'ExtraPreset');
+    assert.ok(found, `expected preset ExtraPreset with origin ${origin}`);
+    assert.strictEqual(found.source, 'iterm2');
+    assert.strictEqual(found.active, false);
+    assert.ok(isUsable(found.palette));
+  });
+});
+
+test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applications on macOS', () => {
+  if (process.platform !== 'darwin') { return; }
   withFixtureHome((_xdg, home) => {
     const resDir = path.join(home, 'Applications', 'iTerm.app', 'Contents', 'Resources');
     fs.mkdirSync(resDir, { recursive: true });
