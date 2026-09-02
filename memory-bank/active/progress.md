@@ -170,3 +170,15 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
     - No recursive field-merge of imports. Per-import try/catch as preflight advised.
 * Insights
     - Filename suffix `/alacritty\\.toml$/i` was marking `extra-alacritty.toml` active; exact basename is the fix that also matches Alacritty's config name.
+
+## 2026-09-02 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Reviewed the Alacritty Windows Mirror rework against the approved Level 2 plan, including parser helpers, Windows config-root discovery, import activation, deduplication, tests, and documentation.
+    - Confirmed `npm run test:parsers` passes (73 parser and 23 discovery tests) and `npm run compile` is clean.
+    - Ran the complete `npm test` suite: parser/discovery tests and host-test compilation passed before the extension host failed to bind its WSL IPC socket.
+* Decisions made
+    - PASS: no implementation changes are required.
+    - The extension-host failure (`EACCES` for `/run/user/1000/vscode-*.sock`) is an environment limitation, not a regression in this file-discovery rework.
+* Insights
+    - The covered import-only config flow makes the resolved theme, rather than an unusable config wrapper, the Mirror candidate as intended.

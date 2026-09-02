@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: investigate-mobaxterm-themes
-**Phase:** BUILD - COMPLETE
+**Phase:** QA - COMPLETE (PASS)
 
 ## What Was Done
 
@@ -28,4 +28,4 @@
 
 ## Next Step
 
-- QA review of the Alacritty rework.
+- Standalone Level 2 QA passed; proceed to `/niko-reflect`.
