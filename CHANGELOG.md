@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.0](https://github.com/Texarkanine/termeleon/compare/v0.4.0...v0.5.0) (2026-09-02)
+
+
+### Features
+
+* **iterm2:** discover bundled ColorPresets.plist presets and update docs [[#36](https://github.com/Texarkanine/termeleon/issues/36)] ([#38](https://github.com/Texarkanine/termeleon/issues/38)) ([80b7310](https://github.com/Texarkanine/termeleon/commit/80b7310fb250a22b32e1e0ee94b3ed060a7c4eec))
+
+
+### Bug Fixes
+
+* **discover:** deduplicate wezterm themes when walking config directories ([#35](https://github.com/Texarkanine/termeleon/issues/35)) ([8f45321](https://github.com/Texarkanine/termeleon/commit/8f45321071bb79a3ce0095b444111a8fee488d34))
+* **docs:** polish text a little bit ([#31](https://github.com/Texarkanine/termeleon/issues/31)) ([6ed952f](https://github.com/Texarkanine/termeleon/commit/6ed952f84f92877cf5976a09e203853efe650732))
+* **mirror:** live preview when selecting among multiple active themes ([#37](https://github.com/Texarkanine/termeleon/issues/37)) ([66cc6bf](https://github.com/Texarkanine/termeleon/commit/66cc6bf6faaad29fa9f0b4a0a63f75eab52d1fc4))
+
+
+### Reverts
+
+* remove operator preference note from summem ([7668f59](https://github.com/Texarkanine/termeleon/commit/7668f599fdf9fd3354261d0fe4e42f887279ed2d))
+
 ## [0.4.0](https://github.com/Texarkanine/termeleon/compare/v0.3.0...v0.4.0) (2026-09-02)
 
 
