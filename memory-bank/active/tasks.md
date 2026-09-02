@@ -112,4 +112,11 @@ No new technology - validation not required
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA
+
+## QA Result - 2026-09-02 - PASS
+
+- Implementation matches the replanned steps exactly: `fromByteComponents` sits beside `fromFloatComponents` in `palette.ts` without touching `normalizeColor`; `parseMobaXterm` reads only `[Colors]` via a private section reader with British `Colour` keys; `discoverMobaXterm` builds default roots in the planned priority order (Documents, `%OneDrive%\Documents`, `%USERPROFILE%\OneDrive\Documents`, AppData), dedupes by resolved file path, and flags only the first usable default-root `MobaXterm.ini` active.
+- All 15 TDD test-plan behaviors are present and green: `npm run test:parsers` is 65+15 passing (including the new mobaxterm parser and discovery suites), `npm run compile` is clean.
+- Docs (`README.md`, `STORE.md`, `memory-bank/productContext.md`, `memory-bank/systemPatterns.md`) all name the three default roots, the OneDrive path, the `-i`/portable-INI escape hatch, and the `DefaultColorScheme`/`.mxtsessions` gaps consistently with the code.
+- No KISS/DRY/YAGNI violations: the shared-INI-reader advisory from Preflight was deliberately deferred (documented YAGNI), and no second `Colour` alias table or mapping table was added. No stubs, TODOs, or debug artifacts found in the diff.
