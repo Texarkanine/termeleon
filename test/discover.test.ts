@@ -73,6 +73,16 @@ function writeGhosttyTheme(xdg: string, name: string, fromFixture?: string): str
   return dest;
 }
 
+function writeWeztermTheme(xdg: string, name: string, fromFixture?: string): string {
+  const dir = path.join(xdg, 'wezterm', 'colors');
+  fs.mkdirSync(dir, { recursive: true });
+  const dest = path.join(dir, name);
+  if (fromFixture) {
+    fs.copyFileSync(path.join(fixtures, fromFixture), dest);
+  }
+  return dest;
+}
+
 console.log('\ndiscover');
 test('finds a usable Ghostty theme under XDG', () => {
   withFixtureHome((xdg) => {
@@ -145,6 +155,24 @@ test('skips a Ghostty theme with fewer than 16 ANSI slots', () => {
     const results = discoverThemes({ sources: ['ghostty'] });
     assert.ok(!results.some((t) => t.origin === bad), 'incomplete palette must be omitted');
     assert.ok(results.some((t) => t.origin === good), 'usable sibling theme must still appear');
+  });
+});
+
+test('discovers WezTerm themes in ~/.config/wezterm/colors exactly once without duplicates', () => {
+  withFixtureHome((xdg) => {
+    writeWeztermTheme(xdg, 'extra-wezterm.toml', 'extra/extra-wezterm.toml');
+  }, (xdg) => {
+    const origin = path.join(xdg, 'wezterm', 'colors', 'extra-wezterm.toml');
+    const results = discoverThemes({ sources: ['wezterm'] });
+    const matching = results.filter((t) => t.origin === origin);
+    assert.strictEqual(
+      matching.length,
+      1,
+      `expected theme at ${origin} to be discovered exactly once, but found ${matching.length}`,
+    );
+    assert.strictEqual(matching[0].source, 'wezterm');
+    assert.strictEqual(matching[0].name, 'extra-wezterm');
+    assert.ok(isUsable(matching[0].palette), 'palette should be usable');
   });
 });
 

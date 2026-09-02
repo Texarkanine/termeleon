@@ -186,8 +186,11 @@ function discoverWezterm(extraDirs: string[]): DiscoveredTheme[] {
   const base = path.join(xdgConfigDir(), 'wezterm');
   const out: DiscoveredTheme[] = [];
   const dirs = [path.join(base, 'colors'), base, ...extraDirs];
+  const seen = new Set<string>();
 
   for (const file of dirs.flatMap((dir) => walk(dir, ['.toml']))) {
+    if (seen.has(file)) { continue; }
+    seen.add(file);
     const text = readText(file);
     if (!text) { continue; }
     let palette: Palette;
