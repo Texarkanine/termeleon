@@ -1,6 +1,6 @@
-<img align="right" width="128" src="images/icon.png" alt="Termeleon logo">
-
 # Termeleon
+
+<img align="right" width="128" src="images/icon.png" alt="Termeleon logo">
 
 [![codecov](https://codecov.io/github/Texarkanine/termeleon/graph/badge.svg)](https://codecov.io/github/Texarkanine/termeleon)
 
