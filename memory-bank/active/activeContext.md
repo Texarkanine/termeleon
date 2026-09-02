@@ -5,9 +5,13 @@
 **Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Extended investigation across all supported emulators (WezTerm, iTerm2, Windows Terminal, Ghostty, kitty, Alacritty, Xresources) to include packaged defaults (`defaults.json` in Windows Terminal vs user `settings.json`, WezTerm binary schemes vs `colors/*.toml`, iTerm2 Cocoa presets vs `.itermcolors`).
-- Addressed Preflight findings by including Windows Terminal alongside WezTerm and iTerm2 in all documentation update steps and architectural memory files.
-- Updated `memory-bank/active/tasks.md` with the refined implementation plan.
+- Investigated both built-in preset storage and active-theme detection across all supported emulators (WezTerm, iTerm2, Windows Terminal, Ghostty, kitty, Alacritty, Xresources).
+- Addressed Preflight findings:
+  - Documented active-theme detection rationale per emulator (e.g. iTerm2 uses binary plist / CFPreferences and dynamic profiles; WezTerm uses dynamic Lua scripts).
+  - Confirmed built-in preset boundaries for WezTerm, iTerm2, and Windows Terminal (`defaults.json`).
+  - Aligned `productContext.md` so that limitations are recorded in "Key Constraints" rather than "Use Cases".
+  - Standardized the "Active theme detected" columns in both `README.md` and `STORE.md`.
+- Updated `memory-bank/active/tasks.md` with the full implementation plan.
 
 ## Next Step
 - Re-run Preflight validation with subagent.

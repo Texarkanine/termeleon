@@ -15,9 +15,10 @@ Investigate built-in theme detection in terminal emulators, implement reliable d
 ## 2026-09-02 - PLAN - COMPLETE
 
 * Work completed
-    - Investigated built-in theme storage across supported emulators (WezTerm, iTerm2, Windows Terminal, Ghostty, kitty, Alacritty, Xresources).
-    - Determined that Ghostty provides filesystem-accessible themes in its app bundle / XDG data dirs, whereas WezTerm, iTerm2, and Windows Terminal embed built-in presets in compiled binaries / packaged defaults rather than user config files.
-    - Extended implementation plan in `memory-bank/active/tasks.md` to comprehensively document built-in vs addon theme behavior across `README.md`, `STORE.md`, `memory-bank/productContext.md`, and `memory-bank/systemPatterns.md`.
+    - Investigated built-in theme storage and active-theme detection across supported emulators (WezTerm, iTerm2, Windows Terminal, Ghostty, kitty, Alacritty, Xresources).
+    - Verified on macOS that `com.googlecode.iterm2.plist` is an Apple binary property list (`bplist00`), and that WezTerm configuration is dynamic Lua while built-in presets live in compiled Rust binaries.
+    - Refined plan in `memory-bank/active/tasks.md` to update `README.md`, `STORE.md`, `productContext.md`, and `systemPatterns.md` covering both built-in presets and active-theme detection boundaries per emulator.
 * Decisions made
-    - Do not attempt brittle reflection or vendoring static copies of compiled-in emulator palettes or package internals.
-    - Document clearly that Termeleon scans theme files and addons on disk (and `schemes` in `settings.json`), so built-in binary/package presets do not appear unless exported or installed as user theme files.
+    - Do not add brittle binary plist parsing, external subprocess execution, or dynamic Lua evaluation.
+    - Keep "Use Cases" in `productContext.md` clean of implementation details, housing constraints under "Key Constraints".
+    - Align active theme detection cells in both README and STORE tables.
