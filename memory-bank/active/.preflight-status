@@ -1,0 +1,11 @@
+PASS
+Preflight Validation for Issue #33:
+- Plan directly addresses the root causes:
+  1. commandMirror now creates QuickPick using LivePreview session and ensureTerminalVisible().
+  2. LivePreview supports both single palettes and dark/light pairs via schedulePair().
+  3. Settings (termeleon.livePreview) are respected.
+  4. Cancellation restores snapshot, acceptance applies and confirms.
+- Scope and impact:
+  - Touches src/apply.ts (LivePreview.schedulePair), src/extension.ts (pickMirrorCandidate, commandMirror, ensureTerminalVisible).
+  - Touches test/host/preview.test.ts or adds host tests for LivePreview pair scheduling and mirror multi-candidate preview/cancel.
+- No breaking changes or unwanted side effects.
