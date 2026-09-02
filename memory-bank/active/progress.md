@@ -182,3 +182,15 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
     - The extension-host failure (`EACCES` for `/run/user/1000/vscode-*.sock`) is an environment limitation, not a regression in this file-discovery rework.
 * Insights
     - The covered import-only config flow makes the resolved theme, rather than an unusable config wrapper, the Mirror candidate as intended.
+
+## 2026-09-02 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-investigate-mobaxterm-themes.md` covering the original MobaXterm source and the Alacritty rework.
+    - Reconciled persistent files: no further edits.
+* Decisions made
+    - Standalone task: next step is `/niko-archive`.
+* Insights
+    - Exact-basename `alacritty.toml` plus collect-before-`isUsable` is what makes an import-only Windows config visible to Mirror.
+    - `npm test` in this WSL session is an environment failure, not a product gate for vscode-free discovery work.
+

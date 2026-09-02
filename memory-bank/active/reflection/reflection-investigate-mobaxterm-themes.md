@@ -8,30 +8,31 @@ complexity_level: 2
 
 ## Summary
 
-MobaXterm palettes are on disk. Termeleon now parses `[Colors]` RGB triples from `MobaXterm.ini` and `.mxtcolors` / theme `.ini` files, discovers the Windows default roots including OneDrive-redirected Documents, and documents the index-only and `.mxtsessions` gaps.
+MobaXterm palettes are on disk and now parse as a walkable source. A follow-on rework made Alacritty Mirror work on Windows: `%APPDATA%\alacritty` plus `import` / `[general].import` following, with exact-basename `alacritty.toml` as the config.
 
 ## Requirements vs Outcome
 
-Delivered the on-disk outcome from the brief. Unused `DefaultColorScheme` indexes and per-session `.mxtsessions` blobs were left unscanned on purpose, matching Windows Terminal packaged defaults. Nothing extra shipped: no registry story, no American `Color` aliases, no shared INI module.
+Original brief: on-disk MobaXterm outcome shipped; unused `DefaultColorScheme` indexes and `.mxtsessions` left unscanned on purpose. Rework brief: APPDATA root, both import spellings, last usable import active when the config itself is not a palette, Unix inline `alacritty.toml` still active. Recursive field-merge of imports was considered in preflight and left out on purpose. No extra `Palette` / apply / `extensionKind` change.
 
 ## Plan Accuracy
 
-The first plan missed OneDrive Known Folder Move (`%MyDocuments%` ≠ `%USERPROFILE%\Documents`). Preflight FAIL (fixable) added those roots and first-root-wins active. After replan, Build followed the sequence without further splits.
+MobaXterm: first plan missed OneDrive Known Folder Move; preflight FAIL (fixable) added those roots. Alacritty: first rework plan named productContext/systemPatterns without a concrete edit; second FAIL (fixable) pinned exact-basename configs and an Alacritty clause in Best-Effort Discovery. After those replans, Build followed the sequence. Surprises were the suffix regex treating `extra-alacritty.toml` as a config, and that an import-only config is dropped by `isUsable` unless collected during the walk.
 
 ## Build & QA Observations
 
-Parser and discovery TDD went red-then-green as written. Host tests hung in this WSL Electron/X11 session; they were not a gate (CI does not run them; apply path unchanged). QA re-ran parsers and compile, found no blockers.
+Parser and discovery TDD went red-then-green as written. QA found no implementation issues. `npm test` in this WSL session still cannot bind the vscode-test IPC socket (`EACCES` under `/run/user/1000`) and pops a throwaway Code dialog; that is not a regression of this work. CI does not run `test:host`.
 
 ## Insights
 
 ### Technical
 
 - Any Windows "Documents" discovery path has to include OneDrive Known Folder Move. `%MyDocuments%` follows the redirect; `%USERPROFILE%\Documents` does not.
+- A filename suffix is not "this is the emulator's config." Alacritty's config is the exact basename `alacritty.toml`. Import-only configs are not `isUsable`, so they have to be collected before that gate or Mirror never sees the import list.
 
 ### Process
 
-- For emulator-format work, reading vendor docs and real theme-pack files during Plan is what turns "can we?" into a linear parser task. Preflight then caught the one Windows-path edge the plan's Challenges list had skipped.
+- In this WSL remote, `npm test` launches vscode-test and fails at socket bind. For vscode-free discovery work, `test:parsers` plus `compile` is the verification gate that matches CI. Do not treat a host-harness dialog as a product failure.
 
 ### Million-Dollar Question
 
-The same `Palette` hub, a `fromByteComponents` sibling to `fromFloatComponents`, and a walkable discoverer with Windows default roots. A shared INI section reader would only have been foundational if PuTTY-family support had been in scope from day one. This increment is the right shape.
+The MobaXterm increment is the right shape (`fromByteComponents`, Windows default roots, no shared INI reader until a PuTTY-family task). For Alacritty, the elegant version of "filename means active" was always "the config file is a pointer": exact-basename `alacritty.toml`, then inline palette or last usable import. Recursive merge and a shared path helper with kitty `include` are the next on-ramps, not this task.
