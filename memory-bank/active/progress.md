@@ -107,3 +107,11 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
     - Keep the shipped MobaXterm parser and discovery. Remaining work is Alacritty on Windows.
 * Insights
     - Extra directories already listed Alacritty theme files. Mirror fails because discovery never reads `%APPDATA%\alacritty\alacritty.toml` and never follows `[general].import` (this machine imports `msx.toml` from a git checkout).
+
+## 2026-09-02 - COMPLEXITY-ANALYSIS - COMPLETE
+
+* Work completed
+    - Classified the rework as Level 2: small enhancement to `discoverAlacritty` (Windows config root + import following).
+* Decisions made
+    - Not Level 1: following `import` is more than adding a path, and a filename-only `alacritty.toml` active flag would still fail on this machine's import-only config.
+    - Not Level 3: one emulator source, existing parser, no architecture change.
