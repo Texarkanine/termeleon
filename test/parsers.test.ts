@@ -231,6 +231,22 @@ test('parses iTerm2 ColorPresets.plist with multiple presets and real/string flo
   assert.strictEqual(presets[1].palette.background, '#1a1a1a');
 });
 
+test('handles malformed and incomplete presets in ColorPresets.plist', () => {
+  // Key without a dict
+  const noDict = `<plist><dict><key>NoDict</key><string>value</string></dict></plist>`;
+  assert.deepStrictEqual(parseItermColorPresets(noDict), []);
+
+  // Unclosed dict
+  const unclosed = `<plist><dict><key>Unclosed</key><dict><key>Ansi 0 Color</key>`;
+  assert.deepStrictEqual(parseItermColorPresets(unclosed), []);
+
+  // Incomplete palette (fewer than 16 ANSI colors)
+  const incomplete = `<plist><dict><key>Incomplete</key><dict>
+    <key>Background Color</key><dict><key>Red Component</key><real>0</real></dict>
+  </dict></dict></plist>`;
+  assert.deepStrictEqual(parseItermColorPresets(incomplete), []);
+});
+
 console.log('\nwindows terminal');
 test('extracts every scheme from one settings.json, comments and all', () => {
   const doc = `{
