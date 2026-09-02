@@ -1,8 +1,8 @@
 # Termeleon
 
-Match your VS Code integrated terminal to the color schemes you already use in your external terminal emulator.
+You've already picked how you want your terminal to look in your normal terminal emulator. Now make VS Code's terminal match it.
 
-Termeleon scans the theme files and addons sitting on your local disk — Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, and Xresources — and applies them directly to the VS Code integrated terminal, either mirroring what your emulator is currently running or letting you pick from your installed themes. Built-in presets compiled into terminal binaries (such as WezTerm) or package defaults (Windows Terminal) do not appear unless exported or installed as user theme files. Bundled iTerm2 presets (from `ColorPresets.plist`) and Ghostty app themes are discovered automatically.
+Termeleon scans the theme files and addons sitting on your local disk — Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, and Xresources — and applies them directly to the VS Code integrated terminal. You can just mirror what your emulator is currently running or pick from any of your installed themes.
 
 ## Features
 

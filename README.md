@@ -2,7 +2,9 @@
 
 [![codecov](https://codecov.io/github/Texarkanine/termeleon/graph/badge.svg)](https://codecov.io/github/Texarkanine/termeleon)
 
-You already picked a color scheme for your terminal emulator. Termeleon reads the theme files and addons sitting on your disk and applies one of them to the VS Code integrated terminal, either mirroring what your emulator currently uses or letting you drive the two independently.
+You've already picked how you want your terminal to look in your normal terminal emulator. Now make VS Code's terminal match it.
+
+Termeleon scans the theme files and addons sitting on your local disk — Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, and Xresources — and applies them directly to the VS Code integrated terminal. You can just mirror what your emulator is currently running or pick from any of your installed themes.
 
 ## Requirements
 
