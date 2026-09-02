@@ -145,3 +145,16 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
 * Insights
     - `systemPatterns.md`'s "Best-Effort Discovery" paragraph already documents comparable active-detection nuances for every other emulator; Alacritty's new config-vs-import logic meets that same inclusion bar.
     - Kitty's `include` directive is structurally the same problem as Alacritty's `import` — a good on-ramp for a future shared path-resolution helper, left as advisory rather than expanding this task.
+
+## 2026-09-02 - PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+
+* Work completed
+    - Revalidated the replanned Alacritty rework against `src/discover.ts`, `src/parsers/toml.ts`, and both test suites.
+    - Confirmed all three prior FAIL findings are closed: concrete systemPatterns edit, explicit productContext no-op, exact-basename configs, no `~\` branch.
+    - Overwrote `.preflight-status` with a passing result, five advisories, and one radical-innovation idea.
+* Decisions made
+    - Build-ready without plan edits. No TDD step swap and no change-detector strike were warranted.
+    - Left recursive/field-merge import resolution as advisory rather than overriding the plan's "no merge table" decision.
+* Insights
+    - `parseAlacritty` throws on malformed TOML, so the new import pass needs the same per-file try/catch the walk already uses — otherwise one bad theme file drops the whole Alacritty source from the picker.
+    - `walk` skips symlinks (`Dirent.isFile()` is false for them), so the extraDirs "same file, two roots" case must be written as overlapping directories, not a symlink.
