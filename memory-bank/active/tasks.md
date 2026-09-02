@@ -74,4 +74,4 @@ No new runtime or build dependencies required. `@vscode/vsce` natively supports 
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA — PASS: Build updated `memory-bank/techContext.md` to accurately describe `vsce package --no-dependencies --readme-path STORE.md` and STORE.md's role. KISS, DRY, YAGNI, completeness, regression, integrity, and documentation all pass; `npm test` passed (59 parser/discover and 30 host tests).

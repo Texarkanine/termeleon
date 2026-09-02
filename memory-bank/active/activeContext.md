@@ -1,14 +1,11 @@
 # Active Context
 
 ## Current Task: marketplace-store-readme
-**Phase:** BUILD - COMPLETE
+**Phase:** REFLECT - COMPLETE
 
 ## What Was Done
-- Created dedicated store-facing sales pitch in `STORE.md`.
-- Updated `package.json` package script to `"vsce package --no-dependencies --readme-path STORE.md"`.
-- Added `README.md` to `.vscodeignore` to avoid packaging collisions.
-- Added contract tests in `test/parsers.test.ts` to enforce `STORE.md` presence, package script flag, and ignore configuration.
-- Executed full test suites (`test:parsers`, `test:coverage`, `test:host`) and verified VSIX archive packaging.
+- Completed reflection document `memory-bank/active/reflection/reflection-marketplace-store-readme.md`.
+- Verified persistent memory bank files (`memory-bank/techContext.md`) are reconciled and up to date.
 
 ## Next Step
-- Run QA semantic review subagent (`/niko-qa`).
+- Run `/niko-archive` to archive and finalize the task.

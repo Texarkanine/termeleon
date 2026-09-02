@@ -38,3 +38,16 @@ Add extension marketplace icon, create dedicated store sales pitch document `STO
     - Added `README.md` to `.vscodeignore`.
     - Verified all tests GREEN across `test:parsers`, `test:coverage`, and `test:host`.
     - Packaged VSIX and inspected archive to confirm `extension/readme.md` is populated from `STORE.md`, `images/icon.png` is included, and `README.md` is absent.
+
+## 2026-09-01 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Initial QA flagged documentation gap in `memory-bank/techContext.md`.
+    - Reconciled `techContext.md` packaging description and re-ran tests.
+    - Re-ran QA subagent with passing verdict.
+
+## 2026-09-01 - REFLECT - COMPLETE
+
+* Work completed
+    - Authored reflection document in `memory-bank/active/reflection/reflection-marketplace-store-readme.md`.
+    - Reconciled persistent memory bank files.
