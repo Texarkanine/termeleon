@@ -26,10 +26,10 @@ Investigate and implement built-in theme support for terminal emulators per Issu
 
 - Files: `src/parsers/iterm2.ts`, `src/discover.ts`, `test/parsers.test.ts`, `test/discover.test.ts`
 
-1. Stub tests: Add empty test cases in `test/parsers.test.ts` and `test/discover.test.ts`.
-2. Stub interface: Add `parseItermColorPresets` signature in `src/parsers/iterm2.ts`.
-3. Write tests and run red: Implement assertions in `test/parsers.test.ts` and `test/discover.test.ts` and verify test failure.
-4. Write code and run green:
+1. [x] Stub tests: Add empty test cases in `test/parsers.test.ts` and `test/discover.test.ts`.
+2. [x] Stub interface: Add `parseItermColorPresets` signature in `src/parsers/iterm2.ts`.
+3. [x] Write tests and run red: Implement assertions in `test/parsers.test.ts` and `test/discover.test.ts` and verify test failure.
+4. [x] Write code and run green:
    - Update `parseItermColors` to accept `<string>` float representations.
    - Implement `parseItermColorPresets` to extract top-level preset dicts.
    - Update `discoverIterm2` in `src/discover.ts` to scan `ColorPresets.plist` locations on macOS.
@@ -40,9 +40,9 @@ Investigate and implement built-in theme support for terminal emulators per Issu
 - Files: `README.md`, `STORE.md`, `memory-bank/productContext.md`, `memory-bank/systemPatterns.md`
 - No tests: prose/policy artifact
 
-1. Update `README.md` overview, formats table, and known limits to reflect iTerm2 bundled preset discovery while accurately explaining active-theme detection limits for iTerm2 (macOS preferences plist) and WezTerm (dynamic Lua).
-2. Update `STORE.md` overview and Supported Emulators table.
-3. Update `memory-bank/productContext.md` and `memory-bank/systemPatterns.md`.
+1. [x] Update `README.md` overview, formats table, and known limits to reflect iTerm2 bundled preset discovery while accurately explaining active-theme detection limits for iTerm2 (macOS preferences plist) and WezTerm (dynamic Lua).
+2. [x] Update `STORE.md` overview and Supported Emulators table.
+3. [x] Update `memory-bank/productContext.md` and `memory-bank/systemPatterns.md`.
 
 ## Technology Validation
 
@@ -68,6 +68,6 @@ None
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA

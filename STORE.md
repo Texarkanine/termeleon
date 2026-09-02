@@ -2,7 +2,7 @@
 
 Match your VS Code integrated terminal to the color schemes you already use in your external terminal emulator.
 
-Termeleon scans the theme files and addons sitting on your local disk — Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, and Xresources — and applies them directly to the VS Code integrated terminal, either mirroring what your emulator is currently running or letting you pick from your installed themes. Built-in presets compiled into terminal binaries (such as WezTerm and iTerm2) or package defaults (Windows Terminal) do not appear unless exported or installed as user theme files.
+Termeleon scans the theme files and addons sitting on your local disk — Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal, and Xresources — and applies them directly to the VS Code integrated terminal, either mirroring what your emulator is currently running or letting you pick from your installed themes. Built-in presets compiled into terminal binaries (such as WezTerm) or package defaults (Windows Terminal) do not appear unless exported or installed as user theme files. Bundled iTerm2 presets (from `ColorPresets.plist`) and Ghostty app themes are discovered automatically.
 
 ## Features
 
@@ -27,10 +27,10 @@ Termeleon scans the theme files and addons sitting on your local disk — Ghostt
 | --- | --- | --- |
 | **Alacritty** | `~/.config/alacritty/**/*.toml` | `alacritty.toml` |
 | **Ghostty** | Config files, bundled app themes, `$XDG_CONFIG_HOME/ghostty/themes/*` | Yes, including `theme = dark:X,light:Y` pairs |
-| **iTerm2** | `*.itermcolors` plist files under Application Support (addon files only) | No |
+| **iTerm2** | `*.itermcolors` files under Application Support, bundled `ColorPresets.plist` in `iTerm.app` | No (active profile saved in macOS preferences) |
 | **kitty** | `current-theme.conf`, `kitty.conf`, `~/.config/kitty/themes/*.conf` | Yes, via `current-theme.conf` |
-| **WezTerm** | User `*.toml` files in `~/.config/wezterm/` (addon files only) | No |
-| **Windows Terminal** | Custom `schemes` in `settings.json` (user/imported schemes only) | Yes, via profile `colorScheme` |
+| **WezTerm** | User `*.toml` files in `~/.config/wezterm/` (compiled-in binary schemes not scanned) | No (dynamic Lua configuration) |
+| **Windows Terminal** | Custom `schemes` in `settings.json` (packaged defaults not scanned) | Yes, via profile `colorScheme` |
 | **Xresources** | `~/.Xresources`, `~/.Xdefaults` | Yes |
 
 ## Configuration

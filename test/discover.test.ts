@@ -187,4 +187,40 @@ test('does not throw when a source directory is missing', () => {
   });
 });
 
+test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applications', () => {
+  withFixtureHome((_xdg, home) => {
+    const resDir = path.join(home, 'Applications', 'iTerm.app', 'Contents', 'Resources');
+    fs.mkdirSync(resDir, { recursive: true });
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Pastel</key>
+  <dict>
+    ${Array.from({ length: 16 }, (_, i) => `
+    <key>Ansi ${i} Color</key>
+    <dict>
+      <key>Red Component</key><real>0.3</real>
+      <key>Green Component</key><real>0.3</real>
+      <key>Blue Component</key><real>0.3</real>
+    </dict>`).join('')}
+    <key>Background Color</key>
+    <dict><key>Red Component</key><real>0</real><key>Green Component</key><real>0</real><key>Blue Component</key><real>0</real></dict>
+    <key>Foreground Color</key>
+    <dict><key>Red Component</key><real>1</real><key>Green Component</key><real>1</real><key>Blue Component</key><real>1</real></dict>
+  </dict>
+</dict>
+</plist>`;
+    fs.writeFileSync(path.join(resDir, 'ColorPresets.plist'), xml, 'utf8');
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'Applications', 'iTerm.app', 'Contents', 'Resources', 'ColorPresets.plist');
+    const results = discoverThemes({ sources: ['iterm2'] });
+    const found = results.find((t) => t.origin === origin && t.name === 'Pastel');
+    assert.ok(found, `expected bundled preset Pastel with origin ${origin}`);
+    assert.strictEqual(found.source, 'iterm2');
+    assert.strictEqual(found.active, false);
+    assert.ok(isUsable(found.palette));
+  });
+});
+
 console.log(`\n${passed} passed\n`);

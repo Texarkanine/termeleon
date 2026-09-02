@@ -7,7 +7,7 @@ import { discoverThemes, toGhosttyDiscovered, activeGhosttyPair, mirrorCandidate
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
 import { parseAlacritty } from '../src/parsers/toml';
-import { parseItermColors, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from '../src/parsers/iterm2';
+import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from '../src/parsers/iterm2';
 
 const fix = (name: string) =>
   fs.readFileSync(path.join(__dirname, 'fixtures', name), 'utf8');
@@ -138,6 +138,97 @@ test('converts float components to hex', () => {
   assert.strictEqual(p.ansi[1], '#ff0000');
   assert.strictEqual(p.background, '#2b2b2b');
   assert.strictEqual(p.foreground, '#ffffff');
+});
+
+test('parses iTerm2 .itermcolors with string component values', () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Ansi 0 Color</key>
+  <dict>
+    <key>Red Component</key><string>0.1</string>
+    <key>Green Component</key><string>0.2</string>
+    <key>Blue Component</key><string>0.3</string>
+  </dict>
+  <key>Ansi 1 Color</key>
+  <dict>
+    <key>Red Component</key><real>0.8</real>
+    <key>Green Component</key><real>0.1</real>
+    <key>Blue Component</key><real>0.1</real>
+  </dict>
+  ${Array.from({ length: 14 }, (_, i) => `
+  <key>Ansi ${i + 2} Color</key>
+  <dict>
+    <key>Red Component</key><string>0.5</string>
+    <key>Green Component</key><string>0.5</string>
+    <key>Blue Component</key><string>0.5</string>
+  </dict>`).join('')}
+  <key>Background Color</key>
+  <dict>
+    <key>Red Component</key><string>0</string>
+    <key>Green Component</key><string>0</string>
+    <key>Blue Component</key><string>0</string>
+  </dict>
+  <key>Foreground Color</key>
+  <dict>
+    <key>Red Component</key><string>1</string>
+    <key>Green Component</key><string>1</string>
+    <key>Blue Component</key><string>1</string>
+  </dict>
+</dict>
+</plist>`;
+  const p = parseItermColors(xml);
+  assert.ok(isUsable(p));
+  assert.strictEqual(p.ansi[0], '#1a334d');
+  assert.strictEqual(p.ansi[1], '#cc1a1a');
+  assert.strictEqual(p.background, '#000000');
+  assert.strictEqual(p.foreground, '#ffffff');
+});
+
+test('parses iTerm2 ColorPresets.plist with multiple presets and real/string float components', () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Preset Real</key>
+  <dict>
+    ${Array.from({ length: 16 }, (_, i) => `
+    <key>Ansi ${i} Color</key>
+    <dict>
+      <key>Red Component</key><real>0.1</real>
+      <key>Green Component</key><real>0.1</real>
+      <key>Blue Component</key><real>0.1</real>
+    </dict>`).join('')}
+    <key>Background Color</key>
+    <dict><key>Red Component</key><real>0</real><key>Green Component</key><real>0</real><key>Blue Component</key><real>0</real></dict>
+    <key>Foreground Color</key>
+    <dict><key>Red Component</key><real>1</real><key>Green Component</key><real>1</real><key>Blue Component</key><real>1</real></dict>
+  </dict>
+  <key>Preset String</key>
+  <dict>
+    ${Array.from({ length: 16 }, (_, i) => `
+    <key>Ansi ${i} Color</key>
+    <dict>
+      <key>Red Component</key><string>0.2</string>
+      <key>Green Component</key><string>0.2</string>
+      <key>Blue Component</key><string>0.2</string>
+    </dict>`).join('')}
+    <key>Background Color</key>
+    <dict><key>Red Component</key><string>0.1</string><key>Green Component</key><string>0.1</string><key>Blue Component</key><string>0.1</string></dict>
+    <key>Foreground Color</key>
+    <dict><key>Red Component</key><string>0.9</string><key>Green Component</key><string>0.9</string><key>Blue Component</key><string>0.9</string></dict>
+  </dict>
+</dict>
+</plist>`;
+  const presets = parseItermColorPresets(xml);
+  assert.strictEqual(presets.length, 2);
+  assert.strictEqual(presets[0].name, 'Preset Real');
+  assert.ok(isUsable(presets[0].palette));
+  assert.strictEqual(presets[0].palette.background, '#000000');
+  assert.strictEqual(presets[1].name, 'Preset String');
+  assert.ok(isUsable(presets[1].palette));
+  assert.strictEqual(presets[1].palette.background, '#1a1a1a');
 });
 
 console.log('\nwindows terminal');

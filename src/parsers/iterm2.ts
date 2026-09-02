@@ -1,4 +1,4 @@
-import { Palette, normalizeColor, fromFloatComponents } from '../palette';
+import { Palette, normalizeColor, fromFloatComponents, isUsable } from '../palette';
 
 /**
  * iTerm2 `.itermcolors` is an XML plist whose top-level dict maps color names
@@ -29,7 +29,7 @@ export function parseItermColors(text: string): Palette {
     const body = m[2];
     const comp = (channel: string): number | undefined => {
       const cm = new RegExp(
-        `<key>\\s*${channel} Component\\s*</key>\\s*<real>([-\\d.eE+]+)</real>`,
+        `<key>\\s*${channel} Component\\s*</key>\\s*<(?:real|string)>([-\\d.eE+]+)<\\/(?:real|string)>`,
       ).exec(body);
       return cm ? parseFloat(cm[1]) : undefined;
     };
@@ -50,6 +50,59 @@ export function parseItermColors(text: string): Palette {
 
   return p;
 }
+
+/**
+ * Parses an iTerm2 ColorPresets.plist XML document containing multiple
+ * top-level color presets into individual named palettes.
+ */
+export function parseItermColorPresets(text: string): { name: string; palette: Palette }[] {
+  const presets: { name: string; palette: Palette }[] = [];
+  const dictMatch = /<plist[^>]*>\s*<dict>([\s\S]*)<\/dict>\s*<\/plist>/i.exec(text);
+  const content = dictMatch ? dictMatch[1] : text;
+
+  const keyRe = /<key>([^<]+)<\/key>/g;
+  let m: RegExpExecArray | null;
+
+  while ((m = keyRe.exec(content)) !== null) {
+    const name = m[1].trim();
+    const dictStart = content.indexOf('<dict>', m.index + m[0].length);
+    if (dictStart === -1) { break; }
+
+    let depth = 0;
+    let pos = dictStart;
+    let dictEnd = -1;
+
+    while (pos < content.length) {
+      const open = content.indexOf('<dict>', pos);
+      const close = content.indexOf('</dict>', pos);
+      if (close === -1) { break; }
+
+      if (open !== -1 && open < close) {
+        depth++;
+        pos = open + 6;
+      } else {
+        depth--;
+        pos = close + 7;
+        if (depth === 0) {
+          dictEnd = pos;
+          break;
+        }
+      }
+    }
+
+    if (dictEnd !== -1) {
+      const inner = content.substring(dictStart, dictEnd);
+      const palette = parseItermColors(inner);
+      if (isUsable(palette)) {
+        presets.push({ name, palette });
+      }
+      keyRe.lastIndex = dictEnd;
+    }
+  }
+
+  return presets;
+}
+
 
 /** Strips // and /* *\/ comments so JSON.parse can handle JSONC. */
 export function stripJsonComments(text: string): string {

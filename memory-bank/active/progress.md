@@ -32,3 +32,15 @@ Investigate built-in theme detection in terminal emulators, implement reliable d
     - Advisories only: hermetic ColorPresets fixture via `$HOME/Applications/...`, balanced dict extraction for nested plists, user-vs-bundled name order, optional `extraDirs` plist recognition.
 * Insights
     - Real iTerm `ColorPresets.plist` has 11 top-level presets; Tango Light/Dark encode RGB as `<string>` floats, so the `parseItermColors` regex change is required for those presets to be usable.
+
+## 2026-09-02 - BUILD - COMPLETE
+
+* Work completed
+    - Implemented `parseItermColorPresets` in `src/parsers/iterm2.ts` and added `<string>` float support to `parseItermColors`.
+    - Updated `discoverIterm2` in `src/discover.ts` to scan `ColorPresets.plist` in `/Applications/iTerm*.app` and `~/Applications/iTerm*.app` on macOS and in `extraDirs`.
+    - Added tests in `test/parsers.test.ts` and `test/discover.test.ts` verifying parsing and discovery of iTerm2 bundled presets.
+    - Updated `README.md`, `STORE.md`, `memory-bank/productContext.md`, and `memory-bank/systemPatterns.md`.
+    - Verified all 63 tests passing, 0 linter errors, clean compile, and successful VSIX packaging.
+* Decisions made
+    - Integrate iTerm2 bundled presets from `ColorPresets.plist` directly into discovery.
+    - Document limits for WezTerm (Lua/binary), Windows Terminal (package defaults), and iTerm2 active profile (preferences plist).

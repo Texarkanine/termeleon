@@ -2,12 +2,21 @@
 
 **Current Task:** Investigate built-in theme support (Issue #36)
 
-**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Re-evaluated iTerm2 built-in presets based on QA findings and discovered that iTerm2 ships `ColorPresets.plist` (XML 1.0) under `iTerm.app/Contents/Resources/`.
-- Tested parsing of `ColorPresets.plist` directly and confirmed all 11 built-in presets (Regular, Solarized Dark/Light, Tango Dark/Light, Pastel, Smoooooth, etc.) parse cleanly into `Palette`.
-- Formulated an updated implementation plan in `memory-bank/active/tasks.md` with TDD steps for `parseItermColorPresets` and `discoverIterm2` bundled preset discovery, alongside comprehensive documentation updates.
+- Implemented `parseItermColorPresets` and extended `parseItermColors` in `src/parsers/iterm2.ts` to parse all 11 built-in iTerm2 presets from `ColorPresets.plist` with real/string float channels.
+- Added macOS application bundle discovery for `ColorPresets.plist` in `src/discover.ts` with name deduplication.
+- Added comprehensive unit and discovery tests in `test/parsers.test.ts` and `test/discover.test.ts` following TDD (63 tests passing, 94.6% statement coverage).
+- Updated documentation across `README.md`, `STORE.md`, `memory-bank/productContext.md`, and `memory-bank/systemPatterns.md`.
+- Verified clean build, lint, and packaging with vsce.
+
+## Key Decisions Made
+- Discovered iTerm2 bundled presets from `ColorPresets.plist` without vendoring or brittle binary inspection.
+- Documented boundaries for WezTerm (Lua/binary), Windows Terminal (package defaults), and iTerm2 active profile (preferences plist).
+
+## Deviations from Plan
+- None - built to plan.
 
 ## Next Step
-- Proceed to Build (`/niko-build`). Treat preflight advisories as implementer guidance, not plan rewrites.
+- Transition to QA phase by deleting `.qa-validation-status` and spawning a subagent with `/niko-qa`.

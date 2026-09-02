@@ -30,7 +30,7 @@ Prefixed with `Termeleon: `
 | --- | --- | --- |
 | Alacritty | `~/.config/alacritty/**/*.toml` | `alacritty.toml` assumed active |
 | Ghostty | `$XDG_CONFIG_HOME/ghostty/themes/*`, bundled app themes, inline config palettes | yes, including `theme = dark:X,light:Y` |
-| iTerm2 | `*.itermcolors` under iTerm2 app support (user/addon files only) | no (profile colors are saved in macOS preferences) |
+| iTerm2 | `*.itermcolors` under iTerm2 app support, bundled presets from `iTerm.app/Contents/Resources/ColorPresets.plist` | no (profile colors are saved in macOS preferences) |
 | kitty | `~/.config/kitty/themes/*.conf`, `current-theme.conf`, `kitty.conf` | yes, via `current-theme.conf` |
 | WezTerm | `~/.config/wezterm/colors/*.toml`, `~/.config/wezterm/*.toml` (user/addon files only) | no (config is dynamic Lua) |
 | Windows Terminal | entries in `schemes` array of `settings.json` (custom/imported schemes only) | yes, via `profiles.defaults.colorScheme` or the default profile |
@@ -62,9 +62,9 @@ Emulators disagree about what to call the same pixel:
 
 ## Known limits
 
-- **Built-in presets vs addon files.** Termeleon scans theme files and addons on disk; it does not vendor static copies of upstream palettes or inspect application binaries.
+- **Built-in presets vs addon files.** Termeleon scans theme files and addons on disk; it does not vendor static copies of upstream palettes or inspect binary internals.
+  - **iTerm2:** Bundled presets (e.g. Pastel, Solarized, Tango) are scanned from `ColorPresets.plist` in the application bundle. Active profile colors configured dynamically in macOS preferences plist (`com.googlecode.iterm2.plist`) are not scanned.
   - **WezTerm:** Built-in schemes live compiled in Rust inside the binary and config is dynamic Lua, so only user `.toml` scheme files in `~/.config/wezterm/` are found.
-  - **iTerm2:** Built-in presets (e.g. Pastel, Solarized, Tango) and active profile colors are stored in Cocoa application preferences plist, not as `.itermcolors` files. Only downloaded or exported `*.itermcolors` files are scanned.
   - **Windows Terminal:** Built-in preset schemes (e.g. Campbell, Vintage) are packaged in internal `defaults.json`. Only custom schemes defined in the `schemes` array of `settings.json` are discovered.
 - **Alacritty YAML** (pre-0.13) is not read. The schema moved; supporting both doubles the parser for a deprecated format.
 - **iTerm2 color spaces.** Entries tagged `Calibrated` rather than `sRGB` are read as sRGB. Slightly wrong, and the same approximation every porting tool makes.

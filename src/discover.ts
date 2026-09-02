@@ -6,7 +6,7 @@ import { DiscoveredTheme, Palette, isUsable } from './palette';
 import { parseGhostty, activeGhosttyThemes } from './parsers/ghostty';
 import { parseKitty, parseXresources } from './parsers/kitty';
 import { parseAlacritty, parseWezterm, weztermSchemeName } from './parsers/toml';
-import { parseItermColors, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from './parsers/iterm2';
+import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from './parsers/iterm2';
 
 /** Hard ceilings so a pathological directory can't stall the picker. */
 const MAX_DEPTH = 3;
@@ -214,6 +214,7 @@ function discoverIterm2(extraDirs: string[]): DiscoveredTheme[] {
     ...extraDirs,
   ];
   const out: DiscoveredTheme[] = [];
+  const seen = new Set<string>();
 
   for (const dir of dirs) {
     for (const file of walk(dir, ['.itermcolors'])) {
@@ -221,9 +222,40 @@ function discoverIterm2(extraDirs: string[]): DiscoveredTheme[] {
       if (!text) { continue; }
       const palette = parseItermColors(text);
       if (!isUsable(palette)) { continue; }
-      out.push({ name: stem(file), source: 'iterm2', origin: file, active: false, palette });
+      const name = stem(file);
+      seen.add(name);
+      out.push({ name, source: 'iterm2', origin: file, active: false, palette });
     }
   }
+
+  const presetFiles: string[] = [];
+  if (process.platform === 'darwin') {
+    presetFiles.push(
+      '/Applications/iTerm.app/Contents/Resources/ColorPresets.plist',
+      path.join(homeDir(), 'Applications', 'iTerm.app', 'Contents', 'Resources', 'ColorPresets.plist'),
+      '/Applications/iTerm2.app/Contents/Resources/ColorPresets.plist',
+      path.join(homeDir(), 'Applications', 'iTerm2.app', 'Contents', 'Resources', 'ColorPresets.plist'),
+    );
+  }
+  for (const dir of extraDirs) {
+    for (const file of walk(dir, ['.plist'])) {
+      if (path.basename(file).toLowerCase() === 'colorpresets.plist') {
+        presetFiles.push(file);
+      }
+    }
+  }
+
+  for (const file of presetFiles) {
+    if (!exists(file)) { continue; }
+    const text = readText(file);
+    if (!text) { continue; }
+    for (const { name, palette } of parseItermColorPresets(text)) {
+      if (seen.has(name) || !isUsable(palette)) { continue; }
+      seen.add(name);
+      out.push({ name, source: 'iterm2', origin: file, active: false, palette });
+    }
+  }
+
   return out;
 }
 
