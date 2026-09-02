@@ -1,0 +1,1 @@
+discoverWezterm searches colors/ and parent wezterm/; paths must be deduplicated with a Set to prevent nested recursive walking from discovering themes twice
