@@ -2,40 +2,47 @@
 
 * Task ID: investigate-builtin-themes
 * Complexity: Level 2
-* Type: Simple Enhancement / Investigation & Documentation
+* Type: Simple Enhancement / Implementation & Documentation
 
-Investigate built-in theme and active theme detection across terminal emulators (WezTerm, iTerm2, Windows Terminal, Ghostty, kitty, Alacritty, Xresources) per Issue #36. Document the findings and clarify in README.md, STORE.md, productContext.md, and systemPatterns.md that Termeleon scans theme files and addons on disk (and custom `schemes` in Windows Terminal's `settings.json`). Built-in presets and compiled-in default palettes (in WezTerm, iTerm2, and Windows Terminal's packaged `defaults.json`) do not appear unless exported or defined as custom theme files.
+Investigate and implement built-in theme support for terminal emulators per Issue #36. Discover iTerm2 built-in presets from bundled `ColorPresets.plist` inside `iTerm.app` on macOS. For emulators where built-in presets or active themes are compiled into binaries (WezTerm) or internal package defaults (Windows Terminal) or dynamic preferences (iTerm2 active profile), document the boundaries clearly in README.md, STORE.md, and project architecture docs.
 
 ## Test Plan (TDD)
 
 ### Behaviors to Verify
 
-No new executable behavior. This task is an architectural and platform investigation into built-in terminal theme storage and active theme detection mechanisms across all supported emulators, followed by comprehensive documentation updates across user-facing store/readme docs and memory bank architectural context.
+1. `parseItermColors`: parses component values formatted with either `<real>` or `<string>` tags (e.g. Tango presets in `ColorPresets.plist`).
+2. `parseItermColorPresets`: extracts all top-level presets from an iTerm2 `ColorPresets.plist` XML document into `{ name, palette }[]` structures with valid palettes.
+3. `discoverIterm2`: discovers bundled presets from `/Applications/iTerm.app/Contents/Resources/ColorPresets.plist` (and user Applications) on macOS alongside `.itermcolors` files.
 
 ### Test Infrastructure
 
-- Framework: Node assert test harness via tsx (`test/parsers.test.ts`, `test/discover.test.ts`) and Mocha extension-host tests (`test/host/`)
+- Framework: Node assert test harness via tsx (`test/parsers.test.ts`, `test/discover.test.ts`)
 - Test location: `test/`
-- Conventions: Existing CI contract and parser tests
-- New test files: none
+- Conventions: Existing parser & discovery tests with fixtures
 
 ## Implementation Plan
 
-### 1. Documentation Updates — prose/policy
+### 1. iTerm2 Built-in Presets Parser & Discovery — executable
+
+- Files: `src/parsers/iterm2.ts`, `src/discover.ts`, `test/parsers.test.ts`, `test/discover.test.ts`
+
+1. Stub tests: Add empty test cases in `test/parsers.test.ts` and `test/discover.test.ts`.
+2. Stub interface: Add `parseItermColorPresets` signature in `src/parsers/iterm2.ts`.
+3. Write tests and run red: Implement assertions in `test/parsers.test.ts` and `test/discover.test.ts` and verify test failure.
+4. Write code and run green:
+   - Update `parseItermColors` to accept `<string>` float representations.
+   - Implement `parseItermColorPresets` to extract top-level preset dicts.
+   - Update `discoverIterm2` in `src/discover.ts` to scan `ColorPresets.plist` locations on macOS.
+   - Verify all tests pass green.
+
+### 2. Documentation Updates — prose/policy
 
 - Files: `README.md`, `STORE.md`, `memory-bank/productContext.md`, `memory-bank/systemPatterns.md`
 - No tests: prose/policy artifact
 
-1. [x] Update `README.md`:
-   - Clarified in the overview that Termeleon scans user-installed theme files and addons on disk.
-   - Updated the "Formats read" table to explicitly state the source file patterns and explain active theme detection per emulator (clarifying why WezTerm and iTerm2 do not report active themes from on-disk static files).
-   - Updated "Known limits" to explain built-in preset storage across WezTerm (Lua/binary), iTerm2 (binary plist / Cocoa defaults), and Windows Terminal (packaged `defaults.json`).
-2. [x] Update `STORE.md`:
-   - Updated the overview and "Supported Emulators" table, correcting the "Active Theme Detection" column for iTerm2 and WezTerm to accurately reflect that only static theme files are scanned, giving users upfront clarity.
-3. [x] Update `memory-bank/productContext.md`:
-   - Updated "Key Constraints" (preserving "Use Cases" in clean user language) to record the permanent boundary and rationale regarding built-in presets and active detection across WezTerm, iTerm2, and Windows Terminal.
-4. [x] Update `memory-bank/systemPatterns.md`:
-   - Updated "Best-Effort Discovery" to document the discovery boundaries and active detection rationale for each emulator.
+1. Update `README.md` overview, formats table, and known limits to reflect iTerm2 bundled preset discovery while accurately explaining active-theme detection limits for iTerm2 (macOS preferences plist) and WezTerm (dynamic Lua).
+2. Update `STORE.md` overview and Supported Emulators table.
+3. Update `memory-bank/productContext.md` and `memory-bank/systemPatterns.md`.
 
 ## Technology Validation
 
@@ -47,11 +54,12 @@ None
 
 ## Challenges & Mitigations
 
-- Communicating technical distinction cleanly across all emulators: Users may expect built-in presets from WezTerm (embedded in binary), iTerm2 (embedded in binary / binary plist), or Windows Terminal (embedded in package `defaults.json`) to appear automatically. Mitigation: Explicitly document each emulator's scanning behavior and active detection details in the tables and known limits so the behavior is transparent and predictable.
+- Some iTerm2 presets (e.g. Tango Light/Dark) use `<string>` rather than `<real>` tags for float components. Mitigation: Regex in `comp()` matches both `<real>` and `<string>`.
+- Deduplication between multiple iTerm app bundle paths: Mitigation: Track seen preset names in a Set so identical presets across `/Applications/iTerm.app` and `~/Applications/...` are not duplicated.
 
 ## Pre-Mortem
 
-- A user expects built-in presets (e.g. Campbell in Windows Terminal, Pastel in iTerm2, or Nord in WezTerm) to appear out of the box without defining theme files: Prevented by prominent documentation in both `STORE.md` (store listing) and `README.md` (repo documentation) explaining that Termeleon scans addon files on disk and custom `schemes`, not internal application binary/package presets.
+- A user expects WezTerm or Windows Terminal built-in defaults to be scanned from disk: Clearly documented in `README.md` and `STORE.md` that WezTerm schemes are compiled into the Rust binary and Windows Terminal presets are packaged defaults.
 
 ## Status
 
@@ -60,6 +68,6 @@ None
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [x] Preflight
-- [x] Build
+- [ ] Preflight
+- [ ] Build
 - [ ] QA
