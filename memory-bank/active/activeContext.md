@@ -1,13 +1,12 @@
 # Active Context
 
-## Current Task: packaging-icon
-**Phase:** REFLECT - COMPLETE
+## Current Task: marketplace-store-readme
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Completed Reflect phase for Level 2 task `packaging-icon`.
-- Created reflection document at `memory-bank/active/reflection/reflection-packaging-icon.md`.
-- Reconciled persistent memory bank files (`techContext.md` updated with icon asset and packaging ignore details; `productContext.md` and `systemPatterns.md` verified unchanged).
-- Verified QA validation passed.
+- Planned dedicated marketplace sales pitch document (`STORE.md`) and packaging pipeline with `--readme-path STORE.md`.
+- Planned `.vscodeignore` update to exclude developer `README.md` and avoid VSIX archive collisions.
+- Designed TDD contract assertions for `STORE.md` existence, script configuration, and ignore rules.
 
 ## Next Step
-- Run `/niko-archive` to create the archive document and finalize the current project.
+- Run Preflight validation subagent (`/niko-preflight`).

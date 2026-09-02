@@ -1,61 +1,24 @@
 # Progress
 
-Add extension marketplace icon, update `package.json` with icon path and ensure publisher is `texarkanine`, ensure VSIX inclusion via `.vscodeignore`, and enforce non-fragile packaging contracts in `test/parsers.test.ts`.
+Add extension marketplace icon, create dedicated store sales pitch document `STORE.md` packaged via `vsce package --readme-path STORE.md`, exclude developer `README.md` from VSIX packaging, and enforce packaging contracts in `test/parsers.test.ts`.
 
 **Complexity:** Level 2
 
 ## 2026-09-01 - COMPLEXITY-ANALYSIS - COMPLETE
 
 * Work completed
-    - Clarified intent with operator for issue #8.
+    - Clarified intent with operator for issue #8 and dedicated store README sales pitch.
     - Evaluated complexity indicators and classified task as Level 2 (Simple Enhancement).
     - Initialized active memory bank ephemeral files.
-* Decisions made
-    - Level 2 complexity selected.
-    - Resize logo to 256x256 standard extension icon PNG with transparent background.
-    - Test assertions must verify icon declaration, existence, and packaging inclusion without change-detector pixel or hash locks.
 
 ## 2026-09-01 - PLAN - COMPLETE
 
 * Work completed
     - Established detailed Level 2 implementation plan in `tasks.md`.
-    - Defined single executable unit for icon asset, manifest declaration, and ignore contract following TDD.
-    - Incorporated non-fragile PNG header validation (`0x89504E470D0A1A0A`).
+    - Defined executable unit for `STORE.md` authoring, `package.json` `--readme-path STORE.md` script configuration, and `.vscodeignore` `README.md` exclusion.
+    - Designed non-fragile packaging contract tests in `test/parsers.test.ts`.
     - Completed Pre-Mortem assessment.
 * Decisions made
-    - Place the square transparent icon at `images/icon.png`.
-    - Set `"icon": "images/icon.png"` and verify `"publisher": "texarkanine"` in `package.json`.
-    - In `test/parsers.test.ts`, assert `pkg.icon` path exists, is a valid PNG via header check, and is not excluded by `.vscodeignore`.
-
-## 2026-09-01 - PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
-
-* Work completed
-    - Preflight validated revised plan as test-first, contract-aligned, and non-fragile.
-    - Recorded PASS WITH ADVISORY in `.preflight-status`.
-
-## 2026-09-01 - BUILD - COMPLETE
-
-* Work completed
-    - Unit 1: Generated 256x256 square transparent icon at `images/icon.png`.
-    - Configured `"icon": "images/icon.png"` in `package.json`.
-    - Added test-first contract assertions in `test/parsers.test.ts` checking publisher, icon declaration, non-empty PNG magic header validation, and `.vscodeignore` non-exclusion.
-    - Added `.scratch/` to `.gitignore` and `.scratch/**` to `.vscodeignore`.
-    - Addressed QA feedback: preserved format regex in `publisher present` and simplified buffer subarray read.
-* Decisions made
-    - Icon positioned at `images/icon.png`.
-    - Used 8-byte PNG header check (`0x89504E470D0A1A0A`) to ensure image validity without fragile pixel/checksum locks.
-
-## 2026-09-01 - QA - COMPLETE
-
-* Work completed
-    - Independent QA review via subagent verified completeness, KISS/DRY adherence, packaging inclusion, and non-fragile test contracts.
-    - Recorded `PASS` in `.qa-validation-status`.
-
-## 2026-09-01 - REFLECT - COMPLETE
-
-* Work completed
-    - Created reflection document in `memory-bank/active/reflection/reflection-packaging-icon.md`.
-    - Reconciled persistent memory bank files (`techContext.md`).
-    - Verified clean build, tests, and packaging.
-* Decisions made
-    - Documented packaging icon asset and ignore rules in persistent tech context.
+    - Author user-facing sales pitch in `STORE.md`.
+    - Use `vsce package --no-dependencies --readme-path STORE.md` in `package.json`.
+    - Add `README.md` to `.vscodeignore` to avoid root readme collisions in the VSIX.
