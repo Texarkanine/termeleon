@@ -88,3 +88,13 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
     - No implementation changes required; QA judged the work as-is.
 * Insights
     - The deferred shared-INI-reader advisory from Preflight stayed correctly out of scope for this task (YAGNI), leaving a clean on-ramp documented for a future PuTTY-family task without expanding this one.
+
+## 2026-09-02 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-investigate-mobaxterm-themes.md`.
+    - Reconciled persistent files: no further edits (productContext and systemPatterns already covered MobaXterm in Build; techContext unchanged).
+* Decisions made
+    - Standalone task: next step is `/niko-archive`.
+* Insights
+    - Windows Documents discovery must include OneDrive Known Folder Move.
