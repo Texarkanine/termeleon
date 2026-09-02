@@ -1,4 +1,8 @@
-<img align="right" width="128" src="images/icon.png" alt="Termeleon logo">
+<p align="center">
+  <picture>
+    <img align="right" width="128" src="images/icon.png" alt="Termeleon logo">
+  </picture>
+</p>
 
 # Termeleon
 
