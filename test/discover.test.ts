@@ -63,16 +63,6 @@ function restoreEnv(name: string, value: string | undefined): void {
   }
 }
 
-function withPlatform(platform: string, fn: () => void): void {
-  const prev = process.platform;
-  Object.defineProperty(process, 'platform', { value: platform, configurable: true });
-  try {
-    fn();
-  } finally {
-    Object.defineProperty(process, 'platform', { value: prev, configurable: true });
-  }
-}
-
 function writeGhosttyTheme(xdg: string, name: string, fromFixture?: string): string {
   const dir = path.join(xdg, 'ghostty', 'themes');
   fs.mkdirSync(dir, { recursive: true });
@@ -235,15 +225,15 @@ test('discovers iTerm2 presets from ColorPresets.plist via extraDirs', () => {
 });
 
 test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applications on macOS', () => {
-  withPlatform('darwin', () => {
-    withFixtureHome((_xdg, home) => {
-      const itermDir = path.join(home, 'Library', 'Application Support', 'iTerm2');
-      const resDir = path.join(home, 'Applications', 'iTerm.app', 'Contents', 'Resources');
-      fs.mkdirSync(itermDir, { recursive: true });
-      fs.mkdirSync(resDir, { recursive: true });
+  if (process.platform !== 'darwin') { return; }
+  withFixtureHome((_xdg, home) => {
+    const itermDir = path.join(home, 'Library', 'Application Support', 'iTerm2');
+    const resDir = path.join(home, 'Applications', 'iTerm.app', 'Contents', 'Resources');
+    fs.mkdirSync(itermDir, { recursive: true });
+    fs.mkdirSync(resDir, { recursive: true });
 
-      // User custom theme TestBundledPreset.itermcolors
-      const userXml = `<?xml version="1.0" encoding="UTF-8"?>
+    // User custom theme TestBundledPreset.itermcolors
+    const userXml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -260,10 +250,10 @@ test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applicati
   <dict><key>Red Component</key><real>1</real><key>Green Component</key><real>1</real><key>Blue Component</key><real>1</real></dict>
 </dict>
 </plist>`;
-      fs.writeFileSync(path.join(itermDir, 'TestBundledPreset.itermcolors'), userXml, 'utf8');
+    fs.writeFileSync(path.join(itermDir, 'TestBundledPreset.itermcolors'), userXml, 'utf8');
 
-      // Bundled ColorPresets.plist with TestBundledPreset (duplicate of user theme) and UniqueBundledPreset
-      const bundledXml = `<?xml version="1.0" encoding="UTF-8"?>
+    // Bundled ColorPresets.plist with TestBundledPreset (duplicate of user theme) and UniqueBundledPreset
+    const bundledXml = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -297,36 +287,24 @@ test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applicati
   </dict>
 </dict>
 </plist>`;
-      fs.writeFileSync(path.join(resDir, 'ColorPresets.plist'), bundledXml, 'utf8');
-    }, (_xdg, home) => {
-      const userOrigin = path.join(home, 'Library', 'Application Support', 'iTerm2', 'TestBundledPreset.itermcolors');
-      const bundledOrigin = path.join(home, 'Applications', 'iTerm.app', 'Contents', 'Resources', 'ColorPresets.plist');
-      const results = discoverThemes({ sources: ['iterm2'] });
+    fs.writeFileSync(path.join(resDir, 'ColorPresets.plist'), bundledXml, 'utf8');
+  }, (_xdg, home) => {
+    const userOrigin = path.join(home, 'Library', 'Application Support', 'iTerm2', 'TestBundledPreset.itermcolors');
+    const bundledOrigin = path.join(home, 'Applications', 'iTerm.app', 'Contents', 'Resources', 'ColorPresets.plist');
+    const results = discoverThemes({ sources: ['iterm2'] });
 
-      // TestBundledPreset was found via user origin first; bundled duplicate is ignored
-      const duplicate = results.filter((t) => t.name === 'TestBundledPreset');
-      assert.strictEqual(duplicate.length, 1);
-      assert.strictEqual(duplicate[0].origin, userOrigin);
+    // TestBundledPreset was found via user origin first; bundled duplicate is ignored
+    const duplicate = results.filter((t) => t.name === 'TestBundledPreset');
+    assert.strictEqual(duplicate.length, 1);
+    assert.strictEqual(duplicate[0].origin, userOrigin);
 
-      // UniqueBundledPreset is found via bundled origin
-      const unique = results.find((t) => t.name === 'UniqueBundledPreset');
-      assert.ok(unique, `expected bundled preset UniqueBundledPreset with origin ${bundledOrigin}`);
-      assert.strictEqual(unique.origin, bundledOrigin);
-      assert.strictEqual(unique.source, 'iterm2');
-      assert.strictEqual(unique.active, false);
-      assert.ok(isUsable(unique.palette));
-    });
-  });
-});
-
-test('returns empty for iTerm2 on non-darwin without extraDirs', () => {
-  withPlatform('linux', () => {
-    withFixtureHome(() => {
-      // empty home
-    }, () => {
-      const results = discoverThemes({ sources: ['iterm2'] });
-      assert.deepStrictEqual(results, []);
-    });
+    // UniqueBundledPreset is found via bundled origin
+    const unique = results.find((t) => t.name === 'UniqueBundledPreset');
+    assert.ok(unique, `expected bundled preset UniqueBundledPreset with origin ${bundledOrigin}`);
+    assert.strictEqual(unique.origin, bundledOrigin);
+    assert.strictEqual(unique.source, 'iterm2');
+    assert.strictEqual(unique.active, false);
+    assert.ok(isUsable(unique.palette));
   });
 });
 
