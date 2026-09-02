@@ -3,7 +3,7 @@
   "publisher": "texarkanine",
   "displayName": "Termeleon",
   "icon": "images/icon.png",
-  "description": "Read the color schemes already installed for Ghostty, kitty, Alacritty, WezTerm, iTerm2, Windows Terminal and Xresources, and apply them to the VS Code integrated terminal.",
+  "description": "Use your existing terminal emulator's color schemes in the integrated terminal.",
   "version": "0.4.0",
   "license": "AGPL-3.0-or-later",
   "engines": {
@@ -77,7 +77,7 @@
             "workspace"
           ],
           "default": "ask",
-          "markdownDescription": "Where to write the imported palette. `ask` prompts each time; with no folder open it always uses user settings."
+          "markdownDescription": "Which settings file to use for the imported palette. `ask` prompts each time; with no folder open it always uses user settings."
         },
         "termeleon.sources": {
           "type": "array",
@@ -122,7 +122,7 @@
         "termeleon.livePreview": {
           "type": "boolean",
           "default": true,
-          "description": "Apply each theme as you arrow through the list, and restore your previous colors if you cancel. Turn off if the settings.json churn is disruptive."
+          "description": "Apply each theme as you navigate through the list. Turn off if the settings.json churn is disruptive."
         }
       }
     }

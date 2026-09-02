@@ -9,9 +9,7 @@ Termeleon scans the theme files sitting on your local disk — Ghostty, kitty, A
 - **Live Preview:** Arrow through your installed themes in the picker to preview each palette live in your integrated terminal before applying.
 - **Mirror Active Emulator Theme:** Match whatever theme your terminal emulator is running right now with a single command.
 - **Ghostty Dark & Light Auto-Detect Pairs:** Automatically maps paired dark/light theme configurations to your preferred dark and light workbench themes.
-- **Surgical Settings Management:** Applies colors directly to `workbench.colorCustomizations` and tracks ownership so theme removal cleans up only the keys Termeleon wrote, leaving your other customizations untouched.
 - **Extra Directory Sweeping:** Point Termeleon at dotfiles repositories, custom theme directories, or downloaded theme packs.
-- **Zero External Runtime Dependencies:** Runs entirely inside VS Code's extension host without requiring Node.js or third-party background services.
 
 ## Commands
 
@@ -27,11 +25,11 @@ Termeleon scans the theme files sitting on your local disk — Ghostty, kitty, A
 
 | Emulator | Formats and Locations | Active Theme Detection |
 | --- | --- | --- |
-| **Ghostty** | Config files, bundled app themes, `$XDG_CONFIG_HOME/ghostty/themes/*` | Yes, including `theme = dark:X,light:Y` pairs |
-| **kitty** | `current-theme.conf`, `kitty.conf`, `~/.config/kitty/themes/*.conf` | Yes, via `current-theme.conf` |
 | **Alacritty** | `~/.config/alacritty/**/*.toml` | `alacritty.toml` |
-| **WezTerm** | `~/.config/wezterm/colors/*.toml` | Scans user theme files |
+| **Ghostty** | Config files, bundled app themes, `$XDG_CONFIG_HOME/ghostty/themes/*` | Yes, including `theme = dark:X,light:Y` pairs |
 | **iTerm2** | `*.itermcolors` plist files | Scans installed themes |
+| **kitty** | `current-theme.conf`, `kitty.conf`, `~/.config/kitty/themes/*.conf` | Yes, via `current-theme.conf` |
+| **WezTerm** | `~/.config/wezterm/colors/*.toml` | Scans user theme files |
 | **Windows Terminal** | Color schemes in `settings.json` | Yes, via profile `colorScheme` |
 | **Xresources** | `~/.Xresources`, `~/.Xdefaults` | Yes |
 
@@ -39,7 +37,7 @@ Termeleon scans the theme files sitting on your local disk — Ghostty, kitty, A
 
 Customize Termeleon through your VS Code settings:
 
-- `termeleon.target` (`ask` | `global` | `workspace`): Where to apply the imported palette. Default is `ask`.
+- `termeleon.target` (`ask` | `global` | `workspace`): Where to apply the imported palette (user or workspace settings). Default is `ask`.
 - `termeleon.sources`: Limit scanning to specific emulators (e.g. `["ghostty", "kitty"]`). Default is all emulators.
 - `termeleon.extraDirectories`: List of additional filesystem paths to sweep for theme files (e.g. `~/dotfiles/themes`).
 - `termeleon.scopeToActiveTheme` (`boolean`): Nest colors under `[Your Current Theme]` so they apply only while that workbench theme is active. Default is `false` (palette applies across all workbench themes).
