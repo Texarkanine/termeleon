@@ -299,6 +299,14 @@ export class LivePreview {
     }, PREVIEW_DEBOUNCE_MS);
   }
 
+  schedulePair(dark: Palette, light: Palette): void {
+    if (this.timer) { clearTimeout(this.timer); }
+    this.timer = setTimeout(() => {
+      this.timer = undefined;
+      void applyPalettePair(this.ctx, dark, light, this.opts);
+    }, PREVIEW_DEBOUNCE_MS);
+  }
+
   /** Drops a pending preview write without restoring the snapshot (accept path). */
   stop(): void {
     if (this.timer) {

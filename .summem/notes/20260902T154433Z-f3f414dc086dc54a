@@ -1,0 +1,1 @@
+LivePreview.schedulePair debounces applyPalettePair so multi-candidate mirror preview handles Ghostty dark/light pairs alongside single themes.
