@@ -187,4 +187,125 @@ test('does not throw when a source directory is missing', () => {
   });
 });
 
+test('discovers iTerm2 presets from ColorPresets.plist via extraDirs', () => {
+  withFixtureHome((_xdg, home) => {
+    const customDir = path.join(home, 'custom-presets');
+    fs.mkdirSync(customDir, { recursive: true });
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>ExtraPreset</key>
+  <dict>
+    ${Array.from({ length: 16 }, (_, i) => `
+    <key>Ansi ${i} Color</key>
+    <dict>
+      <key>Red Component</key><real>0.4</real>
+      <key>Green Component</key><real>0.4</real>
+      <key>Blue Component</key><real>0.4</real>
+    </dict>`).join('')}
+    <key>Background Color</key>
+    <dict><key>Red Component</key><real>0.1</real><key>Green Component</key><real>0.1</real><key>Blue Component</key><real>0.1</real></dict>
+    <key>Foreground Color</key>
+    <dict><key>Red Component</key><real>0.9</real><key>Green Component</key><real>0.9</real><key>Blue Component</key><real>0.9</real></dict>
+  </dict>
+</dict>
+</plist>`;
+    fs.writeFileSync(path.join(customDir, 'ColorPresets.plist'), xml, 'utf8');
+  }, (_xdg, home) => {
+    const customDir = path.join(home, 'custom-presets');
+    const origin = path.join(customDir, 'ColorPresets.plist');
+    const results = discoverThemes({ sources: ['iterm2'], extraDirs: [customDir] });
+    const found = results.find((t) => t.origin === origin && t.name === 'ExtraPreset');
+    assert.ok(found, `expected preset ExtraPreset with origin ${origin}`);
+    assert.strictEqual(found.source, 'iterm2');
+    assert.strictEqual(found.active, false);
+    assert.ok(isUsable(found.palette));
+  });
+});
+
+test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applications on macOS', () => {
+  if (process.platform !== 'darwin') { return; }
+  withFixtureHome((_xdg, home) => {
+    const itermDir = path.join(home, 'Library', 'Application Support', 'iTerm2');
+    const resDir = path.join(home, 'Applications', 'iTerm.app', 'Contents', 'Resources');
+    fs.mkdirSync(itermDir, { recursive: true });
+    fs.mkdirSync(resDir, { recursive: true });
+
+    // User custom theme TestBundledPreset.itermcolors
+    const userXml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  ${Array.from({ length: 16 }, (_, i) => `
+  <key>Ansi ${i} Color</key>
+  <dict>
+    <key>Red Component</key><real>0.2</real>
+    <key>Green Component</key><real>0.2</real>
+    <key>Blue Component</key><real>0.2</real>
+  </dict>`).join('')}
+  <key>Background Color</key>
+  <dict><key>Red Component</key><real>0</real><key>Green Component</key><real>0</real><key>Blue Component</key><real>0</real></dict>
+  <key>Foreground Color</key>
+  <dict><key>Red Component</key><real>1</real><key>Green Component</key><real>1</real><key>Blue Component</key><real>1</real></dict>
+</dict>
+</plist>`;
+    fs.writeFileSync(path.join(itermDir, 'TestBundledPreset.itermcolors'), userXml, 'utf8');
+
+    // Bundled ColorPresets.plist with TestBundledPreset (duplicate of user theme) and UniqueBundledPreset
+    const bundledXml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>TestBundledPreset</key>
+  <dict>
+    ${Array.from({ length: 16 }, (_, i) => `
+    <key>Ansi ${i} Color</key>
+    <dict>
+      <key>Red Component</key><real>0.3</real>
+      <key>Green Component</key><real>0.3</real>
+      <key>Blue Component</key><real>0.3</real>
+    </dict>`).join('')}
+    <key>Background Color</key>
+    <dict><key>Red Component</key><real>0</real><key>Green Component</key><real>0</real><key>Blue Component</key><real>0</real></dict>
+    <key>Foreground Color</key>
+    <dict><key>Red Component</key><real>1</real><key>Green Component</key><real>1</real><key>Blue Component</key><real>1</real></dict>
+  </dict>
+  <key>UniqueBundledPreset</key>
+  <dict>
+    ${Array.from({ length: 16 }, (_, i) => `
+    <key>Ansi ${i} Color</key>
+    <dict>
+      <key>Red Component</key><real>0.5</real>
+      <key>Green Component</key><real>0.5</real>
+      <key>Blue Component</key><real>0.5</real>
+    </dict>`).join('')}
+    <key>Background Color</key>
+    <dict><key>Red Component</key><real>0</real><key>Green Component</key><real>0</real><key>Blue Component</key><real>0</real></dict>
+    <key>Foreground Color</key>
+    <dict><key>Red Component</key><real>1</real><key>Green Component</key><real>1</real><key>Blue Component</key><real>1</real></dict>
+  </dict>
+</dict>
+</plist>`;
+    fs.writeFileSync(path.join(resDir, 'ColorPresets.plist'), bundledXml, 'utf8');
+  }, (_xdg, home) => {
+    const userOrigin = path.join(home, 'Library', 'Application Support', 'iTerm2', 'TestBundledPreset.itermcolors');
+    const bundledOrigin = path.join(home, 'Applications', 'iTerm.app', 'Contents', 'Resources', 'ColorPresets.plist');
+    const results = discoverThemes({ sources: ['iterm2'] });
+
+    // TestBundledPreset was found via user origin first; bundled duplicate is ignored
+    const duplicate = results.filter((t) => t.name === 'TestBundledPreset');
+    assert.strictEqual(duplicate.length, 1);
+    assert.strictEqual(duplicate[0].origin, userOrigin);
+
+    // UniqueBundledPreset is found via bundled origin
+    const unique = results.find((t) => t.name === 'UniqueBundledPreset');
+    assert.ok(unique, `expected bundled preset UniqueBundledPreset with origin ${bundledOrigin}`);
+    assert.strictEqual(unique.origin, bundledOrigin);
+    assert.strictEqual(unique.source, 'iterm2');
+    assert.strictEqual(unique.active, false);
+    assert.ok(isUsable(unique.palette));
+  });
+});
+
 console.log(`\n${passed} passed\n`);
