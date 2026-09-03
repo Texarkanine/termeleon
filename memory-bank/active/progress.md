@@ -194,3 +194,10 @@ Investigate whether MobaXterm palettes can be discovered and parsed from on-disk
     - Exact-basename `alacritty.toml` plus collect-before-`isUsable` is what makes an import-only Windows config visible to Mirror.
     - `npm test` in this WSL session is an environment failure, not a product gate for vscode-free discovery work.
 
+## 2026-09-03 - REVIEW POLISH - COMPLETE
+
+* Work completed
+    - Restricted MobaXterm active detection to root configuration file directly within default root (`path.resolve(path.dirname(file)) === path.resolve(dir)`).
+    - Added unit test in `test/discover.test.ts` verifying nested `MobaXterm.ini` inside a default root subdirectory is not marked active.
+
+

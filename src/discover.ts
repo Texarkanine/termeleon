@@ -376,6 +376,7 @@ function discoverMobaXterm(extraDirs: string[]): DiscoveredTheme[] {
       const palette = parseMobaXterm(text);
       if (!isUsable(palette)) { continue; }
       const active = !haveActive && fromDefault
+        && path.resolve(path.dirname(file)) === path.resolve(dir)
         && path.basename(file).toLowerCase() === 'mobaxterm.ini';
       if (active) { haveActive = true; }
       out.push({

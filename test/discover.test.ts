@@ -585,6 +585,20 @@ test('does not parse .mxtsessions beside a valid theme', () => {
   });
 });
 
+test('nested MobaXterm.ini within default root is not marked active', () => {
+  withFixtureHome((_xdg, home) => {
+    process.env.USERPROFILE = home;
+    const mobaDir = path.join(home, 'Documents', 'MobaXterm');
+    writeMobaIni(path.join(mobaDir, 'backup'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const nestedIni = path.join(home, 'Documents', 'MobaXterm', 'backup', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const nested = results.find((t) => t.origin === nestedIni);
+    assert.ok(nested);
+    assert.strictEqual(nested.active, false, 'nested MobaXterm.ini must not be active');
+  });
+});
+
 test('does not throw when MobaXterm directories are missing', () => {
   withFixtureHome(() => {
     // no MobaXterm directories
