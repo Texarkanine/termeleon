@@ -9,7 +9,7 @@ Termeleon scans the theme files and addons sitting on your local disk and applie
 | Alacritty        |✅|✅|✅|
 | Ghostty          |✅|✅|-|
 | kitty            |✅|✅|-|
-| WezTerm          |✅|✅|✅|
+| WezTerm          |✅|✅|-|
 | Xresources       |✅|✅|-|
 | iTerm2           |-|✅|-|
 | MobaXTerm        |-|-|✅|
