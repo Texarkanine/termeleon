@@ -1,6 +1,6 @@
 # Termeleon
 
-You've already picked how you want your terminal to look in your normal terminal emulator. Now make VS Code's terminal match it.
+You've already picked the theme you like for your terminal. Now make VS Code's terminal match it.
 
 Termeleon scans the theme files and addons sitting on your local disk and applies them directly to the VS Code integrated terminal. You can quickly mirror what your emulator is currently running or pick from any of your installed themes.
 
