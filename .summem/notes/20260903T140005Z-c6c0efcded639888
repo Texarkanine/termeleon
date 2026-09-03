@@ -1,0 +1,1 @@
+When Windows redirects Documents via Known Folders to an arbitrary drive or path (outside OneDrive KFM), %USERPROFILE%\Documents will miss MobaXterm.ini unless the folder is added to extraDirectories.
