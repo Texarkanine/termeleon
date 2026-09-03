@@ -31,6 +31,7 @@
     "iterm2",
     "windows-terminal",
     "xresources",
+    "mobaxterm",
     "color-scheme",
     "terminal-themes",
     "import",
@@ -90,7 +91,8 @@
               "wezterm",
               "iterm2",
               "windows-terminal",
-              "xresources"
+              "xresources",
+              "mobaxterm"
             ]
           },
           "default": [],

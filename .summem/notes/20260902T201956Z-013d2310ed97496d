@@ -1,0 +1,1 @@
+Alacritty Mirror on Windows: scan %APPDATA%/alacritty; exact-basename alacritty.toml is the config; if it has no colors, last usable import/[general].import is active. Relative imports are from the config file; %VAR% is not expanded.

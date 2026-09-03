@@ -37,11 +37,17 @@ function withFixtureHome(
     XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME,
     XDG_DATA_DIRS: process.env.XDG_DATA_DIRS,
     LOCALAPPDATA: process.env.LOCALAPPDATA,
+    USERPROFILE: process.env.USERPROFILE,
+    APPDATA: process.env.APPDATA,
+    ONEDRIVE: process.env.ONEDRIVE,
   };
   process.env.HOME = home;
   process.env.XDG_CONFIG_HOME = xdg;
   process.env.XDG_DATA_DIRS = path.join(home, 'xdg-data-missing');
   delete process.env.LOCALAPPDATA;
+  delete process.env.USERPROFILE;
+  delete process.env.APPDATA;
+  delete process.env.ONEDRIVE;
 
   try {
     populate(xdg, home);
@@ -51,6 +57,9 @@ function withFixtureHome(
     restoreEnv('XDG_CONFIG_HOME', prev.XDG_CONFIG_HOME);
     restoreEnv('XDG_DATA_DIRS', prev.XDG_DATA_DIRS);
     restoreEnv('LOCALAPPDATA', prev.LOCALAPPDATA);
+    restoreEnv('USERPROFILE', prev.USERPROFILE);
+    restoreEnv('APPDATA', prev.APPDATA);
+    restoreEnv('ONEDRIVE', prev.ONEDRIVE);
     fs.rmSync(home, { recursive: true, force: true });
   }
 }
@@ -305,6 +314,299 @@ test('discovers bundled iTerm2 presets from ColorPresets.plist under ~/Applicati
     assert.strictEqual(unique.source, 'iterm2');
     assert.strictEqual(unique.active, false);
     assert.ok(isUsable(unique.palette));
+  });
+});
+
+console.log('\nalacritty discovery');
+
+function writeExtraAlacritty(dest: string): string {
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.copyFileSync(path.join(fixtures, 'extra', 'extra-alacritty.toml'), dest);
+  return dest;
+}
+
+function writeAlacrittyConfig(file: string, imports: string[]): void {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const quoted = imports.map((p) => JSON.stringify(p)).join(', ');
+  fs.writeFileSync(file, `[general]\nimport = [${quoted}]\n`, 'utf8');
+}
+
+test('APPDATA import-only config marks the imported theme active', () => {
+  withFixtureHome((_xdg, home) => {
+    const appdata = path.join(home, 'appdata');
+    process.env.APPDATA = appdata;
+    const theme = path.join(home, 'git', 'alacritty-theme', 'themes', 'msx.toml');
+    writeExtraAlacritty(theme);
+    writeAlacrittyConfig(
+      path.join(appdata, 'alacritty', 'alacritty.toml'),
+      [theme],
+    );
+  }, (_xdg, home) => {
+    const theme = path.join(home, 'git', 'alacritty-theme', 'themes', 'msx.toml');
+    const config = path.join(home, 'appdata', 'alacritty', 'alacritty.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const imported = results.find((t) => t.origin === theme);
+    const cfg = results.find((t) => t.origin === config);
+    assert.ok(imported, `expected imported origin ${theme}`);
+    assert.strictEqual(imported.source, 'alacritty');
+    assert.strictEqual(imported.active, true);
+    assert.ok(isUsable(imported.palette));
+    assert.ok(!cfg, 'import-only alacritty.toml is not itself a usable theme');
+  });
+});
+
+test('inline-color alacritty.toml remains active', () => {
+  withFixtureHome((xdg) => {
+    writeExtraAlacritty(path.join(xdg, 'alacritty', 'alacritty.toml'));
+  }, (xdg) => {
+    const origin = path.join(xdg, 'alacritty', 'alacritty.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const found = results.find((t) => t.origin === origin);
+    assert.ok(found, `expected origin ${origin}`);
+    assert.strictEqual(found.active, true);
+    assert.strictEqual(found.name, 'alacritty');
+  });
+});
+
+test('last usable import is active when several define palettes', () => {
+  withFixtureHome((xdg) => {
+    const first = path.join(xdg, 'alacritty', 'themes', 'first.toml');
+    const second = path.join(xdg, 'alacritty', 'themes', 'second.toml');
+    writeExtraAlacritty(first);
+    fs.mkdirSync(path.dirname(second), { recursive: true });
+    fs.writeFileSync(
+      second,
+      fs.readFileSync(path.join(fixtures, 'extra', 'extra-alacritty.toml'), 'utf8')
+        .replace('0x300000', '0x010101'),
+      'utf8',
+    );
+    writeAlacrittyConfig(path.join(xdg, 'alacritty', 'alacritty.toml'), [
+      path.join('themes', 'first.toml'),
+      path.join('themes', 'second.toml'),
+    ]);
+  }, (xdg) => {
+    const first = path.join(xdg, 'alacritty', 'themes', 'first.toml');
+    const second = path.join(xdg, 'alacritty', 'themes', 'second.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const a = results.find((t) => t.origin === first);
+    const b = results.find((t) => t.origin === second);
+    assert.ok(a && b);
+    assert.strictEqual(a.active, false);
+    assert.strictEqual(b.active, true);
+    assert.strictEqual(b.palette.background, '#010101');
+  });
+});
+
+test('missing import is skipped and a later usable import can still be active', () => {
+  withFixtureHome((xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    writeExtraAlacritty(theme);
+    writeAlacrittyConfig(path.join(xdg, 'alacritty', 'alacritty.toml'), [
+      path.join('themes', 'missing.toml'),
+      path.join('themes', 'msx.toml'),
+    ]);
+  }, (xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const found = results.find((t) => t.origin === theme);
+    assert.ok(found);
+    assert.strictEqual(found.active, true);
+  });
+});
+
+test('malformed import is skipped and a later usable import can still be active', () => {
+  withFixtureHome((xdg) => {
+    const bad = path.join(xdg, 'alacritty', 'themes', 'bad.toml');
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    fs.mkdirSync(path.dirname(bad), { recursive: true });
+    fs.writeFileSync(bad, '[[[', 'utf8');
+    writeExtraAlacritty(theme);
+    writeAlacrittyConfig(path.join(xdg, 'alacritty', 'alacritty.toml'), [
+      path.join('themes', 'bad.toml'),
+      path.join('themes', 'msx.toml'),
+    ]);
+  }, (xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    const results = discoverThemes({ sources: ['alacritty'] });
+    const found = results.find((t) => t.origin === theme);
+    assert.ok(found);
+    assert.strictEqual(found.active, true);
+    assert.ok(results.every((t) => t.origin !== path.join(xdg, 'alacritty', 'themes', 'bad.toml')));
+  });
+});
+
+test('extraDirs overlapping the imported file lists it once and active', () => {
+  withFixtureHome((xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    writeExtraAlacritty(theme);
+    writeAlacrittyConfig(path.join(xdg, 'alacritty', 'alacritty.toml'), [
+      path.join('themes', 'msx.toml'),
+    ]);
+  }, (xdg) => {
+    const theme = path.join(xdg, 'alacritty', 'themes', 'msx.toml');
+    const extra = path.join(xdg, 'alacritty', 'themes');
+    const results = discoverThemes({ sources: ['alacritty'], extraDirs: [extra] });
+    const matches = results.filter((t) => t.origin === theme);
+    assert.strictEqual(matches.length, 1);
+    assert.strictEqual(matches[0].active, true);
+  });
+});
+
+test('extra-alacritty.toml is not treated as a config', () => {
+  withFixtureHome((_xdg, home) => {
+    writeExtraAlacritty(path.join(home, 'pack', 'extra-alacritty.toml'));
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'pack', 'extra-alacritty.toml');
+    const results = discoverThemes({
+      sources: ['alacritty'],
+      extraDirs: [path.join(home, 'pack')],
+    });
+    const found = results.find((t) => t.origin === origin);
+    assert.ok(found);
+    assert.strictEqual(found.active, false);
+  });
+});
+
+test('does not throw when Alacritty directories are missing', () => {
+  withFixtureHome(() => {
+    // no alacritty directories, APPDATA unset by withFixtureHome
+  }, () => {
+    assert.doesNotThrow(() => {
+      const results = discoverThemes({ sources: ['alacritty'] });
+      assert.deepStrictEqual(results, []);
+    });
+  });
+});
+
+console.log('\nmobaxterm discovery');
+
+function writeMobaIni(dir: string, name: string, fromFixture = 'mobaxterm-colors.ini'): string {
+  fs.mkdirSync(dir, { recursive: true });
+  const dest = path.join(dir, name);
+  fs.copyFileSync(path.join(fixtures, fromFixture), dest);
+  return dest;
+}
+
+test('discovers USERPROFILE Documents MobaXterm.ini as active', () => {
+  withFixtureHome((_xdg, home) => {
+    process.env.USERPROFILE = home;
+    writeMobaIni(path.join(home, 'Documents', 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'Documents', 'MobaXterm', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const found = results.filter((t) => t.origin === origin);
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].source, 'mobaxterm');
+    assert.strictEqual(found[0].name, 'MobaXterm');
+    assert.strictEqual(found[0].active, true);
+    assert.ok(isUsable(found[0].palette));
+  });
+});
+
+test('discovers ONEDRIVE Documents MobaXterm.ini when plain Documents is absent', () => {
+  withFixtureHome((_xdg, home) => {
+    const od = path.join(home, 'od');
+    process.env.ONEDRIVE = od;
+    writeMobaIni(path.join(od, 'Documents', 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'od', 'Documents', 'MobaXterm', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const found = results.find((t) => t.origin === origin);
+    assert.ok(found, `expected origin ${origin}`);
+    assert.strictEqual(found.source, 'mobaxterm');
+    assert.strictEqual(found.active, true);
+  });
+});
+
+test('discovers APPDATA MobaXterm.ini when Documents and OneDrive are absent', () => {
+  withFixtureHome((_xdg, home) => {
+    const appdata = path.join(home, 'appdata');
+    process.env.APPDATA = appdata;
+    writeMobaIni(path.join(appdata, 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'appdata', 'MobaXterm', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const found = results.find((t) => t.origin === origin);
+    assert.ok(found, `expected origin ${origin}`);
+    assert.strictEqual(found.active, true);
+  });
+});
+
+test('only the first default-root MobaXterm.ini is active', () => {
+  withFixtureHome((_xdg, home) => {
+    process.env.USERPROFILE = home;
+    process.env.APPDATA = path.join(home, 'appdata');
+    writeMobaIni(path.join(home, 'Documents', 'MobaXterm'), 'MobaXterm.ini');
+    writeMobaIni(path.join(home, 'appdata', 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const docs = path.join(home, 'Documents', 'MobaXterm', 'MobaXterm.ini');
+    const app = path.join(home, 'appdata', 'MobaXterm', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const a = results.find((t) => t.origin === docs);
+    const b = results.find((t) => t.origin === app);
+    assert.ok(a && b);
+    assert.strictEqual(a.active, true);
+    assert.strictEqual(b.active, false);
+  });
+});
+
+test('discovers extraDirs .mxtcolors and .ini as inactive', () => {
+  withFixtureHome((_xdg, home) => {
+    const extra = path.join(home, 'themes');
+    writeMobaIni(extra, 'mocha.mxtcolors');
+    writeMobaIni(extra, 'pack.ini');
+  }, (_xdg, home) => {
+    const extra = path.join(home, 'themes');
+    const results = discoverThemes({ sources: ['mobaxterm'], extraDirs: [extra] });
+    const mocha = results.find((t) => t.origin === path.join(extra, 'mocha.mxtcolors'));
+    const pack = results.find((t) => t.origin === path.join(extra, 'pack.ini'));
+    assert.ok(mocha && pack);
+    assert.strictEqual(mocha.active, false);
+    assert.strictEqual(pack.active, false);
+    assert.strictEqual(mocha.name, 'mocha');
+    assert.strictEqual(pack.name, 'pack');
+    assert.ok(results.every((t) => t.origin.startsWith(extra + path.sep)));
+  });
+});
+
+test('does not parse .mxtsessions beside a valid theme', () => {
+  withFixtureHome((_xdg, home) => {
+    const extra = path.join(home, 'themes');
+    writeMobaIni(extra, 'ok.ini');
+    fs.writeFileSync(
+      path.join(extra, 'sessions.mxtsessions'),
+      fs.readFileSync(path.join(fixtures, 'mobaxterm-colors.ini'), 'utf8'),
+    );
+  }, (_xdg, home) => {
+    const extra = path.join(home, 'themes');
+    const results = discoverThemes({ sources: ['mobaxterm'], extraDirs: [extra] });
+    assert.strictEqual(results.length, 1);
+    assert.strictEqual(results[0].origin, path.join(extra, 'ok.ini'));
+  });
+});
+
+test('nested MobaXterm.ini within default root is not marked active', () => {
+  withFixtureHome((_xdg, home) => {
+    process.env.USERPROFILE = home;
+    const mobaDir = path.join(home, 'Documents', 'MobaXterm');
+    writeMobaIni(path.join(mobaDir, 'backup'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const nestedIni = path.join(home, 'Documents', 'MobaXterm', 'backup', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'] });
+    const nested = results.find((t) => t.origin === nestedIni);
+    assert.ok(nested);
+    assert.strictEqual(nested.active, false, 'nested MobaXterm.ini must not be active');
+  });
+});
+
+test('does not throw when MobaXterm directories are missing', () => {
+  withFixtureHome(() => {
+    // no MobaXterm directories
+  }, () => {
+    assert.doesNotThrow(() => {
+      const results = discoverThemes({ sources: ['mobaxterm'] });
+      assert.deepStrictEqual(results, []);
+    });
   });
 });
 

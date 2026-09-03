@@ -5,8 +5,9 @@ import * as path from 'path';
 import { DiscoveredTheme, Palette, isUsable } from './palette';
 import { parseGhostty, activeGhosttyThemes } from './parsers/ghostty';
 import { parseKitty, parseXresources } from './parsers/kitty';
-import { parseAlacritty, parseWezterm, weztermSchemeName } from './parsers/toml';
+import { parseAlacritty, alacrittyImports, resolveAlacrittyImport, parseWezterm, weztermSchemeName } from './parsers/toml';
 import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from './parsers/iterm2';
+import { parseMobaXterm } from './parsers/mobaxterm';
 
 /** Hard ceilings so a pathological directory can't stall the picker. */
 const MAX_DEPTH = 3;
@@ -59,7 +60,7 @@ function walk(dir: string, exts: string[] | null, budget = { n: MAX_FILES_PER_SO
 }
 
 function stem(p: string): string {
-  return path.basename(p).replace(/\.(conf|toml|itermcolors|json|yml|yaml)$/i, '');
+  return path.basename(p).replace(/\.(conf|toml|itermcolors|json|yml|yaml|ini|mxtcolors)$/i, '');
 }
 
 // --------------------------------------------------------------------------
@@ -159,12 +160,28 @@ function discoverAlacritty(extraDirs: string[]): DiscoveredTheme[] {
   const bases = [
     path.join(xdgConfigDir(), 'alacritty'),
     path.join(homeDir(), '.alacritty'),
-    ...extraDirs,
   ];
+  if (process.env.APPDATA) {
+    bases.push(path.join(process.env.APPDATA, 'alacritty'));
+  }
+  bases.push(...extraDirs);
+
+  const seen = new Set<string>();
   const out: DiscoveredTheme[] = [];
+  const configs: string[] = [];
+
+  const resolvedKey = (file: string): string => {
+    try { return fs.realpathSync(file); } catch { return path.resolve(file); }
+  };
 
   for (const base of bases) {
     for (const file of walk(base, ['.toml'])) {
+      const key = resolvedKey(file);
+      if (seen.has(key)) { continue; }
+      seen.add(key);
+      if (path.basename(file).toLowerCase() === 'alacritty.toml') {
+        configs.push(file);
+      }
       const text = readText(file);
       if (!text) { continue; }
       let palette: Palette;
@@ -174,10 +191,54 @@ function discoverAlacritty(extraDirs: string[]): DiscoveredTheme[] {
         name: stem(file),
         source: 'alacritty',
         origin: file,
-        active: /alacritty\.toml$/i.test(file),
+        active: false,
         palette,
       });
     }
+  }
+
+  const home = process.env.USERPROFILE || homeDir();
+  const activeKeys = new Set<string>();
+
+  for (const config of configs) {
+    const text = readText(config);
+    if (!text) { continue; }
+    let configPalette: Palette | undefined;
+    try {
+      configPalette = parseAlacritty(text);
+    } catch {
+      configPalette = undefined;
+    }
+    if (configPalette && isUsable(configPalette)) {
+      activeKeys.add(resolvedKey(config));
+      continue;
+    }
+    let lastUsable: string | undefined;
+    for (const spec of alacrittyImports(text)) {
+      const resolved = resolveAlacrittyImport(spec, config, home);
+      const importText = readText(resolved);
+      if (!importText) { continue; }
+      let palette: Palette;
+      try { palette = parseAlacritty(importText); } catch { continue; }
+      if (!isUsable(palette)) { continue; }
+      lastUsable = resolved;
+      const key = resolvedKey(resolved);
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push({
+          name: stem(resolved),
+          source: 'alacritty',
+          origin: resolved,
+          active: false,
+          palette,
+        });
+      }
+    }
+    if (lastUsable) { activeKeys.add(resolvedKey(lastUsable)); }
+  }
+
+  for (const t of out) {
+    t.active = activeKeys.has(resolvedKey(t.origin));
   }
   return out;
 }
@@ -287,6 +348,49 @@ function discoverWindowsTerminal(): DiscoveredTheme[] {
   return out;
 }
 
+function discoverMobaXterm(extraDirs: string[]): DiscoveredTheme[] {
+  const user = process.env.USERPROFILE || homeDir();
+  const defaultRoots: string[] = [path.join(user, 'Documents', 'MobaXterm')];
+  if (process.env.ONEDRIVE) {
+    defaultRoots.push(path.join(process.env.ONEDRIVE, 'Documents', 'MobaXterm'));
+  }
+  defaultRoots.push(path.join(user, 'OneDrive', 'Documents', 'MobaXterm'));
+  if (process.env.APPDATA) {
+    defaultRoots.push(path.join(process.env.APPDATA, 'MobaXterm'));
+  }
+
+  const defaultSet = new Set(defaultRoots.map((d) => path.resolve(d)));
+  const seen = new Set<string>();
+  const out: DiscoveredTheme[] = [];
+  let haveActive = false;
+
+  for (const dir of [...defaultRoots, ...extraDirs]) {
+    const fromDefault = defaultSet.has(path.resolve(dir));
+    for (const file of walk(dir, ['.ini', '.mxtcolors'])) {
+      let key = file;
+      try { key = fs.realpathSync(file); } catch { /* keep walk path */ }
+      if (seen.has(key)) { continue; }
+      seen.add(key);
+      const text = readText(file);
+      if (!text) { continue; }
+      const palette = parseMobaXterm(text);
+      if (!isUsable(palette)) { continue; }
+      const active = !haveActive && fromDefault
+        && path.resolve(path.dirname(file)) === path.resolve(dir)
+        && path.basename(file).toLowerCase() === 'mobaxterm.ini';
+      if (active) { haveActive = true; }
+      out.push({
+        name: stem(file),
+        source: 'mobaxterm',
+        origin: file,
+        active,
+        palette,
+      });
+    }
+  }
+  return out;
+}
+
 function discoverXresources(): DiscoveredTheme[] {
   const out: DiscoveredTheme[] = [];
   for (const file of [path.join(homeDir(), '.Xresources'), path.join(homeDir(), '.Xdefaults')]) {
@@ -385,6 +489,7 @@ export function discoverThemes(opts: DiscoverOptions = {}): DiscoveredTheme[] {
   run('iterm2', () => discoverIterm2(extraDirs));
   run('windows-terminal', discoverWindowsTerminal);
   run('xresources', discoverXresources);
+  run('mobaxterm', () => discoverMobaXterm(extraDirs));
 
   // Active themes first, then alphabetical within source.
   return results.sort((a, b) =>
