@@ -43,7 +43,8 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
   - Constraints: vscode-free core; no native addons; do not mark extraDir theme packs or nested INIs active; first-default-root-wins stays the active rule among real config roots.
   - → Resolved: add Known Folder Documents (`GetFolderPath('MyDocuments')`, registry Personal fallback) as a default root; inject `DiscoverOptions.documentsDir` for tests. Do not use `LastIniPath` as the primary mechanism; extraDirs stay inactive. (see `memory-bank/active/creative/creative-mobaxterm-active-root.md`)
 
-- [ ] **Where the scan cache lives and when it refreshes**
+- [x] **Where the scan cache lives and when it refreshes**
   - Problem: Commands currently block on a full `discoverThemes` walk every time. Need serve-cache-immediately, wait only when empty, start a scan on activate.
   - Why ambiguous: in-memory (warm after activate) vs persist in `globalState` (instant after restart, stale risk) vs both; whether a command also kicks a background refresh or only activate does.
   - Constraints: vscode-bound only; cache key must include `sources` + `extraDirectories`; empty cache still waits; do not import `vscode` into discover.
+  - → Resolved: process-lifetime in-memory `ThemeCache`; activate warms; commands serve or join; no `globalState`; no per-command rescan; invalidate on sources/extraDirectories change. (see `memory-bank/active/creative/creative-scan-cache.md`)
