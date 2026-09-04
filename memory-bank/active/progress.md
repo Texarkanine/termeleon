@@ -40,3 +40,14 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
     - No persistence, no per-command rescan, no worker; invalidate when sources/extraDirectories change
 * Insights
     - Wrapping a sync walk in a Promise does not move it off the extension host; that hitch once per window is the accepted tradeoff
+
+## 2026-09-04 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote Level 3 implementation plan in `memory-bank/active/tasks.md` (ThemeCache, Known Folder Documents root, extension wiring, matrices, memory-bank pointers)
+    - Test plan maps behaviors to `test/scanCache.test.ts` and `test/discover.test.ts`; no new host walk tests
+* Decisions made
+    - Implementation order: cache (fewest deps) → Documents root → extension wiring → docs → persistent memory-bank
+    - `test:parsers` gains a third `tsx` process for ThemeCache
+* Insights
+    - Mirror multi-candidate UI is already tested; the missing production behavior is MobaXterm `active` plus serving the scan from memory
