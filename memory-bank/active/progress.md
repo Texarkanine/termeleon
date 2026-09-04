@@ -147,3 +147,14 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
     - Verified all 5 project-brief requirements and 5 acceptance criteria have concrete, tested implementations; no stubs, TODOs, or placeholder debris found in `src/`
 * Insights
     - README/STORE matrices, `systemPatterns.md`, and `techContext.md` were all updated consistently with the shipped behavior — no doc drift
+
+## 2026-09-04 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-mobaxterm-active-and-scan-cache.md`
+    - Reconciled persistent files: no further edits
+* Decisions made
+    - productContext unchanged: this was an existing Mirror/Import use case on Windows, not a new constituency
+    - systemPatterns and techContext already carried Known Folder Documents, ThemeCache, and the third `tsx` process from Build
+* Insights
+    - Empty `activationEvents` on 1.75+ is command-only activation; a cache key must not sort `extraDirectories`; re-run preflight after amending a `FAIL (fixable)`
