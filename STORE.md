@@ -15,7 +15,7 @@ Termeleon scans the theme files and addons sitting on your local disk and applie
 | MobaXTerm        |-|-|✅|
 | Windows Terminal |-|-|✅|
 
-✅ pick and mirror · 📝 pick only · - not on this OS
+✅ pick and mirror · 📝 pick only
 
 ## Features
 
