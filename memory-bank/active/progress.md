@@ -123,3 +123,15 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
     - Follow the plan order: ThemeCache, then Known Folder Documents, then extension wiring, then docs, then memory-bank pointers
 * Insights
     - Advisory mtime-signature freshness remains out of scope
+
+## 2026-09-04 - BUILD - COMPLETE
+
+* Work completed
+    - ThemeCache in `src/cache.ts` with `test/cache.test.ts` wired into `test:parsers`
+    - Known Folder Documents as a MobaXterm default root (`documentsDir` / `windowsDocumentsDir`)
+    - `collect`/`activate` serve the cache; `onStartupFinished`; config-change `load`
+    - README/STORE pick-vs-mirror matrices and legends; memory-bank pointers
+* Decisions made
+    - None beyond the plan; lookup memo stores `undefined` so a failed win32 lookup is not retried every scan
+* Insights
+    - Coincidence (Known Folder == USERPROFILE Documents) was already one origin via `seen`; root `path.resolve` dedupe still matches the plan

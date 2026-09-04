@@ -146,17 +146,17 @@ Addressed `FAIL (fixable)`: `onStartupFinished`; brief no longer promises per-co
 - No tests: prose/policy artifact
 - Creative ref: none (operator symbol rules)
 
-1. OS tables: `✅` only where pick and mirror both work; `📝` for WezTerm (Linux/macOS) and iTerm2 (macOS); MobaXterm Windows `✅` after step 2; omit `🪞` unless a cell needs it.
-2. Legend under each OS table for symbols actually used (`✅`, `📝`, and `-` if we keep the empty mark).
-3. Formats / supported-emulators rows: MobaXterm default location is Known Folder Documents (`My Documents`) plus USERPROFILE fallback, OneDrive, AppData; active = first default-root `MobaXterm.ini`.
+1. [x] OS tables: `✅` only where pick and mirror both work; `📝` for WezTerm (Linux/macOS) and iTerm2 (macOS); MobaXterm Windows `✅` after step 2; omit `🪞` unless a cell needs it.
+2. [x] Legend under each OS table for symbols actually used (`✅`, `📝`, and `-` if we keep the empty mark).
+3. [x] Formats / supported-emulators rows: MobaXterm default location is Known Folder Documents (`My Documents`) plus USERPROFILE fallback, OneDrive, AppData; active = first default-root `MobaXterm.ini`.
 
 ### 5. Persistent memory-bank pointers — prose/policy
 
 - Files: `memory-bank/systemPatterns.md`, `memory-bank/techContext.md`
 - No tests: prose/policy artifact
 
-1. systemPatterns: MobaXterm default roots include Known Folder Documents; extraDirs still inactive; ThemeCache is vscode-free and process-lifetime, wired from `activate`/`collect`.
-2. techContext: `test:parsers` also runs `tsx test/cache.test.ts`.
+1. [x] systemPatterns: MobaXterm default roots include Known Folder Documents; extraDirs still inactive; ThemeCache is vscode-free and process-lifetime, wired from `activate`/`collect`.
+2. [x] techContext: `test:parsers` also runs `tsx test/cache.test.ts`.
 
 ## Technology Validation
 
@@ -189,5 +189,5 @@ No new technology - validation not required. `child_process.spawnSync` is Node s
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight
-- [ ] Build
+- [x] Build
 - [ ] QA

@@ -12,11 +12,13 @@ Termeleon scans the theme files and addons sitting on your local disk and applie
 | Alacritty        |✅|✅|✅|
 | Ghostty          |✅|✅|-|
 | kitty            |✅|✅|-|
-| WezTerm          |✅|✅|-|
+| WezTerm          |📝|📝|-|
 | Xresources       |✅|✅|-|
-| iTerm2           |-|✅|-|
+| iTerm2           |-|📝|-|
 | MobaXTerm        |-|-|✅|
 | Windows Terminal |-|-|✅|
+
+✅ pick and mirror · 📝 pick only · - not on this OS
 
 ## Requirements
 
@@ -46,7 +48,7 @@ Prefixed with `Termeleon: `
 | Ghostty | `$XDG_CONFIG_HOME/ghostty/themes/*`, bundled app themes, inline config palettes | yes, including `theme = dark:X,light:Y` |
 | iTerm2 | `*.itermcolors` under iTerm2 app support, bundled presets from `iTerm.app/Contents/Resources/ColorPresets.plist` | no (profile colors are saved in macOS preferences) |
 | kitty | `~/.config/kitty/themes/*.conf`, `current-theme.conf`, `kitty.conf` | yes, via `current-theme.conf` |
-| MobaXterm | `%USERPROFILE%\Documents\MobaXterm\MobaXterm.ini`, `%OneDrive%\Documents\MobaXterm\MobaXterm.ini`, `%APPDATA%\MobaXterm\MobaXterm.ini`; `.mxtcolors` / theme `.ini` via `extraDirectories` | yes, first default-root `MobaXterm.ini` |
+| MobaXterm | Known Folder Documents (`My Documents`) plus `%USERPROFILE%\Documents` fallback, OneDrive, AppData; `.mxtcolors` / theme `.ini` via `extraDirectories` | yes, first default-root `MobaXterm.ini` |
 | WezTerm | `~/.config/wezterm/colors/*.toml`, `~/.config/wezterm/*.toml` (user/addon files only) | no (config is dynamic Lua) |
 | Windows Terminal | entries in `schemes` array of `settings.json` (custom/imported schemes only) | yes, via `profiles.defaults.colorScheme` or the default profile |
 | Xresources | `~/.Xresources`, `~/.Xdefaults` | assumed active |

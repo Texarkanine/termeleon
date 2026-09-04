@@ -4,7 +4,7 @@
 
 This is a VS Code UI-kind extension whose job is to copy a palette from files on the local disk into `workbench.colorCustomizations`. It does not contribute a color theme. The load-bearing split is:
 
-- **vscode-free core** (`src/discover.ts`, `src/palette.ts`, `src/parsers/`): scan the filesystem, parse emulator formats, emit a `Palette`. These modules must not import `vscode`. That is what makes `npm run test:parsers` possible without an extension host, and what would let the same code become a CLI later.
+- **vscode-free core** (`src/discover.ts`, `src/palette.ts`, `src/parsers/`, `src/cache.ts`): scan the filesystem, parse emulator formats, emit a `Palette`, and memoize a scan result. These modules must not import `vscode`. That is what makes `npm run test:parsers` possible without an extension host, and what would let the same code become a CLI later.
 - **vscode-bound shell** (`src/extension.ts`, `src/apply.ts`): commands, the QuickPick, and writing/restoring settings. `apply.ts` is the only module that mutates configuration.
 
 Every emulator format collapses onto one `Palette`. Mapping to VS Code keys happens once, in `toColorCustomizations`. Adding a format means a parser plus a discovery function; it must not grow a second mapping table.
@@ -23,7 +23,8 @@ graph TD
     Discover --> Parsers["Per-emulator parsers"]:::core
     Parsers --> Palette["Palette"]:::core
     Palette --> Map["toColorCustomizations"]:::core
-    Ext["Commands and picker"]:::vscode --> Discover
+    Ext["Commands and picker"]:::vscode --> Cache["ThemeCache"]:::core
+    Cache --> Discover
     Ext --> Apply["applyPalette"]:::vscode
     Map --> Apply
     Apply --> Settings["workbench.colorCustomizations"]:::vscode
@@ -37,7 +38,7 @@ Violating the vscode-free boundary (importing `vscode` into a parser or into dis
 
 ## vscode-Free Core
 
-`discover.ts`, `palette.ts`, and `src/parsers/*` use Node `fs` / `os` / `path` only. `extension.ts` and `apply.ts` are the vscode-importing surface. Parser tests in `test/parsers.test.ts` and discovery tests in `test/discover.test.ts` import the core directly and run with `tsx`. Discovery reads `$HOME` / `$XDG_CONFIG_HOME` at scan time so those tests can point at a fixture tree. vscode-bound apply, remove, and live-preview behavior is covered by Mocha tests under `test/host/` in an Extension Development Host.
+`discover.ts`, `palette.ts`, `cache.ts`, and `src/parsers/*` must not import `vscode`. They use Node stdlib (`fs` / `os` / `path`; `discover.ts` also uses `child_process` for the win32 Documents lookup). `extension.ts` and `apply.ts` are the vscode-importing surface. Parser tests in `test/parsers.test.ts`, discovery tests in `test/discover.test.ts`, and cache tests in `test/cache.test.ts` import the core directly and run with `tsx`. Discovery reads `$HOME` / `$XDG_CONFIG_HOME` at scan time so those tests can point at a fixture tree. vscode-bound apply, remove, and live-preview behavior is covered by Mocha tests under `test/host/` in an Extension Development Host. `ThemeCache` is process-lifetime only: `activate` and `collect` call `load`; a window reload is a new scan.
 
 ## Surgical Settings Ownership
 
@@ -53,4 +54,4 @@ The picker does not use a scratch overlay. Arrowing through items schedules `Liv
 
 ## Best-Effort Discovery
 
-`discoverThemes` wraps each source in try/catch. Walks are capped (`MAX_DEPTH`, `MAX_FILES_PER_SOURCE`) so a huge directory cannot stall the picker. Active themes sort first; within a source, names are alphabetical. Active-theme detection is per-emulator and incomplete by design (WezTerm, iTerm2, and Xresources do not all report "in use": WezTerm config is dynamic Lua, and iTerm2 profile colors reside in macOS preferences plist). Windows Terminal marks the scheme named by `profiles.defaults.colorScheme` or the default profile when found in `schemes`. MobaXterm marks the first usable `MobaXterm.ini` from its Windows default roots (plain Documents, OneDrive-redirected Documents, AppData) as active. Alacritty treats exact-basename `alacritty.toml` as the config (Unix XDG / `~/.alacritty`, and Windows `%APPDATA%\alacritty`): if that file is a usable palette it is active; otherwise the last usable `import` / `[general].import` is active. Relative import paths resolve from the config file; `%VAR%` is not expanded. Built-in presets compiled into binaries (WezTerm) or package defaults (Windows Terminal) or a MobaXterm `DefaultColorScheme` index without RGB are not discovered unless defined as custom files on disk or in `schemes`; bundled iTerm2 presets are discovered from `ColorPresets.plist` in `iTerm.app`. `extraDirs` are extra theme-directory roots for every walkable format (Ghostty, kitty, Alacritty, WezTerm, iTerm2, MobaXterm); Windows Terminal and Xresources stay on their fixed files. A new walkable format must take `extraDirs` the same way, or `extraDirectories` will silently omit it.
+`discoverThemes` wraps each source in try/catch. Walks are capped (`MAX_DEPTH`, `MAX_FILES_PER_SOURCE`) so a huge directory cannot stall the picker. Active themes sort first; within a source, names are alphabetical. Active-theme detection is per-emulator and incomplete by design (WezTerm, iTerm2, and Xresources do not all report "in use": WezTerm config is dynamic Lua, and iTerm2 profile colors reside in macOS preferences plist). Windows Terminal marks the scheme named by `profiles.defaults.colorScheme` or the default profile when found in `schemes`. MobaXterm marks the first usable `MobaXterm.ini` from its Windows default roots (Known Folder Documents, USERPROFILE Documents fallback, OneDrive-redirected Documents, AppData) as active. Extra-directory theme packs stay inactive. Alacritty treats exact-basename `alacritty.toml` as the config (Unix XDG / `~/.alacritty`, and Windows `%APPDATA%\alacritty`): if that file is a usable palette it is active; otherwise the last usable `import` / `[general].import` is active. Relative import paths resolve from the config file; `%VAR%` is not expanded. Built-in presets compiled into binaries (WezTerm) or package defaults (Windows Terminal) or a MobaXterm `DefaultColorScheme` index without RGB are not discovered unless defined as custom files on disk or in `schemes`; bundled iTerm2 presets are discovered from `ColorPresets.plist` in `iTerm.app`. `extraDirs` are extra theme-directory roots for every walkable format (Ghostty, kitty, Alacritty, WezTerm, iTerm2, MobaXterm); Windows Terminal and Xresources stay on their fixed files. A new walkable format must take `extraDirs` the same way, or `extraDirectories` will silently omit it.
