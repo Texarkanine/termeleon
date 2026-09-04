@@ -115,10 +115,10 @@ Addressed `FAIL (fixable)`: `onStartupFinished`; brief no longer promises per-co
 - Files: `src/cache.ts`, `test/cache.test.ts`, `package.json` (`test:parsers`)
 - Creative ref: `memory-bank/active/creative/creative-scan-cache.md`
 
-1. Stub tests: `test/cache.test.ts` cases for first load, second load, coalescing, key change, peek, retry after throw, `cacheKey` sources-order vs extraDirectories-order.
-2. Stub interface: `cacheKey(sources, extraDirs)`; `ThemeCache` with `peek(key)` and `load(key, scan)`.
-3. Write tests and run red: `npx tsx test/cache.test.ts`
-4. Write code and run green: implement `cacheKey` (sort `sources` only; serialize `extraDirectories` as configured); in-memory memo; `setTimeout(0)` so `load` returns a promise before `scan` runs; share in-flight; clear on key change and on failure.
+1. [x] Stub tests: `test/cache.test.ts` cases for first load, second load, coalescing, key change, peek, retry after throw, `cacheKey` sources-order vs extraDirectories-order.
+2. [x] Stub interface: `cacheKey(sources, extraDirs)`; `ThemeCache` with `peek(key)` and `load(key, scan)`.
+3. [x] Write tests and run red: `npx tsx test/cache.test.ts`
+4. [x] Write code and run green: implement `cacheKey` (sort `sources` only; serialize `extraDirectories` as configured); in-memory memo; `setTimeout(0)` so `load` returns a promise before `scan` runs; share in-flight; clear on key change and on failure.
 
 ### 2. Known Folder Documents root — executable
 

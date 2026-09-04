@@ -136,7 +136,7 @@
     "compile-tests": "tsc -p tsconfig.test.json",
     "pretest:host": "npm run compile && npm run compile-tests",
     "test:host": "vscode-test",
-    "test:parsers": "tsx test/parsers.test.ts && tsx test/discover.test.ts",
+    "test:parsers": "tsx test/parsers.test.ts && tsx test/discover.test.ts && tsx test/cache.test.ts",
     "test:coverage": "c8 --reporter=lcov --reporter=text npm run test:parsers",
     "test": "npm run test:parsers && npm run test:host"
   },
