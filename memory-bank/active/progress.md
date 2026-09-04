@@ -108,3 +108,9 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
     - No task-plan edits were needed; the plan is ready for Build
 * Insights
     - A root-mtime freshness signature could refresh cache entries for directory additions or removals without a full per-command walk, but remains out of scope and advisory
+
+## 2026-09-04 - HANDOFF - mermaid + baton
+
+* Work completed
+    - Sequence diagrams no longer use participant `Activate` or parenthesized messages (Cursor Mermaid lex errors)
+    - `/handoff` after `/nk-save`

@@ -14,16 +14,16 @@ Commands must not start a new walk when this window already scanned the same `so
 
 ```mermaid
 sequenceDiagram
-    participant Activate as activate
-    participant Cache as ThemeCache
-    participant Discover as discoverThemes
-    participant Cmd as Import or Mirror
+    participant Win
+    participant Store
+    participant Disk
+    participant UI as ImportMirror
 
-    Activate->>Cache: load(key, scan)
-    Cache->>Discover: scan on next turn
-    Discover-->>Cache: themes
-    Cmd->>Cache: load(same key)
-    Cache-->>Cmd: cached themes
+    Win->>Store: start scan
+    Store->>Disk: walk themes
+    Disk-->>Store: theme list
+    UI->>Store: same key
+    Store-->>UI: cached list
 ```
 
 ## Component Analysis

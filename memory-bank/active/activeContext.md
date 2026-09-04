@@ -4,8 +4,9 @@
 **Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
 
 ## What Was Done
-- Validated the amended Level 3 plan against the codebase; the TDD stub encoding, file naming, cache semantics, Known Folder scope, and manifest wiring all pass.
-- No plan changes were necessary. A future cache-freshness signature is recorded as advisory only.
+- Level 3 plan ready for Build: Known Folder Documents as MobaXterm default root; in-memory `ThemeCache`; `onStartupFinished`; brief is launch/config rescan only.
+- Sequence diagrams in `tasks.md` / creative-scan-cache rewritten: never name a participant `Activate` (reserved); do not quote messages or put parens/commas in them.
+- Preflight `PASS WITH ADVISORY` (mtime cache signature out of scope).
 
 ## Next Step
-- Run `/niko-build`.
+- Run `/niko-build` on branch `windows-again`.

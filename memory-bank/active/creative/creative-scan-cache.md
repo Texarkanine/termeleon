@@ -25,17 +25,17 @@
 
 ```mermaid
 sequenceDiagram
-    participant Activate as activate
-    participant Cache as ThemeCache
-    participant Discover as discoverThemes
-    participant Cmd as Import or Mirror
+    participant Win
+    participant Store
+    participant Disk
+    participant UI as ImportMirror
 
-    Activate->>Cache: load(key, scan)
-    Cache->>Discover: scan on next turn
-    Discover-->>Cache: themes
-    Cmd->>Cache: load(same key)
-    Cache-->>Cmd: cached themes
-    Note over Cmd: empty cache awaits in-flight or starts one
+    Win->>Store: start scan
+    Store->>Disk: walk themes
+    Disk-->>Store: theme list
+    UI->>Store: same key
+    Store-->>UI: cached list
+    Note over UI: empty cache waits or starts a scan
 ```
 
 `ThemeCache` memoizes `DiscoveredTheme[]` by a key of `sources` + `extraDirectories`. `discover.ts` does not know about it. `extension.ts` holds one instance, starts `load` from `activate`, and uses `load` from `collect`. Progress UI: show "Scanning…" only when there is no completed cache for this key.
