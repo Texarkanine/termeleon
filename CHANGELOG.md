@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/Texarkanine/termeleon/compare/v0.6.0...v0.7.0) (2026-09-04)
+
+
+### Features
+
+* mark MobaXterm active for Mirror and warm the theme scan ([#50](https://github.com/Texarkanine/termeleon/issues/50)) ([f47a127](https://github.com/Texarkanine/termeleon/commit/f47a127553481f9ccc3fc0c8cee8f662caed3498))
+
 ## [0.6.0](https://github.com/Texarkanine/termeleon/compare/v0.5.0...v0.6.0) (2026-09-03)
 
 
