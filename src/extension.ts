@@ -1,11 +1,13 @@
 import * as vscode from 'vscode';
 import { DiscoveredTheme } from './palette';
 import { discoverThemes, mirrorCandidates, MirrorCandidate } from './discover';
+import { cacheKey, ThemeCache } from './cache';
 import {
   Target, ApplyOptions, applyPalette, applyPalettePair, removeApplied, LivePreview,
 } from './apply';
 
 const CONFIG = 'termeleon';
+const themeCache = new ThemeCache();
 
 const SOURCE_LABELS: Record<string, string> = {
   'ghostty': 'Ghostty',
@@ -69,14 +71,26 @@ async function resolveTarget(forced?: Target): Promise<Target | undefined> {
   return choice?.value;
 }
 
-async function collect(): Promise<DiscoveredTheme[]> {
+function scanNow(): { key: string; scan: () => DiscoveredTheme[] } {
   const s = settings();
-  return vscode.window.withProgress(
-    { location: vscode.ProgressLocation.Window, title: 'Scanning for terminal themes…' },
-    async () => discoverThemes({
+  return {
+    key: cacheKey(s.sources, s.extraDirectories),
+    scan: () => discoverThemes({
       sources: s.sources.length ? s.sources : undefined,
       extraDirs: s.extraDirectories,
     }),
+  };
+}
+
+async function collect(): Promise<DiscoveredTheme[]> {
+  const { key, scan } = scanNow();
+  const load = () => themeCache.load(key, scan);
+  if (themeCache.peek(key) !== undefined) {
+    return load();
+  }
+  return vscode.window.withProgress(
+    { location: vscode.ProgressLocation.Window, title: 'Scanning for terminal themes…' },
+    load,
   );
 }
 
@@ -319,6 +333,16 @@ export function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand(`${CONFIG}.importWorkspace`, () => commandImport(ctx, 'workspace')),
     vscode.commands.registerCommand(`${CONFIG}.mirror`, () => commandMirror(ctx)),
     vscode.commands.registerCommand(`${CONFIG}.remove`, () => commandRemove(ctx)),
+  );
+  const { key, scan } = scanNow();
+  void themeCache.load(key, scan);
+  ctx.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration(`${CONFIG}.sources`) || e.affectsConfiguration(`${CONFIG}.extraDirectories`)) {
+        const next = scanNow();
+        void themeCache.load(next.key, next.scan);
+      }
+    }),
   );
 }
 

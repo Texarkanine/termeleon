@@ -625,6 +625,15 @@ test('test:coverage script is declared in package.json', () => {
   assert.ok(script.includes('lcov'), 'scripts.test:coverage must generate lcov report');
   assert.ok(script.includes('test:parsers'), 'scripts.test:coverage must run parser test suite');
 });
+test('activationEvents includes onStartupFinished', () => {
+  const pkg = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),
+  ) as { activationEvents?: string[] };
+  assert.ok(
+    Array.isArray(pkg.activationEvents) && pkg.activationEvents.includes('onStartupFinished'),
+    'activationEvents must include onStartupFinished so the scan cache warms after startup',
+  );
+});
 test('vsce is a pinned devDependency', () => {
   const pkg = JSON.parse(
     fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'),

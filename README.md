@@ -12,11 +12,13 @@ Termeleon scans the theme files and addons sitting on your local disk and applie
 | Alacritty        |✅|✅|✅|
 | Ghostty          |✅|✅|-|
 | kitty            |✅|✅|-|
-| WezTerm          |✅|✅|-|
+| WezTerm          |📝|📝|-|
 | Xresources       |✅|✅|-|
-| iTerm2           |-|✅|-|
+| iTerm2           |-|📝|-|
 | MobaXTerm        |-|-|✅|
 | Windows Terminal |-|-|✅|
+
+✅ pick and mirror · 📝 pick only
 
 ## Requirements
 
@@ -42,14 +44,14 @@ Prefixed with `Termeleon: `
 
 | Emulator | Files | Active theme detected |
 | --- | --- | --- |
-| Alacritty | `~/.config/alacritty/**/*.toml`, `~/.alacritty/**/*.toml`, `%APPDATA%\alacritty\**\*.toml` | usable inline `alacritty.toml` (exact basename), else last usable `import` / `[general].import`. Relative import paths are from the config file; `%VAR%` is not expanded |
-| Ghostty | `$XDG_CONFIG_HOME/ghostty/themes/*`, bundled app themes, inline config palettes | yes, including `theme = dark:X,light:Y` |
-| iTerm2 | `*.itermcolors` under iTerm2 app support, bundled presets from `iTerm.app/Contents/Resources/ColorPresets.plist` | no (profile colors are saved in macOS preferences) |
-| kitty | `~/.config/kitty/themes/*.conf`, `current-theme.conf`, `kitty.conf` | yes, via `current-theme.conf` |
-| MobaXterm | `%USERPROFILE%\Documents\MobaXterm\MobaXterm.ini`, `%OneDrive%\Documents\MobaXterm\MobaXterm.ini`, `%APPDATA%\MobaXterm\MobaXterm.ini`; `.mxtcolors` / theme `.ini` via `extraDirectories` | yes, first default-root `MobaXterm.ini` |
-| WezTerm | `~/.config/wezterm/colors/*.toml`, `~/.config/wezterm/*.toml` (user/addon files only) | no (config is dynamic Lua) |
-| Windows Terminal | entries in `schemes` array of `settings.json` (custom/imported schemes only) | yes, via `profiles.defaults.colorScheme` or the default profile |
-| Xresources | `~/.Xresources`, `~/.Xdefaults` | assumed active |
+| Alacritty | <ul><li>`~/.config/alacritty/**/*.toml`</li><li>`~/.alacritty/**/*.toml`</li><li>`%APPDATA%\alacritty\**\*.toml`</li></ul> | usable inline `alacritty.toml` (exact basename), else last usable `import` / `[general].import`. Relative import paths are from the config file; `%VAR%` is not expanded |
+| Ghostty | <ul><li>`$XDG_CONFIG_HOME/ghostty/themes/*`</li><li>bundled app themes</li><li>inline config palettes</li></ul> | yes, including `theme = dark:X,light:Y` |
+| iTerm2 | <ul><li>`*.itermcolors` under iTerm2 app support</li><li>bundled presets from `iTerm.app/Contents/Resources/ColorPresets.plist`</li></ul> | no (profile colors are saved in macOS preferences) |
+| kitty | <ul><li>`~/.config/kitty/themes/*.conf`</li><li>`current-theme.conf`</li><li>`kitty.conf`</li></ul> | yes, via `current-theme.conf` |
+| MobaXterm | <ul><li>Applied `[Colors]` in `MobaXterm.ini` under Known Folder Documents (`My Documents`)</li><li>`%USERPROFILE%\Documents` fallback</li><li>OneDrive</li><li>AppData</li><li>`.mxtcolors` / theme `.ini` via `extraDirectories`</li></ul> | yes, first default-root `MobaXterm.ini` |
+| WezTerm | <ul><li>`~/.config/wezterm/colors/*.toml`</li><li>`~/.config/wezterm/*.toml` (user/addon files only)</li></ul> | no (config is dynamic Lua) |
+| Windows Terminal | <ul><li>entries in `schemes` array of `settings.json` (custom/imported schemes only)</li></ul> | yes, via `profiles.defaults.colorScheme` or the default profile |
+| Xresources | <ul><li>`~/.Xresources`</li><li>`~/.Xdefaults`</li></ul> | assumed active |
 
 Add anything else (a dotfiles checkout, a downloaded theme pack) via `termeleon.extraDirectories`.
 

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import { discoverThemes } from '../src/discover';
+import { discoverThemes, parseGetFolderPathOutput, parseUserShellFoldersPersonal, expandWindowsEnv, windowsDocumentsDir } from '../src/discover';
 import { isUsable } from '../src/palette';
 
 const fixtures = path.join(__dirname, 'fixtures');
@@ -608,6 +608,123 @@ test('does not throw when MobaXterm directories are missing', () => {
       assert.deepStrictEqual(results, []);
     });
   });
+});
+
+test('redirected documentsDir MobaXterm.ini is present and active', () => {
+  withFixtureHome((_xdg, home) => {
+    process.env.USERPROFILE = home;
+    const redirected = path.join(home, 'Redirected', 'Documents');
+    writeMobaIni(path.join(redirected, 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const redirected = path.join(home, 'Redirected', 'Documents');
+    const origin = path.join(redirected, 'MobaXterm', 'MobaXterm.ini');
+    const results = discoverThemes({ sources: ['mobaxterm'], documentsDir: redirected });
+    const found = results.filter((t) => t.origin === origin);
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].active, true);
+    assert.ok(isUsable(found[0].palette));
+  });
+});
+
+test('documentsDir coinciding with USERPROFILE Documents is one active origin', () => {
+  withFixtureHome((_xdg, home) => {
+    process.env.USERPROFILE = home;
+    writeMobaIni(path.join(home, 'Documents', 'MobaXterm'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const origin = path.join(home, 'Documents', 'MobaXterm', 'MobaXterm.ini');
+    const docs = path.join(home, 'Documents');
+    const results = discoverThemes({ sources: ['mobaxterm'], documentsDir: docs });
+    const found = results.filter((t) => t.origin === origin);
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].active, true);
+  });
+});
+
+test('extraDirs stay inactive when documentsDir is also set', () => {
+  withFixtureHome((_xdg, home) => {
+    process.env.USERPROFILE = home;
+    const redirected = path.join(home, 'Redirected', 'Documents');
+    writeMobaIni(path.join(redirected, 'MobaXterm'), 'MobaXterm.ini');
+    const extra = path.join(home, 'themes');
+    writeMobaIni(extra, 'mocha.mxtcolors');
+    writeMobaIni(extra, 'pack.ini');
+  }, (_xdg, home) => {
+    const redirected = path.join(home, 'Redirected', 'Documents');
+    const extra = path.join(home, 'themes');
+    const results = discoverThemes({
+      sources: ['mobaxterm'],
+      documentsDir: redirected,
+      extraDirs: [extra],
+    });
+    const applied = results.find((t) => t.origin === path.join(redirected, 'MobaXterm', 'MobaXterm.ini'));
+    const mocha = results.find((t) => t.origin === path.join(extra, 'mocha.mxtcolors'));
+    const pack = results.find((t) => t.origin === path.join(extra, 'pack.ini'));
+    assert.ok(applied && mocha && pack);
+    assert.strictEqual(applied.active, true);
+    assert.strictEqual(mocha.active, false);
+    assert.strictEqual(pack.active, false);
+  });
+});
+
+test('nested MobaXterm.ini under documentsDir is not active', () => {
+  withFixtureHome((_xdg, home) => {
+    const redirected = path.join(home, 'Redirected', 'Documents');
+    writeMobaIni(path.join(redirected, 'MobaXterm', 'backup'), 'MobaXterm.ini');
+  }, (_xdg, home) => {
+    const nestedIni = path.join(home, 'Redirected', 'Documents', 'MobaXterm', 'backup', 'MobaXterm.ini');
+    const results = discoverThemes({
+      sources: ['mobaxterm'],
+      documentsDir: path.join(home, 'Redirected', 'Documents'),
+    });
+    const nested = results.find((t) => t.origin === nestedIni);
+    assert.ok(nested);
+    assert.strictEqual(nested.active, false, 'nested MobaXterm.ini must not be active');
+  });
+});
+
+test('parseGetFolderPathOutput accepts a trimmed single path', () => {
+  assert.strictEqual(parseGetFolderPathOutput('  D:\\Users\\Sam\\Documents  \r\n'), 'D:\\Users\\Sam\\Documents');
+  assert.strictEqual(parseGetFolderPathOutput(''), undefined);
+  assert.strictEqual(parseGetFolderPathOutput('   \n\t  '), undefined);
+});
+
+test('parseUserShellFoldersPersonal reads Personal REG_SZ and REG_EXPAND_SZ', () => {
+  const expandSz = [
+    '',
+    'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders',
+    '    Personal    REG_EXPAND_SZ    %USERPROFILE%\\Documents',
+    '',
+  ].join('\r\n');
+  assert.strictEqual(parseUserShellFoldersPersonal(expandSz), '%USERPROFILE%\\Documents');
+
+  const sz = [
+    '',
+    'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders',
+    '    Personal    REG_SZ    D:\\Users\\Sam\\Documents',
+    '',
+  ].join('\r\n');
+  assert.strictEqual(parseUserShellFoldersPersonal(sz), 'D:\\Users\\Sam\\Documents');
+});
+
+test('expandWindowsEnv expands %USERPROFILE%', () => {
+  const prev = process.env.USERPROFILE;
+  process.env.USERPROFILE = 'D:\\Users\\Sam';
+  try {
+    assert.strictEqual(expandWindowsEnv('%USERPROFILE%\\Documents'), 'D:\\Users\\Sam\\Documents');
+  } finally {
+    if (prev === undefined) {
+      delete process.env.USERPROFILE;
+    } else {
+      process.env.USERPROFILE = prev;
+    }
+  }
+});
+
+test('windowsDocumentsDir on non-win32 returns undefined without spawning', () => {
+  if (process.platform === 'win32') {
+    return;
+  }
+  assert.strictEqual(windowsDocumentsDir(), undefined);
 });
 
 console.log(`\n${passed} passed\n`);

@@ -1,0 +1,1 @@
+MobaXterm default roots prepend Known Folder Documents (tests inject documentsDir); extraDirs stay inactive; ThemeCache in src/cache.ts is process-lifetime, warmed by onStartupFinished
