@@ -4,7 +4,7 @@
   "displayName": "Termeleon",
   "icon": "images/icon.png",
   "description": "Use your existing terminal emulator's color schemes in the integrated terminal.",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "license": "AGPL-3.0-or-later",
   "engines": {
     "vscode": "^1.75.0"
