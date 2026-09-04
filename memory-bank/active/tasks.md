@@ -125,10 +125,10 @@ Addressed `FAIL (fixable)`: `onStartupFinished`; brief no longer promises per-co
 - Files: `src/discover.ts`, `test/discover.test.ts`
 - Creative ref: `memory-bank/active/creative/creative-mobaxterm-active-root.md`
 
-1. Stub tests: redirected `documentsDir` active; coincidence dedup; extraDirs still inactive; nested still inactive; stdout parsers; non-win32 lookup is a no-op.
-2. Stub interface: `DiscoverOptions.documentsDir`; `parseGetFolderPathOutput`; `parseUserShellFoldersPersonal`; `expandWindowsEnv`; `windowsDocumentsDir`.
-3. Write tests and run red: `npx tsx test/discover.test.ts` (new cases only while iterating; full file before moving on).
-4. Write code and run green: call `opts.documentsDir ?? windowsDocumentsDir()` **inside** the `run('mobaxterm', …)` closure, not before source dispatch; memoize `windowsDocumentsDir()` for the process; `discoverMobaXterm` prepends `join(documentsDir, 'MobaXterm')` to default roots and `path.resolve`-dedupes; win32 lookup is PowerShell GetFolderPath then `reg query` User Shell Folders Personal then undefined.
+1. [x] Stub tests: redirected `documentsDir` active; coincidence dedup; extraDirs still inactive; nested still inactive; stdout parsers; non-win32 lookup is a no-op.
+2. [x] Stub interface: `DiscoverOptions.documentsDir`; `parseGetFolderPathOutput`; `parseUserShellFoldersPersonal`; `expandWindowsEnv`; `windowsDocumentsDir`.
+3. [x] Write tests and run red: `npx tsx test/discover.test.ts` (new cases only while iterating; full file before moving on).
+4. [x] Write code and run green: call `opts.documentsDir ?? windowsDocumentsDir()` **inside** the `run('mobaxterm', …)` closure, not before source dispatch; memoize `windowsDocumentsDir()` for the process; `discoverMobaXterm` prepends `join(documentsDir, 'MobaXterm')` to default roots and `path.resolve`-dedupes; win32 lookup is PowerShell GetFolderPath then `reg query` User Shell Folders Personal then undefined.
 
 ### 3. Extension collect / activate — executable
 

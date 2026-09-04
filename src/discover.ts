@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { spawnSync } from 'child_process';
 
 import { DiscoveredTheme, Palette, isUsable } from './palette';
 import { parseGhostty, activeGhosttyThemes } from './parsers/ghostty';
@@ -348,9 +349,13 @@ function discoverWindowsTerminal(): DiscoveredTheme[] {
   return out;
 }
 
-function discoverMobaXterm(extraDirs: string[]): DiscoveredTheme[] {
+function discoverMobaXterm(extraDirs: string[], documentsDir?: string): DiscoveredTheme[] {
   const user = process.env.USERPROFILE || homeDir();
-  const defaultRoots: string[] = [path.join(user, 'Documents', 'MobaXterm')];
+  const defaultRoots: string[] = [];
+  if (documentsDir) {
+    defaultRoots.push(path.join(documentsDir, 'MobaXterm'));
+  }
+  defaultRoots.push(path.join(user, 'Documents', 'MobaXterm'));
   if (process.env.ONEDRIVE) {
     defaultRoots.push(path.join(process.env.ONEDRIVE, 'Documents', 'MobaXterm'));
   }
@@ -359,12 +364,21 @@ function discoverMobaXterm(extraDirs: string[]): DiscoveredTheme[] {
     defaultRoots.push(path.join(process.env.APPDATA, 'MobaXterm'));
   }
 
-  const defaultSet = new Set(defaultRoots.map((d) => path.resolve(d)));
+  const uniqueDefaults: string[] = [];
+  const seenRoot = new Set<string>();
+  for (const dir of defaultRoots) {
+    const resolved = path.resolve(dir);
+    if (seenRoot.has(resolved)) { continue; }
+    seenRoot.add(resolved);
+    uniqueDefaults.push(dir);
+  }
+
+  const defaultSet = new Set(uniqueDefaults.map((d) => path.resolve(d)));
   const seen = new Set<string>();
   const out: DiscoveredTheme[] = [];
   let haveActive = false;
 
-  for (const dir of [...defaultRoots, ...extraDirs]) {
+  for (const dir of [...uniqueDefaults, ...extraDirs]) {
     const fromDefault = defaultSet.has(path.resolve(dir));
     for (const file of walk(dir, ['.ini', '.mxtcolors'])) {
       let key = file;
@@ -458,11 +472,80 @@ export function mirrorCandidates(themes: DiscoveredTheme[]): MirrorCandidate[] {
   return out;
 }
 
+/**
+ * Reads a single Documents path from `GetFolderPath('MyDocuments')` stdout.
+ * Empty or whitespace-only output is rejected.
+ */
+export function parseGetFolderPathOutput(stdout: string): string | undefined {
+  const line = stdout.trim().split(/\r?\n/, 1)[0]?.trim();
+  return line || undefined;
+}
+
+/**
+ * Reads the `Personal` value from `reg query` User Shell Folders stdout.
+ */
+export function parseUserShellFoldersPersonal(stdout: string): string | undefined {
+  for (const line of stdout.split(/\r?\n/)) {
+    const m = line.match(/^\s*Personal\s+(REG_SZ|REG_EXPAND_SZ)\s+(.+?)\s*$/i);
+    if (m) {
+      const value = m[2].trim();
+      return value || undefined;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Expands `%VAR%` tokens using `process.env` (Windows REG_EXPAND_SZ).
+ */
+export function expandWindowsEnv(value: string): string {
+  return value.replace(/%([^%]+)%/g, (whole, name: string) => {
+    const v = process.env[name];
+    return v !== undefined ? v : whole;
+  });
+}
+
+let documentsDirMemo: { value: string | undefined } | undefined;
+
+/**
+ * Windows Known Folder Documents, or undefined off win32 / when lookup fails.
+ * Memoized for the process. Tests inject `documentsDir` instead of calling this.
+ */
+export function windowsDocumentsDir(): string | undefined {
+  if (process.platform !== 'win32') {
+    return undefined;
+  }
+  if (documentsDirMemo) {
+    return documentsDirMemo.value;
+  }
+  const fromPs = spawnSync('powershell', [
+    '-NoProfile',
+    '-NonInteractive',
+    '-Command',
+    "[Environment]::GetFolderPath('MyDocuments')",
+  ], { encoding: 'utf8', windowsHide: true });
+  let value = parseGetFolderPathOutput(fromPs.stdout ?? '');
+  if (!value) {
+    const fromReg = spawnSync('reg', [
+      'query',
+      'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders',
+      '/v',
+      'Personal',
+    ], { encoding: 'utf8', windowsHide: true });
+    const raw = parseUserShellFoldersPersonal(fromReg.stdout ?? '');
+    value = raw ? expandWindowsEnv(raw) : undefined;
+  }
+  documentsDirMemo = { value };
+  return value;
+}
+
 export interface DiscoverOptions {
   /** Emulators to scan. Omit to scan all. */
   sources?: string[];
   /** Extra directories to sweep for walkable theme files (not only .itermcolors). */
   extraDirs?: string[];
+  /** Known Folder Documents directory. Tests inject this to skip the win32 lookup. */
+  documentsDir?: string;
 }
 
 /**
@@ -489,7 +572,7 @@ export function discoverThemes(opts: DiscoverOptions = {}): DiscoveredTheme[] {
   run('iterm2', () => discoverIterm2(extraDirs));
   run('windows-terminal', discoverWindowsTerminal);
   run('xresources', discoverXresources);
-  run('mobaxterm', () => discoverMobaXterm(extraDirs));
+  run('mobaxterm', () => discoverMobaXterm(extraDirs, opts.documentsDir ?? windowsDocumentsDir()));
 
   // Active themes first, then alphabetical within source.
   return results.sort((a, b) =>

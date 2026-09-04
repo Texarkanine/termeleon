@@ -8,4 +8,4 @@
 - Plan order: ThemeCache → Known Folder Documents root → extension collect/activate → README/STORE matrices → persistent memory-bank pointers.
 
 ## Next Step
-- Unit 2: Known Folder Documents root (`src/discover.ts` / `test/discover.test.ts`) via TDD.
+- Unit 3: Extension collect / activate (`src/extension.ts`, `package.json`, activationEvents contract).
