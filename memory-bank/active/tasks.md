@@ -188,6 +188,6 @@ No new technology - validation not required. `child_process.spawnSync` is Node s
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
+- [x] Preflight
 - [ ] Build
 - [ ] QA

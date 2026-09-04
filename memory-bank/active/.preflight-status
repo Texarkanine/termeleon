@@ -1,59 +1,25 @@
-FAIL (fixable)
+PASS WITH ADVISORY
 
 # Preflight — mobaxterm-active-and-scan-cache (Level 3, re-run)
 
-This run judges the plan as amended after the prior `FAIL (fixable)`. All four HIGH findings and both LOW findings from that run are resolved as claimed:
+The current plan passes as written. No plan edits were made.
 
-- Finding 1 (no `onStartupFinished`): `package.json` gains `activationEvents: ["onStartupFinished"]`; unit 3 file list includes `package.json`; a `test/parsers.test.ts` ci case locks it.
-- Finding 2 (brief promised background refresh the creative rejected): `projectbrief.md` Requirement 4, Use-Case 4, and Acceptance Criterion 4 no longer mention background refresh; all three now read launch-and-config-change rescan only, matching the scan-cache creative.
-- Finding 3 (cache key sorted `extraDirectories`): Test Plan now reads "equal `extraDirectories` in different order do **not** share a key," matching the creative's stable-serialization decision. `extraDirectories` order stays load-bearing and unsorted.
-- Finding 4 (unconditional PowerShell spawn per scan): unit 2 step 4 now resolves `documentsDir` inside the `run('mobaxterm', …)` closure and memoizes `windowsDocumentsDir()` for the process.
-- Finding 5 (unit 3 buildable test-free): the `cacheKey` behaviors moved to unit 1's stub-tests list (first load, second load, coalescing, key change, peek, retry after throw, sources-order vs extraDirectories-order) and are unconditional; unit 3's own stub test (the `activationEvents` ci case) is also unconditional.
-- Finding 6 (camelCase outlier): the module is now `src/cache.ts` / `test/cache.test.ts`, matching the single-lowercase-word convention (`apply.ts`, `discover.ts`, `extension.ts`, `palette.ts`).
+## TDD Plan Encoding — PASS
 
-## TDD Plan Encoding — FAIL (fixable)
+All executable units explicitly order stub tests → stub interface → red test run → green implementation. Unit 3 step 2 now leaves `activationEvents` unchanged; the contract test in step 3 can fail before step 4 solely adds `onStartupFinished`. Units 4 and 5 are prose/policy and correctly owe no tests. No change-detectors were scheduled, and no test/production swap was required.
 
-Units 1 and 2 correctly order stub-tests → stub-interface → write-red → write-green, and their "stub interface" steps list bare signatures/fields only (`cacheKey(sources, extraDirs)`; `DiscoverOptions.documentsDir`), deferring all behavior to the write-green step. Units 4 and 5 are prose/policy and correctly owe no tests.
+## Convention and Dependency Compliance — PASS
 
-**Unit 3 breaks this pattern for its one behavioral assertion.** Step 2 ("Stub interface") reads `package.json activationEvents: ["onStartupFinished"]` — the *actual final value*, not a bare signature — and step 4 ("Write code and run green") separately says "set activationEvents" again. A manifest array has no partial/stub state between `[]` and `["onStartupFinished"]`; listing the finished value in the interface-stub step means, if followed literally, `package.json` already carries the fix before step 3 ("write tests and run red") ever runs. The one behavior this unit tests — the exact requirement (5) that drove the previous FAIL — would go from stub to green without ever going red, and step 4's restatement of "set activationEvents" is then a no-op that contradicts step 2 having already done it.
-
-Contrast with units 1 and 2, where the interface-stub step lists only signatures/fields (`cacheKey(sources, extraDirs)`, `DiscoverOptions.documentsDir`) and the concrete behavior (sort order, lookup order) is reserved for the write-green step. Unit 3's step 2 should follow the same discipline: drop `activationEvents: ["onStartupFinished"]` from step 2 (leave the manifest untouched there), so step 3 can genuinely fail and step 4 is the sole place the value is set.
-
-Fix: in unit 3, remove the `activationEvents` value from step 2's bullet list; step 4 already sets it and needs no other change.
-
-No change-detectors to strike this round (none scheduled). No test/production swap needed elsewhere. No in-phase edits were made to `tasks.md`.
-
-## Convention Compliance — PASS
-
-`src/cache.ts` / `test/cache.test.ts` match the existing single-lowercase-word module and test-file convention. No other new file locations proposed.
-
-## Dependency Impact — PASS
-
-Traced `DiscoverOptions.documentsDir` (additive, optional) through `discoverThemes` → `discoverMobaXterm`; no other caller of `discoverThemes`/`DiscoverOptions` exists outside `src/extension.ts`, `src/discover.ts`, and their test files (verified by search). Existing MobaXterm tests (USERPROFILE, ONEDRIVE, APPDATA, first-root-wins, extraDirs, nested) run on non-win32 CI where `windowsDocumentsDir()` is a documented no-op, so prepending the Known Folder root does not disturb them. `activationEvents` and `test:parsers` changes are the only other manifest/script touchpoints, both accounted for in unit 3's file list.
+`src/cache.ts` / `test/cache.test.ts` follow the established single-lowercase-word module convention and are wired through the existing `tsx` parser suite. `DiscoverOptions.documentsDir?` is additive, remains in the vscode-free discovery core, and is consumed only through `discoverThemes` → `discoverMobaXterm`. The plan preserves extra-directory inactivity, root-only active detection, `extensionKind: ["ui"]`, and current Mirror picker behavior.
 
 ## Conflict Detection — PASS
 
-No existing cache/memoization utility to duplicate (verified: `scanCache`/`cache` do not appear anywhere in `src/`). `commandMirror`'s multi-candidate picker already exists and is unmodified by this plan. No public contract breaks: `DiscoverOptions.documentsDir?` is additive and `discoverThemes`'s return type is unchanged.
+No cache utility exists to duplicate. `commandMirror` already presents `pickMirrorCandidate` whenever more than one candidate is active, so the new MobaXterm active flag supplies the requested behavior without a redundant UI path. The Known Folder lookup is scoped to the MobaXterm discovery closure, preserving scans that exclude that source.
 
-## Completeness Precheck — PASS
+## Completeness — PASS
 
-All five brief requirements map to a concrete unit: active-marking → unit 2; multi-candidate picker → already implemented, correctly not re-touched; matrices → unit 4; cache + wait-only-when-empty → unit 1 + unit 3; launch-time warm scan → unit 3. Test coverage is planned for all new executable behavior; units 4 and 5 are prose/policy and correctly owe none.
-
-## Low findings
-
-### The scan-cache creative document still names the old module
-
-`memory-bank/active/creative/creative-scan-cache.md`'s Implementation Notes still say "New vscode-free `src/scanCache.ts`" and "Tests: `test/scanCache.test.ts`," while `tasks.md` (both the Affected Components list and unit 1's file list) consistently says `src/cache.ts` / `test/cache.test.ts`. `tasks.md` is internally consistent and is what a builder executes from, so this is not blocking — but a builder who opens the creative doc first will see the stale name. Not fixed here: creative documents are outside preflight's allowed writes. Recording so the operator can patch the creative doc's Implementation Notes independently, or accept the drift since `tasks.md` governs.
-
-## Verified — no action needed
-
-Re-confirmed against the current codebase this run, not re-litigating:
-
-- `DiscoverOptions`, `discoverThemes` have exactly one caller module (`src/extension.ts`) outside their own test files.
-- No `scanCache` or `cache` module exists yet in `src/`.
-- The non-win32 MobaXterm tests in `test/discover.test.ts` do not set `documentsDir` and run on a platform where the lookup is a documented no-op, so unit 2 cannot regress them.
-- `commandMirror` already calls `pickMirrorCandidate` when `candidates.length > 1` (Requirement 2 needs no new unit).
+All five brief requirements have concrete implementation paths: Known Folder active detection (unit 2), existing multi-candidate picker (verified), matrices (unit 4), process-lifetime cache and empty-cache waiting (units 1 and 3), and startup warming/configuration invalidation (unit 3). The creative documents and tasks consistently use `src/cache.ts` / `test/cache.test.ts`.
 
 ## Advisory — Radical Innovation
 
-Not applied to the plan; restated from the prior run since it remains unaddressed and still the most leveraged change available here. **Make the cache validate cheaply instead of expiring never.** Have `discoverThemes` (or a new `discoveryRoots(opts)`) report the roots it walked; `ThemeCache` records those roots' `fs.statSync().mtimeMs` at scan completion and, on `load`, re-stats them (single-digit ms) before deciding whether to serve the cached list as-is or kick a refresh. This gets closer to "serve immediately, refresh when something actually changed" without the per-command full rescan the creative rejected, and without `fs.watch`, a worker, or persistence — it only closes the gap for added/removed/renamed files, not in-place edits, so the operator should judge whether that partial coverage is worth the extra `signature()` helper versus the current "reload the window" answer.
+Consider a future cheap freshness signature: record each scanned root's directory `mtimeMs` with cached results, then re-stat those roots on `load` before serving the cache. This could refresh on additions or removals without a full per-command walk, watcher, worker, or persistent cache. It is intentionally out of scope because the current brief specifies launch/configuration rescans and the additional contract would add complexity.

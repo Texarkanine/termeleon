@@ -97,3 +97,14 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
     - Updated creative scan-cache file names to `src/cache.ts` / `test/cache.test.ts`
 * Decisions made
     - Leave existing empty `activationEvents` until green so the parsers ci case can go red
+
+## 2026-09-04 - PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+
+* Work completed
+    - Re-validated the amended Level 3 plan and overwrote `memory-bank/active/.preflight-status` with `PASS WITH ADVISORY`
+    - Confirmed every executable unit follows stub tests → stub interface → red run → green implementation; unit 3 now leaves `activationEvents` untouched until its green step
+    - Verified the planned cache naming, Known Folder scope, configuration touchpoints, and existing Mirror picker against the codebase
+* Decisions made
+    - No task-plan edits were needed; the plan is ready for Build
+* Insights
+    - A root-mtime freshness signature could refresh cache entries for directory additions or removals without a full per-command walk, but remains out of scope and advisory
