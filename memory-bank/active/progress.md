@@ -158,3 +158,10 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
     - systemPatterns and techContext already carried Known Folder Documents, ThemeCache, and the third `tsx` process from Build
 * Insights
     - Empty `activationEvents` on 1.75+ is command-only activation; a cache key must not sort `extraDirectories`; re-run preflight after amending a `FAIL (fixable)`
+
+## 2026-09-04 - ARCHIVE - IN-PROGRESS
+
+* Work completed
+    - Left Reflect and started Archive
+* Decisions made
+    - Category `enhancements/` — Mirror, Import, and MobaXterm discovery already existed; this extends them
