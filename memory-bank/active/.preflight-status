@@ -1,0 +1,74 @@
+FAIL (fixable)
+
+# Preflight — mobaxterm-active-and-scan-cache (Level 3)
+
+## TDD Plan Encoding — PASS
+
+Units 1 (ThemeCache), 2 (Known Folder Documents root), and 3 (extension collect/activate) are executable and each orders its numbered substeps as stub-tests → stub-interface → write-and-red → write-and-green. Units 4 (README/STORE matrices) and 5 (systemPatterns/techContext pointers) deliver prose/policy and correctly owe no tests.
+
+No scheduled change-detectors to strike: the plan already forbids the one that was tempting ("do not add a change-detector host test that only asserts `activate` was called"). No test/production step swap needed. No in-phase edits were made to `tasks.md`.
+
+One weakness, carried below as a low finding: unit 3's only test step is conditional ("if a helper `cacheKey(sources, extraDirs)` is extracted").
+
+## FAIL findings — fixable
+
+### 1. HIGH — Nothing in the plan makes the extension activate at window load, so Requirement 5 and Use-Case 4 cannot hold
+
+`package.json` sets `activationEvents: []` and `engines.vscode` is `^1.75.0`. On VS Code 1.74+, contributed commands generate implicit `onCommand:` activation events, and there is no `onStartupFinished` or `*` anywhere in the repo (verified by search). The extension therefore first activates *when the user invokes Import or Mirror* — the exact moment the plan promises the cache is already warm.
+
+Unit 3 says "activate schedules warm scan", but no unit touches `activationEvents`, and `package.json` appears only in unit 1's file list (for `test:parsers`). As planned, the first command of every window still pays the full cold walk; only the second command benefits. That fails Requirement 5 ("Start the first scan when the extension/window loads") and Use-Case 4 ("The first Import or Mirror after a window loads does not wait on a cold disk walk").
+
+Fix: add `"onStartupFinished"` to `activationEvents`, and add `package.json` to unit 3's file list. Locking this in the existing `ci` section of `test/parsers.test.ts` is defensible — activation timing is a user-visible contract that would otherwise revert silently — but it asserts on a manifest, so the planner should decide whether it clears the change-detector bar.
+
+### 2. HIGH — "Refresh in the background" is in the brief three times and in neither the creative decision nor the plan
+
+Requirement 4 ("Commands serve the cache immediately and refresh in the background"), Use-Case 4 ("Subsequent commands serve the last scan immediately and refresh in the background"), and Acceptance Criterion 4 ("a background refresh still updates the cache") all specify a background refresh. The scan-cache creative deliberately rejected it — Option C, "Memory plus rescan on every command in the background", was eliminated, and the Decision reads "no per-command rescan" — and the plan implements the creative, not the brief.
+
+The creative's reasoning is sound, but the brief was never amended, so QA will grade the build against AC4 and find it unmet with no way to tell whether the build or the brief is wrong.
+
+Fix: pick one and make the artifacts agree. Either strike the background-refresh clause from Requirement 4, Use-Case 4, and Acceptance Criterion 4 (recording the creative as the reason), or add a refresh mechanism to the plan. See the advisory below for a cheap third option that satisfies the brief as written.
+
+### 3. HIGH — The cache key contradicts itself on `extraDirectories`, and the Test Plan's version is the wrong one
+
+The Test Plan's Edge Cases require "same directories in different `extraDirectories` order still share a cache entry (sort in the key)". The scan-cache creative's Implementation Notes require "stable serialization of `sources` (sorted) and `extraDirectories` (as configured)". These produce different `cacheKey` implementations, and the plan schedules a test that asserts against its own design doc.
+
+The creative is correct and the test plan's edge case is a latent bug. `extraDirectories` order is load-bearing in discovery: `discoverAlacritty` appends `extraDirs` to `bases` and marks the *last* usable import active, and `discoverMobaXterm` / `discoverIterm2` dedup by a `seen` set so the first-walked path wins the `origin`. Two orderings can therefore yield different `DiscoveredTheme[]`, and must not share one cache entry. `sources`, by contrast, is safe to sort — `discoverThemes` immediately converts it to a `Set`, so its order is genuinely irrelevant.
+
+Fix: delete the sort-in-the-key edge case for `extraDirectories` (or invert it to assert that different orders get different entries) and keep sorting only `sources`.
+
+### 4. MEDIUM — The Documents lookup spawns PowerShell on every scan, including for users who never scan MobaXterm
+
+Unit 2's step 4 places the fill in `discoverThemes` as `documentsDir = opts.documentsDir ?? windowsDocumentsDir()`, which runs unconditionally before the `run(...)` dispatch. On win32 that is a synchronous `powershell -NoProfile -NonInteractive` spawn (commonly 200–800 ms, plus a `reg query` on the fallback path) paid by every scan — including one with `termeleon.sources` set to `["ghostty"]`, where the result is discarded. Because `discoverThemes` is synchronous and the cache calls it on the extension host, this lands squarely inside the activate hitch the creative already accepted, and makes that hitch worse than the creative assumed.
+
+The Pre-Mortem's concern (the lookup only ever runs in tests) is legitimate and the fill must exist — but it should be lazy. Fix: resolve inside the `run('mobaxterm', ...)` closure, or memoize `windowsDocumentsDir()` at module scope so it costs one spawn per process rather than one per scan.
+
+## Low findings
+
+### 5. Unit 3 can be built without writing a single test
+
+Its step 1 is "none new in host suite ... *if* a helper `cacheKey(sources, extraDirs)` is extracted, add one tsx case", and step 3 is "*any* new `cacheKey` cases". Since the Test Plan already lists a cache-key behavior under Edge Cases, make the extraction unconditional so the unit cannot be implemented test-free.
+
+### 6. `src/scanCache.ts` is the first camelCase filename in `src/`
+
+Every existing module is a single lowercase word: `apply.ts`, `discover.ts`, `extension.ts`, `palette.ts`, and `parsers/{ghostty,iterm2,kitty,mobaxterm,toml}.ts`. No convention is documented in `systemPatterns.md`, so this is not a violation — but `src/cache.ts` would match the neighbors.
+
+## Verified — no action needed
+
+Recording these so they are not re-litigated during build:
+
+- **`test:parsers` gaining a third `tsx` process is safe.** The `ci` section of `test/parsers.test.ts` asserts only that `scripts.test:coverage` invokes c8, emits lcov, and includes the string `test:parsers`; the workflow assertion accepts `npm run test:coverage`. No file list is locked. The plan's claim checks out.
+- **`test/scanCache.test.ts` needs no build wiring.** `tsconfig.test.json` includes only `src/**/*.ts` and `test/host/**/*.ts`, and `tsconfig.json` only `src/**/*.ts`, so the new tsx suite sits outside both programs exactly as `test/discover.test.ts` does. It is picked up by `test:coverage` automatically through `test:parsers`.
+- **Requirement 2 is already met.** `commandMirror` at `src/extension.ts` calls `pickMirrorCandidate` whenever `candidates.length > 1`, and `test/host/picker.test.ts` covers it. The plan is right that marking MobaXterm `active` is the only missing piece.
+- **The coincidence-dedup behavior already holds.** `discoverMobaXterm` keys its `seen` set on `fs.realpathSync(file)`, so a Known Folder root that resolves to the same place as the USERPROFILE root already yields one entry. The plan's root-level `path.resolve` dedup is still worth doing to avoid a redundant walk, but the test will not be exercising new dedup logic.
+- **Prepending the Known Folder root changes active precedence deliberately.** `discoverMobaXterm` marks the first usable root-level `MobaXterm.ini` from `defaultRoots` in order, so prepending makes Known Folder Documents win over OneDrive and AppData. That matches the creative's intent; noting it because the existing edge case "OneDrive / APPDATA roots still work and still lose active to an earlier usable Documents root" now depends on root ordering rather than on the old hardcoded first element.
+- **No public contract breaks.** `DiscoverOptions.documentsDir?` is additive, `discoverThemes`' return type is unchanged, and `child_process` is a Node builtin that esbuild leaves external under `--platform=node`.
+
+## Advisory — Radical Innovation
+
+Not applied to the plan. Offered because it collapses finding 2, the creative's own acknowledged gap ("A long-lived window never sees a newly added theme file"), and the "reload the window to pick up new files" wart into one small change.
+
+**Make the cache validate cheaply instead of expiring never.** Today's design is a one-shot process-lifetime memo: correct until the disk changes, then silently wrong until the window reloads. Instead, have discovery report the roots it walked — `discoverThemes` already builds every root list internally, so either return `{ themes, roots: string[] }` or export a `discoveryRoots(opts): string[]` alongside it. `ThemeCache` records those roots' `fs.statSync().mtimeMs` when a scan completes. On `load`, it stats them again (single-digit milliseconds for a handful of directories, versus a recursive `MAX_DEPTH`-3 walk), returns the cached list immediately, and kicks a refresh only when a signature actually moved.
+
+That is literally the brief's "serve the cache immediately and refresh in the background", achieved without the per-command full rescan the creative rightly rejected in Option C — the refresh is conditional on evidence, not on a timer. It needs no `fs.watch`, no worker, no persistence, and no second bundle. The whole delta is one extra return value from discovery plus a `signature()` helper inside the already-planned `src/scanCache.ts`, and it stays vscode-free.
+
+The cost to weigh: directory mtime only changes when an entry is added, removed, or renamed in that directory — editing a theme file in place does not bump its parent, so an edited-but-not-added theme still needs a window reload. If the operator judges that partial coverage worse than an honest "refresh on launch and config change only", then finding 2 should be resolved by amending the brief instead.

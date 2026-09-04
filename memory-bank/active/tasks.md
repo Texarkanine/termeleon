@@ -30,9 +30,9 @@ sequenceDiagram
 
 ### Affected Components
 - **MobaXterm discovery** (`src/discover.ts` `discoverMobaXterm`): currently scans `%USERPROFILE%\Documents\MobaXterm`, OneDrive variants, and `%APPDATA%\MobaXterm`; marks only the first usable root `MobaXterm.ini` in those default roots as `active`. Extra directories are listed but never active. Needs Known Folder Documents as a default root.
-- **Discovery entry** (`discoverThemes`, `DiscoverOptions`): vscode-free scan API. Gains optional `documentsDir` (tests and override); on win32, fills it from `windowsDocumentsDir()` when omitted.
-- **ThemeCache** (new `src/scanCache.ts`): vscode-free memo of `DiscoveredTheme[]` by config key. Does not import `vscode` or call `discoverThemes` internally.
-- **Extension shell** (`src/extension.ts`): `collect()` uses the cache; `activate()` warms it; configuration listener reloads on sources/extraDirectories change. Progress UI only when `peek` is empty.
+- **Discovery entry** (`discoverThemes`, `DiscoverOptions`): vscode-free scan API. Gains optional `documentsDir` (tests and override). Known Folder lookup runs only on the MobaXterm path and is memoized for the process.
+- **ThemeCache** (new `src/cache.ts`): vscode-free memo of `DiscoveredTheme[]` by config key. Does not import `vscode` or call `discoverThemes` internally.
+- **Extension shell** (`src/extension.ts`, `package.json`): `collect()` uses the cache; `activationEvents` includes `onStartupFinished` so `activate()` warms the cache after startup (contributed commands still auto-activate on 1.75+). Configuration listener reloads on sources/extraDirectories change. Progress UI only when `peek` is empty.
 - **Mirror UX** (`commandMirror`, `mirrorCandidates`, `pickMirrorCandidate`): already asks when `candidates.length > 1`. No new picker.
 - **Docs** (`README.md`, `STORE.md`): OS matrices and legends; MobaXterm files column names Known Folder Documents.
 
@@ -43,8 +43,9 @@ sequenceDiagram
 
 ### Boundary Changes
 - `DiscoverOptions.documentsDir?: string`
-- New `ThemeCache` API (`load`, `peek`)
+- New `ThemeCache` API (`load`, `peek`, `cacheKey`)
 - `collect` / `activate` lifecycle
+- `package.json` `activationEvents` includes `onStartupFinished`
 - README/STORE matrix symbols
 
 ### Invariants & Constraints
@@ -61,7 +62,11 @@ sequenceDiagram
 ## Open Questions
 
 - [x] **How to mark MobaXterm's applied INI as active when Documents is not `%USERPROFILE%\Documents`** → Resolved: Known Folder Documents as a default root; `documentsDir` injection for tests; `LastIniPath` not primary; extraDirs stay inactive. (see `memory-bank/active/creative/creative-mobaxterm-active-root.md`)
-- [x] **Where the scan cache lives and when it refreshes** → Resolved: in-memory `ThemeCache`; activate warms; commands serve or join; no `globalState`; no per-command rescan; invalidate on sources/extraDirectories change. (see `memory-bank/active/creative/creative-scan-cache.md`)
+- [x] **Where the scan cache lives and when it refreshes** → Resolved: in-memory `ThemeCache`; `onStartupFinished` warms; commands serve or join; no `globalState`; no per-command rescan; invalidate on sources/extraDirectories change. Brief amended to match (preflight finding 2). (see `memory-bank/active/creative/creative-scan-cache.md`)
+
+### Preflight amendments (2026-09-04)
+
+Addressed `FAIL (fixable)`: `onStartupFinished`; brief no longer promises per-command background refresh; `cacheKey` sorts `sources` only; Documents lookup is lazy + memoized; `cacheKey` tests are unconditional; module is `src/cache.ts`.
 
 ## Test Plan (TDD)
 
@@ -81,20 +86,21 @@ sequenceDiagram
 - `peek` is undefined until the first `load` completes.
 - Failed `scan` rejects; a later `load` with the same key retries.
 - `windowsDocumentsDir` on non-win32 returns `undefined` without spawning.
+- `cacheKey`: equal `sources` in different order share a key (sources sorted); equal `extraDirectories` in different order do **not** share a key.
+- `package.json` `activationEvents` includes `onStartupFinished` (user-visible warm-cache contract; implicit `onCommand` remains on 1.75+).
 
 ### Edge Cases
 
-- OneDrive / APPDATA roots still work and still lose active to an earlier usable Documents root.
-- Cache key: same directories in different `extraDirectories` order still share a cache entry (sort in the key).
+- OneDrive / APPDATA roots still work and still lose active to an earlier usable Documents root (Known Folder Documents, when present, is earlier than those).
 - `collect` with warm cache must not wrap work in a progress notification that implies a scan (assert via `peek` + `load` contract; host automation of QuickPick is out of scope).
 
 ### Test Infrastructure
 
 - Framework: Node `assert` + `tsx` (`test:parsers`); Mocha TDD host tests under `test/host/`
-- Test location: `test/discover.test.ts`, new `test/scanCache.test.ts`; optional small cases in `test/discover.test.ts` for stdout parsers if they live in `discover.ts`
+- Test location: `test/discover.test.ts`, new `test/cache.test.ts`; stdout parsers in `test/discover.test.ts`; activationEvents contract in the existing `ci` section of `test/parsers.test.ts`
 - Conventions: `test('name', fn)` with `withFixtureHome`; no mocha in parser suite
-- New test files: `test/scanCache.test.ts`
-- `package.json` `test:parsers` gains `&& tsx test/scanCache.test.ts` (ci contract checks `test:coverage` runs `test:parsers`, not the file list)
+- New test files: `test/cache.test.ts`
+- `package.json` `test:parsers` gains `&& tsx test/cache.test.ts` (ci contract checks `test:coverage` runs `test:parsers`, not the file list)
 
 ### Integration Tests
 
@@ -106,13 +112,13 @@ sequenceDiagram
 
 ### 1. ThemeCache — executable
 
-- Files: `src/scanCache.ts`, `test/scanCache.test.ts`, `package.json` (`test:parsers`)
+- Files: `src/cache.ts`, `test/cache.test.ts`, `package.json` (`test:parsers`)
 - Creative ref: `memory-bank/active/creative/creative-scan-cache.md`
 
-1. Stub tests: `test/scanCache.test.ts` cases for first load, second load, coalescing, key change, peek, retry after throw.
-2. Stub interface: `ThemeCache` with `peek(key)` and `load(key, scan)`.
-3. Write tests and run red: `npx tsx test/scanCache.test.ts`
-4. Write code and run green: implement in-memory memo, `setTimeout(0)` so `load` returns a promise before `scan` runs, share in-flight, clear on key change and on failure.
+1. Stub tests: `test/cache.test.ts` cases for first load, second load, coalescing, key change, peek, retry after throw, `cacheKey` sources-order vs extraDirectories-order.
+2. Stub interface: `cacheKey(sources, extraDirs)`; `ThemeCache` with `peek(key)` and `load(key, scan)`.
+3. Write tests and run red: `npx tsx test/cache.test.ts`
+4. Write code and run green: implement `cacheKey` (sort `sources` only; serialize `extraDirectories` as configured); in-memory memo; `setTimeout(0)` so `load` returns a promise before `scan` runs; share in-flight; clear on key change and on failure.
 
 ### 2. Known Folder Documents root — executable
 
@@ -122,17 +128,17 @@ sequenceDiagram
 1. Stub tests: redirected `documentsDir` active; coincidence dedup; extraDirs still inactive; nested still inactive; stdout parsers; non-win32 lookup is a no-op.
 2. Stub interface: `DiscoverOptions.documentsDir`; `parseGetFolderPathOutput`; `parseUserShellFoldersPersonal`; `expandWindowsEnv`; `windowsDocumentsDir`.
 3. Write tests and run red: `npx tsx test/discover.test.ts` (new cases only while iterating; full file before moving on).
-4. Write code and run green: `discoverThemes` sets `documentsDir = opts.documentsDir ?? windowsDocumentsDir()`; `discoverMobaXterm` prepends `join(documentsDir, 'MobaXterm')` to default roots and `path.resolve`-dedupes; win32 lookup is PowerShell GetFolderPath then `reg query` User Shell Folders Personal then undefined.
+4. Write code and run green: call `opts.documentsDir ?? windowsDocumentsDir()` **inside** the `run('mobaxterm', …)` closure, not before source dispatch; memoize `windowsDocumentsDir()` for the process; `discoverMobaXterm` prepends `join(documentsDir, 'MobaXterm')` to default roots and `path.resolve`-dedupes; win32 lookup is PowerShell GetFolderPath then `reg query` User Shell Folders Personal then undefined.
 
 ### 3. Extension collect / activate — executable
 
-- Files: `src/extension.ts`
+- Files: `src/extension.ts`, `package.json`, `test/parsers.test.ts` (ci contract)
 - Creative ref: `memory-bank/active/creative/creative-scan-cache.md`
 
-1. Stub tests: none new in host suite (behaviors covered by ThemeCache + discover). Keep using ThemeCache from extension; if a helper `cacheKey(sources, extraDirs)` is extracted, add one tsx case in `test/scanCache.test.ts`.
-2. Stub interface: module-level `ThemeCache`; `cacheKey`; `collect` uses `peek`/`load`; `activate` kicks `load` and registers `onDidChangeConfiguration`.
-3. Write tests and run red: any new `cacheKey` cases in `test/scanCache.test.ts`.
-4. Write code and run green: `collect` awaits `cache.load`; `withProgress` only when `peek` is empty; activate schedules warm scan; config changes for `termeleon.sources` and `termeleon.extraDirectories` call `load` with the new key.
+1. Stub tests: `test/parsers.test.ts` ci case that `activationEvents` includes `onStartupFinished` (warm-cache contract; engines are `^1.75.0`, so implicit `onCommand` for contributed commands still applies).
+2. Stub interface: `package.json` `activationEvents: ["onStartupFinished"]`; module-level `ThemeCache`; `collect` uses `cacheKey` + `peek`/`load`; `activate` kicks `load` and registers `onDidChangeConfiguration`.
+3. Write tests and run red: `npx tsx test/parsers.test.ts` (the new activationEvents case).
+4. Write code and run green: set `activationEvents`; `collect` awaits `cache.load`; `withProgress` only when `peek` is empty; activate schedules warm scan; config changes for `termeleon.sources` and `termeleon.extraDirectories` call `load` with the new key.
 
 ### 4. Compatibility matrices and format rows — prose/policy
 
@@ -150,7 +156,7 @@ sequenceDiagram
 - No tests: prose/policy artifact
 
 1. systemPatterns: MobaXterm default roots include Known Folder Documents; extraDirs still inactive; ThemeCache is vscode-free and process-lifetime, wired from `activate`/`collect`.
-2. techContext: `test:parsers` also runs `tsx test/scanCache.test.ts`.
+2. techContext: `test:parsers` also runs `tsx test/cache.test.ts`.
 
 ## Technology Validation
 
@@ -160,13 +166,16 @@ No new technology - validation not required. `child_process.spawnSync` is Node s
 
 - **Electron/ui-kind host blocks PowerShell:** fall back to `reg query` Personal, then existing USERPROFILE Documents. extraDirectories remains the documented escape hatch for portable/`-i`.
 - **Linux CI never executes the spawn path:** stdout parsers and `documentsDir` injection are the testable contract; `windowsDocumentsDir` is `undefined` on non-win32.
-- **Activate walk still hits the UI thread:** accepted in the cache creative; `setTimeout(0)` only defers past `activate` return.
+- **Activate walk still hits the UI thread:** accepted in the cache creative; `setTimeout(0)` only defers past `activate` return. Documents lookup is not on the Ghostty-only path.
+- **Empty `activationEvents` would keep the first command cold:** `onStartupFinished` is in unit 3; contributed commands still activate implicitly on 1.75+.
 - **WSL `test:host` hangs:** do not run it here; ship host tests unchanged for CI.
 - **Cache key mismatch after settings edit:** listen to `termeleon.sources` and `termeleon.extraDirectories` and `load` the new key.
 
 ## Pre-Mortem
 
-- **Lookup never runs (documentsDir only set in tests, production forgets `windowsDocumentsDir`):** add the fill in `discoverThemes` (`opts.documentsDir ?? windowsDocumentsDir()`), not only in tests — already a step-2 substep.
+- **Lookup never runs (documentsDir only set in tests, production forgets `windowsDocumentsDir`):** fill inside the `run('mobaxterm', …)` closure (`opts.documentsDir ?? windowsDocumentsDir()`), not before dispatch and not only in tests — already a step-2 substep.
+- **First command of a window still cold-walks because activation is `onCommand` only:** `onStartupFinished` in `package.json`, locked by the parsers ci contract — unit 3.
+- **QA grades a per-command background refresh that the creative rejected:** brief Use-Case 4 / Requirement 4 / AC4 amended to launch + config-change rescan only (preflight finding 2).
 - **We claim Mirror asks Alacritty vs MobaXterm but only Documents was wrong, and their INI is extraDirectories-only:** already covered by Challenge (portable/`-i` stay extraDirs) and by extraDirs-inactive invariant; do not loosen extraDir active.
 - **We persist accidentally "to be nice" and Mirror applies a deleted theme:** already covered by cache creative (no `globalState`).
 - **Matrix `✅` on MobaXterm while lookup fails on some PCs:** legend describes implemented capability; Known Folder is the installer contract. Not a reason to keep `✅` if we ship without the lookup wired.

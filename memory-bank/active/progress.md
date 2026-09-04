@@ -51,3 +51,28 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
     - `test:parsers` gains a third `tsx` process for ThemeCache
 * Insights
     - Mirror multi-candidate UI is already tested; the missing production behavior is MobaXterm `active` plus serving the scan from memory
+
+## 2026-09-04 - PLAN - COMPLETE (preflight replan)
+
+* Work completed
+    - Addressed FAIL (fixable): `onStartupFinished`; brief matches launch-only rescan; `cacheKey` does not sort `extraDirectories`; Documents lookup lazy + memoized; `src/cache.ts`; unconditional `cacheKey` tests
+* Decisions made
+    - Did not adopt the mtime-signature advisory; operator asked to rescan on launch, not to cheap-stat on every command
+    - ActivationEvents contract test in `test/parsers.test.ts` ci is a user-visible warm-cache lock, not a heading change-detector
+* Insights
+    - `activationEvents: []` on 1.75+ is command-only activation; a warm cache requires `onStartupFinished`
+
+## 2026-09-04 - PREFLIGHT - COMPLETE (FAIL (fixable))
+
+* Work completed
+    - Validated the Level 3 plan against the codebase; wrote `memory-bank/active/.preflight-status` (first line `FAIL (fixable)`)
+    - TDD Plan Encoding passed: all three executable units order test steps before production steps; no change-detectors scheduled, so no in-phase edits to `tasks.md`
+    - Three high findings and one medium finding, all with known fixes; six items verified as non-issues so build does not re-litigate them
+* Decisions made
+    - Did not modify the plan: every issue is a planner decision (activation manifest, brief-vs-creative reconciliation, cache-key semantics), not a mechanical swap or strike
+    - Recorded the cache-key contradiction as "creative is right, test plan is wrong" rather than leaving the choice open
+* Insights
+    - `activationEvents: []` with implicit `onCommand` means the extension wakes on the first command, so the planned warm cache is cold exactly when it matters; `onStartupFinished` is missing from every unit
+    - The brief's "refresh in the background" (R4, UC4, AC4) is the option the scan-cache creative explicitly eliminated; the artifacts disagree and QA has no tiebreaker
+    - `extraDirectories` order is load-bearing in discovery (Alacritty last-import-wins, `seen`-set first-walk-wins), so sorting it into the cache key would fuse two genuinely different result sets
+    - `windowsDocumentsDir()` placed in `discoverThemes` spawns PowerShell synchronously on every scan, including scans that exclude MobaXterm

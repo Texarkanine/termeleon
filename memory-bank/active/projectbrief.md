@@ -20,14 +20,14 @@ README and store listing show, per OS, whether an emulator can be picked, mirror
 
 ### Use-Case 4: Warm scan
 
-The first Import or Mirror after a window loads does not wait on a cold disk walk if a scan has already finished (or a previous scan is cached). Subsequent commands serve the last scan immediately and refresh in the background. A truly empty cache still waits.
+The first Import or Mirror after a window loads does not wait on a cold disk walk if startup has already finished a scan. Subsequent commands in that window serve that scan immediately — they do not start another walk. A truly empty cache still waits. Changing `sources` or `extraDirectories` starts a new scan.
 
 ## Requirements
 
 1. Mark MobaXterm's applied palette as active when it is discoverable, so Mirror includes it among candidates.
 2. When more than one emulator reports an active theme, Mirror uses the existing multi-candidate picker (Alacritty vs MobaXterm, etc.) rather than silently choosing one.
 3. Update the OS compatibility matrices in `README.md` and `STORE.md`: `✅` only for pick-and-mirror; `📝` for pick-but-not-mirror; `🪞` only if something can mirror but not pick. Legend under each table for symbols actually used.
-4. Cache discovered themes. Commands serve the cache immediately and refresh in the background; wait only when the cache is empty.
+4. Cache discovered themes in process memory. Commands serve the cache immediately; wait only when the cache is empty. Do not walk the disk on every command. Rescan when the window loads and when `sources` or `extraDirectories` change.
 5. Start the first scan when the extension/window loads so the cache is usually warm before the user runs a command.
 
 ## Constraints
@@ -42,5 +42,5 @@ The first Import or Mirror after a window loads does not wait on a cold disk wal
 1. When MobaXterm's applied `[Colors]` is found, that theme is `active` and appears as in-use in the import picker.
 2. When Alacritty and MobaXterm both have active palettes, Mirror asks which to apply instead of taking Alacritty alone.
 3. README and STORE OS matrices and legends match the symbols specified above and match implemented pick/mirror capability.
-4. With a populated cache, Import and Mirror do not block the UI on a full rescan; a background refresh still updates the cache.
-5. On activation (empty cache), a background scan starts; the first command waits only if that scan has not finished yet.
+4. With a populated cache, Import and Mirror do not wait on a full rescan.
+5. `onStartupFinished` starts a scan; the first command waits only if that scan has not finished yet.
