@@ -135,3 +135,15 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
     - None beyond the plan; lookup memo stores `undefined` so a failed win32 lookup is not retried every scan
 * Insights
     - Coincidence (Known Folder == USERPROFILE Documents) was already one origin via `seen`; root `path.resolve` dedupe still matches the plan
+
+## 2026-09-04 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Re-read `tasks.md`, `projectbrief.md`, `systemPatterns.md`, `activeContext.md`, both creative docs; reviewed `src/cache.ts`, `src/discover.ts`, `src/extension.ts`, `test/cache.test.ts`, the new `test/discover.test.ts` cases, the `activationEvents` ci contract, `README.md`, `STORE.md`
+    - Re-ran `npm run test:parsers` (74 + 32 + 8 passing, matching Build's count) and `npm run compile` (clean) to confirm the green claim before judging semantics
+    - Wrote `memory-bank/active/.qa-validation-status` (`PASS`)
+* Decisions made
+    - No findings blocked acceptance: `ThemeCache` matches the single-slot, process-lifetime design in the scan-cache creative doc; `windowsDocumentsDir()` is called only inside the `mobaxterm` closure (pre-mortem item honored); the multi-candidate Mirror picker path needed no new host test since `pickMirrorCandidate` is already exercised generically over `MirrorCandidate` shapes in `test/host/picker.test.ts`
+    - Verified all 5 project-brief requirements and 5 acceptance criteria have concrete, tested implementations; no stubs, TODOs, or placeholder debris found in `src/`
+* Insights
+    - README/STORE matrices, `systemPatterns.md`, and `techContext.md` were all updated consistently with the shipped behavior — no doc drift

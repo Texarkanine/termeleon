@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: mobaxterm-active-and-scan-cache
-**Phase:** BUILD - COMPLETE
+**Phase:** QA - COMPLETE (PASS)
 
 ## What Was Done
 - ThemeCache (`src/cache.ts`): process-lifetime memo; `cacheKey` sorts `sources` only; `setTimeout(0)`; coalesced in-flight; drop on key change or scan failure.
@@ -26,4 +26,4 @@ None — built to plan.
 - `npm run compile`: clean. Host tests not run (WSL Electron hang); unchanged for CI.
 
 ## Next Step
-- QA review (`/niko-qa`) runs automatically.
+- QA passed — proceed to `/niko-reflect`.
