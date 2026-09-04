@@ -8,4 +8,4 @@
 - Plan order: ThemeCache → Known Folder Documents root → extension collect/activate → README/STORE matrices → persistent memory-bank pointers.
 
 ## Next Step
-- Unit 3: Extension collect / activate (`src/extension.ts`, `package.json`, activationEvents contract).
+- Unit 4: README/STORE compatibility matrices; unit 5: persistent memory-bank pointers.
