@@ -76,3 +76,24 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
     - The brief's "refresh in the background" (R4, UC4, AC4) is the option the scan-cache creative explicitly eliminated; the artifacts disagree and QA has no tiebreaker
     - `extraDirectories` order is load-bearing in discovery (Alacritty last-import-wins, `seen`-set first-walk-wins), so sorting it into the cache key would fuse two genuinely different result sets
     - `windowsDocumentsDir()` placed in `discoverThemes` spawns PowerShell synchronously on every scan, including scans that exclude MobaXterm
+
+## 2026-09-04 - PREFLIGHT - COMPLETE (FAIL (fixable), re-run)
+
+* Work completed
+    - Re-validated the amended Level 3 plan against the codebase; overwrote `memory-bank/active/.preflight-status` (first line `FAIL (fixable)`)
+    - Confirmed all four HIGH and both LOW findings from the prior run are resolved as claimed (`onStartupFinished`, brief no longer promises background refresh, `cacheKey` sorts `sources` only, lazy/memoized Documents lookup, `src/cache.ts`, unconditional `cacheKey` tests)
+    - Found one new TDD Plan Encoding defect introduced by the fix itself: unit 3's step 2 lists the finished `activationEvents` value instead of a bare stub, so step 3 could never actually go red
+* Decisions made
+    - Did not modify `tasks.md`: the fix (drop one bullet from step 2) is a planner decision, not a mechanical swap or change-detector strike
+    - Recorded the scan-cache creative doc's stale `src/scanCache.ts` naming as a low, non-blocking finding since `tasks.md` is internally consistent and governs the build
+* Insights
+    - Units 1 and 2's interface-stub steps list bare signatures/fields only and defer behavior to the write-green step; unit 3's step 2 broke that discipline for the one line that mattered most (the exact requirement the previous FAIL was about)
+    - A manifest array field has no partial/stub state between empty and finished, so "stubbing" it really means leaving it untouched until the write-green step
+
+## 2026-09-04 - PLAN - COMPLETE (unit 3 stub encoding)
+
+* Work completed
+    - Dropped `onStartupFinished` from unit 3 stub-interface; write-green still sets it
+    - Updated creative scan-cache file names to `src/cache.ts` / `test/cache.test.ts`
+* Decisions made
+    - Leave existing empty `activationEvents` until green so the parsers ci case can go red

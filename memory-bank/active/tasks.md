@@ -136,7 +136,7 @@ Addressed `FAIL (fixable)`: `onStartupFinished`; brief no longer promises per-co
 - Creative ref: `memory-bank/active/creative/creative-scan-cache.md`
 
 1. Stub tests: `test/parsers.test.ts` ci case that `activationEvents` includes `onStartupFinished` (warm-cache contract; engines are `^1.75.0`, so implicit `onCommand` for contributed commands still applies).
-2. Stub interface: `package.json` `activationEvents: ["onStartupFinished"]`; module-level `ThemeCache`; `collect` uses `cacheKey` + `peek`/`load`; `activate` kicks `load` and registers `onDidChangeConfiguration`.
+2. Stub interface: `package.json` keeps its existing `activationEvents` key (do not put `onStartupFinished` here); module-level `ThemeCache`; `collect` uses `cacheKey` + `peek`/`load`; `activate` kicks `load` and registers `onDidChangeConfiguration`.
 3. Write tests and run red: `npx tsx test/parsers.test.ts` (the new activationEvents case).
 4. Write code and run green: set `activationEvents`; `collect` awaits `cache.load`; `withProgress` only when `peek` is empty; activate schedules warm scan; config changes for `termeleon.sources` and `termeleon.extraDirectories` call `load` with the new key.
 

@@ -77,10 +77,10 @@ Key insights:
 
 ## Implementation Notes
 
-- New vscode-free `src/scanCache.ts`: `ThemeCache` with `load(key, scan) => Promise<DiscoveredTheme[]>` and `peek(key)`. Same key + completed results → resolve immediately. Same key + in-flight → share the promise. Different key → start a new scan and drop stale results.
+- New vscode-free `src/cache.ts`: `ThemeCache` with `load(key, scan) => Promise<DiscoveredTheme[]>` and `peek(key)`. Same key + completed results → resolve immediately. Same key + in-flight → share the promise. Different key → start a new scan and drop stale results.
 - Key: stable serialization of `sources` (sorted) and `extraDirectories` (as configured).
 - `collect()` calls `load`. `withProgress` only when `peek` is empty.
 - `activate()` kicks `void cache.load(...)` so a command that arrives later hits memory.
 - `workspace.onDidChangeConfiguration` for `termeleon.sources` / `termeleon.extraDirectories` starts `load` with the new key.
-- Tests: `test/scanCache.test.ts` via `tsx` (stub `scan`, assert coalescing, key change, peek). Wire that file into `test:parsers`. Host tests stay on picker/apply; they do not need to drive the real disk walk.
+- Tests: `test/cache.test.ts` via `tsx` (stub `scan`, assert coalescing, key change, peek). Wire that file into `test:parsers`. Host tests stay on picker/apply; they do not need to drive the real disk walk.
 - Do not store palettes in `globalState`.
