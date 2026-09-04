@@ -1,12 +1,11 @@
 # Active Context
 
 ## Current Task: mobaxterm-active-and-scan-cache
-**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+**Phase:** BUILD - IN-PROGRESS
 
 ## What Was Done
-- Level 3 plan ready for Build: Known Folder Documents as MobaXterm default root; in-memory `ThemeCache`; `onStartupFinished`; brief is launch/config rescan only.
-- Sequence diagrams in `tasks.md` / creative-scan-cache rewritten: never name a participant `Activate` (reserved); do not quote messages or put parens/commas in them.
-- Preflight `PASS WITH ADVISORY` (mtime cache signature out of scope).
+- Preflight `PASS WITH ADVISORY`; entering Build on `windows-again`.
+- Plan order: ThemeCache → Known Folder Documents root → extension collect/activate → README/STORE matrices → persistent memory-bank pointers.
 
 ## Next Step
-- Run `/niko-build` on branch `windows-again`.
+- Unit 1: ThemeCache (`src/cache.ts` / `test/cache.test.ts`) via TDD.

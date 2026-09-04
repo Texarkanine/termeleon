@@ -114,3 +114,12 @@ Make MobaXterm's applied palette count as active for Mirror (and ask when Alacri
 * Work completed
     - Sequence diagrams no longer use participant `Activate` or parenthesized messages (Cursor Mermaid lex errors)
     - `/handoff` after `/nk-save`
+
+## 2026-09-04 - BUILD - IN-PROGRESS
+
+* Work completed
+    - Left Preflight (`PASS WITH ADVISORY`) and started Build
+* Decisions made
+    - Follow the plan order: ThemeCache, then Known Folder Documents, then extension wiring, then docs, then memory-bank pointers
+* Insights
+    - Advisory mtime-signature freshness remains out of scope
