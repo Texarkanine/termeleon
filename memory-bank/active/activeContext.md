@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current Task: mobaxterm-active-and-scan-cache
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - IN-PROGRESS
 
 ## What Was Done
-- Intent restated and approved: MobaXterm active detection for Mirror (multi-candidate picker when Alacritty is also active), honest pick/mirror matrices in README and STORE, warm scan cache with activation-time scan.
-- Complexity Level 3: multiple components (discover active-marking, extension lifecycle/cache, docs) and design choices before coding (how to resolve the real `MobaXterm.ini`; cache storage and invalidation). Not a single-component bug fix; not a system-wide architecture change.
+- Component analysis: MobaXterm default-root active marking, vscode-free `discoverThemes`, extension `collect`/`activate`, existing multi-candidate Mirror picker, README/STORE matrices.
+- Open questions flagged: (1) how to find/mark the applied MobaXterm.ini when Documents is redirected; (2) scan-cache storage and refresh policy.
+- Creative OQ1 resolved: Known Folder Documents as a MobaXterm default root; `documentsDir` injection for tests; `LastIniPath` not primary; extraDirs stay inactive.
 
 ## Next Step
-- Load the Level 3 workflow and execute its next phase.
+- Creative phase for open question 2 (scan-cache storage and refresh).
