@@ -1,6 +1,6 @@
 # Progress
 
-Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror, including palettes that omit selection colors, and clarify whether `includeSelectionForeground` actually takes effect.
+Rework terminal-selection-visibility: split Settings into Picker Behavior vs Color Preferences when Applying New Themes, and rename the two selection toggles as overrides with inverted foreground polarity.
 
 **Complexity:** Level 2
 
@@ -150,6 +150,16 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
     - Clean break: drop `fillMissingSelection` and `includeSelectionForeground`; 0.x, no alias.
 * Insights
     - VS Code category objects have title/order/properties only; the Color Preferences title is the section-level "not live" signal.
+
+## 2026-09-13 - COMPLEXITY-ANALYSIS - COMPLETE (rework)
+
+* Work completed
+    - Classified the settings-category + override-rename rework as Level 2.
+* Decisions made
+    - Level 2, not Level 1: polarity inversion, key rename, configuration array, and docs/tests across the mapping hub and apply shell.
+    - Level 2, not Level 3: still one subsystem (Palette → toColorCustomizations + package.json contribution).
+* Insights
+    - Default-off for `overrideIncludedSelectionForeground` means authored selection fg is now written unless the user opts out — opposite of the first build's skip-by-default.
 
 
 
