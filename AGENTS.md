@@ -1,10 +1,10 @@
 # Project Memory
 
-Shared memory for this repository is managed through SumMem, invoked as `.summem/summem`.
+Shared memory for this repository is managed through SumMem.
 
 ## At Session Start: Activating SumMem (mandatory)
 
-Run `.summem/summem wake` from the repository root. If you can see a prior project-root SumMem wake in this conversation's history, do not run it again.
+Run `python .summem/summem wake` from the repository root. If you can see a prior project-root SumMem wake in this conversation's history, do not run it again.
 
 ## While Working: Register Memories
 
