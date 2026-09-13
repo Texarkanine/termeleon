@@ -193,5 +193,15 @@ Rework terminal-selection-visibility: split Settings into Picker Behavior vs Col
 * Insights
     - Host tests on this WSL box still need a writable `XDG_RUNTIME_DIR` (not `/run/user/1000`) plus `dbus-launch`, or Electron dies on `EACCES` for the vscode socket.
 
+## 2026-09-13 - QA - COMPLETE (rework, PASS)
+
+* Work completed
+    - Semantic review of the rework build against the Level 2 rework plan: mapping polarity inversion, apply/extension option rename, package.json configuration-array split, README/STORE copy.
+    - Re-ran the complete suite: 85 parser, 32 discovery, 8 cache, and 47 extension-host tests, all passing.
+* Decisions made
+    - PASS: every plan unit matches the diff, every Test Plan behavior has a corresponding test, no stray references to the removed setting ids, no debris.
+    - Preflight's non-blocking settings-adapter advisory correctly left undone.
+* Insights
+    - The rework's clean-break constraint held throughout: the only remaining occurrences of `includeSelectionForeground` / `fillMissingSelection` are the negative assertions proving they are gone.
 
 

@@ -106,4 +106,8 @@ No new technology - validation not required
 - [x] Pre-Mortem complete
 - [x] Preflight (PASS WITH ADVISORY)
 - [x] Build
-- [ ] QA
+- [x] QA (PASS)
+
+## QA Result
+
+PASS. Full suite re-run clean (85 parser + 32 discovery + 8 cache + 47 host tests). Mapping polarity, apply/extension rename, package.json configuration-array split, and README/STORE all match the rework plan; every Test Plan behavior has coverage; no stray references to the removed setting ids; no debris. See `memory-bank/active/.qa-validation-status` for full findings.

@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: terminal-selection-visibility
-**Phase:** BUILD - COMPLETE
+**Phase:** QA - COMPLETE (PASS)
 
 ## What Was Done
 - Split Settings into Picker Behavior and Color Preferences when Applying New Themes.
@@ -9,7 +9,7 @@
 - Highlight override still writes selectionBackground + inactiveSelectionBackground only.
 
 ## Next Step
-- QA of the rework.
+- QA passed. Proceed to `/niko-reflect`.
 
 ## Files modified
 - `/home/mobaxterm/git/termeleon/src/palette.ts`
