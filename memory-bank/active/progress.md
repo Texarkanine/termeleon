@@ -89,3 +89,13 @@ Upgrade the Termeleon compiler to TypeScript 6.0 to match VS Code upstream, and 
 * Decisions made
     - One-line docs fix; no code change.
 
+## 2026-09-13 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Re-reviewed commit `b559fa7` against the Level 2 plan and project brief, using the correct merge-base `d8e8a20` (an earlier local diff against a divergent, unpushed `release 0.8.0` commit had falsely suggested CHANGELOG/manifest regressions — a branch-history artifact, not a real finding).
+    - Independently re-ran all four plan verification commands: `compile` (clean), parser suite (85/85, `ci` section confirmed to assert only the TS7/`@types/node` ignores), `package` (vsce engines gate green), `test:host` (47/47, after a sandbox-only `XDG_RUNTIME_DIR` fix — the default `/run/user/1000` doesn't exist in this environment; unrelated to the code and to CI, which doesn't run `test:host`).
+* Decisions made
+    - PASS. The round-1 documentation finding is corrected and verified consistent with what the test source actually asserts. The `picker.test.ts` `scopeToActiveTheme` advisory is carried forward as non-blocking (test-only, minimal, required by the plan's own verification gate).
+* Insights
+    - Divergent local branch history (a branch cut before an unpushed release-please commit landed on a sibling branch) can make a naive `git diff <old-tag>..HEAD` show phantom regressions; always confirm the actual merge-base with `git log --oneline --parents` before trusting a diff stat.
+

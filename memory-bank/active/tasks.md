@@ -83,13 +83,15 @@ No new technology - validation not required. TypeScript 6.0 is an upgrade of the
 
 ## QA Results
 
-❌ **FAIL** — one blocking documentation finding; see `.qa-validation-status` for full detail.
+### Round 1 — ❌ FAIL
 
-1. `memory-bank/techContext.md` claims the `ci` section of `test/parsers.test.ts` locks the `@types/vscode` `>=1.76.0` Dependabot ignore. The test asserts only the `typescript >=7.0.0` and `@types/node >=23.0.0` ignores. Plan unit 3 step 3 explicitly prohibited describing new parser contract tests for this pin. The sentence must be corrected so it does not attribute coverage the suite does not have.
+One blocking documentation finding: `memory-bank/techContext.md` claimed the `ci` section of `test/parsers.test.ts` locks the `@types/vscode` `>=1.76.0` Dependabot ignore. The test asserts only the `typescript >=7.0.0` and `@types/node >=23.0.0` ignores. Plan unit 3 step 3 explicitly prohibited describing new parser contract tests for this pin. Build reran to correct the sentence.
 
 Advisory: the `test/host/picker.test.ts` `scopeToActiveTheme` pin was outside the written plan units but required by the plan's own `npm run test:host` verification step; minimal and documented. QA independently re-ran `compile`, the parser suite (85/85), and `package` — all green.
 
-**Next:** Build must rerun to fix the `techContext.md` sentence.
+### Round 2 — ✅ PASS
+
+`techContext.md`'s `techContext.md` sentence is corrected — the Package bullet now states the pin/ignore, and the `ci`/Testing Process bullet lists only the ignores the test actually asserts. Independently re-ran `compile`, the parser suite (85/85), `package` (vsce engines gate green), and `test:host` (47/47, after a sandbox-only `XDG_RUNTIME_DIR` fix unrelated to the code). Full detail in `.qa-validation-status`.
 
 ## Status
 
@@ -100,4 +102,4 @@ Advisory: the `test/host/picker.test.ts` `scopeToActiveTheme` pin was outside th
 - [x] Pre-Mortem complete
 - [x] Preflight
 - [x] Build
-- [ ] QA
+- [x] QA
