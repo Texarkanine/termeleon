@@ -37,13 +37,18 @@ Termeleon scans the theme files and addons sitting on your local disk and applie
 
 ## Configuration
 
-Customize Termeleon through your VS Code settings:
+Customize Termeleon through your VS Code settings. They appear in two groups.
+
+**Picker Behavior** (takes effect on the next pick or scan):
 
 - `termeleon.target` (`ask` | `global` | `workspace`): Where to apply the imported palette (user or workspace settings). Default is `ask`.
 - `termeleon.sources`: Limit scanning to specific emulators (e.g. `["ghostty", "kitty"]`). Default is all emulators.
 - `termeleon.extraDirectories`: List of additional filesystem paths to sweep for theme files (e.g. `~/dotfiles/themes`).
-- `termeleon.scopeToActiveTheme` (`boolean`): Nest colors under `[Your Current Theme]` so they apply only while that workbench theme is active. Default is `false` (palette applies across all workbench themes). Takes effect on the next Import, Mirror, or Reapply.
-- `termeleon.setMinimumContrastRatio` (`boolean`): Set `terminal.integrated.minimumContrastRatio` to 1 so colors render exactly as authored. Default is `true`. Takes effect on the next Import, Mirror, or Reapply.
-- `termeleon.includeSelectionForeground` (`boolean`): Write `terminal.selectionForeground`. Default is `false`. Takes effect on the next Import, Mirror, or Reapply, and only if the theme defines a selection foreground.
-- `termeleon.fillMissingSelection` (`boolean`): When a theme omits selection colors, write a translucent overlay so the highlight is visible. Default is `true`. Takes effect on the next Import, Mirror, or Reapply.
 - `termeleon.livePreview` (`boolean`): Enable or disable live previewing when navigating the theme picker. Default is `true`.
+
+**Color Preferences when Applying New Themes** (takes effect on the next Import, Mirror, or Reapply):
+
+- `termeleon.scopeToActiveTheme` (`boolean`): Nest colors under `[Your Current Theme]` so they apply only while that workbench theme is active. Default is `false` (palette applies across all workbench themes).
+- `termeleon.setMinimumContrastRatio` (`boolean`): Set `terminal.integrated.minimumContrastRatio` to 1 so colors render exactly as authored. Default is `true`.
+- `termeleon.overrideMissingSelectionHighlight` (`boolean`): On: invent a highlight when the theme omitted one. Off: do not invent one. Does nothing when the theme already has a highlight. Default is `true`.
+- `termeleon.overrideIncludedSelectionForeground` (`boolean`): On: ignore the theme's selection foreground and keep each cell's ANSI color. Off: use the theme's selection foreground. Does nothing when the theme has no selection foreground. Default is `false`.

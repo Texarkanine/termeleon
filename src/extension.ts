@@ -29,8 +29,8 @@ function settings() {
     extraDirectories: c.get<string[]>('extraDirectories', []),
     scopeToActiveTheme: c.get<boolean>('scopeToActiveTheme', false),
     setMinimumContrastRatio: c.get<boolean>('setMinimumContrastRatio', true),
-    includeSelectionForeground: c.get<boolean>('includeSelectionForeground', false),
-    fillMissingSelection: c.get<boolean>('fillMissingSelection', true),
+    overrideIncludedSelectionForeground: c.get<boolean>('overrideIncludedSelectionForeground', false),
+    overrideMissingSelectionHighlight: c.get<boolean>('overrideMissingSelectionHighlight', true),
     livePreview: c.get<boolean>('livePreview', true),
   };
 }
@@ -41,8 +41,8 @@ function applyOptions(target: Target): ApplyOptions {
     target,
     scopeToActiveTheme: s.scopeToActiveTheme,
     setMinimumContrastRatio: s.setMinimumContrastRatio,
-    includeSelectionForeground: s.includeSelectionForeground,
-    fillMissingSelection: s.fillMissingSelection,
+    overrideIncludedSelectionForeground: s.overrideIncludedSelectionForeground,
+    overrideMissingSelectionHighlight: s.overrideMissingSelectionHighlight,
   };
 }
 

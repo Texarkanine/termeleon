@@ -13,9 +13,9 @@ export interface ApplyOptions {
   target: Target;
   /** Nest the colors under `[Active Theme Name]` instead of writing them flat. */
   scopeToActiveTheme: boolean;
-  includeSelectionForeground: boolean;
+  overrideIncludedSelectionForeground: boolean;
   setMinimumContrastRatio: boolean;
-  fillMissingSelection: boolean;
+  overrideMissingSelectionHighlight: boolean;
 }
 
 export type LastApply =
@@ -124,8 +124,8 @@ export async function applyPalette(
   opts: ApplyOptions,
 ): Promise<void> {
   const colors = toColorCustomizations(palette, {
-    includeSelectionForeground: opts.includeSelectionForeground,
-    fillMissingSelection: opts.fillMissingSelection,
+    overrideIncludedSelectionForeground: opts.overrideIncludedSelectionForeground,
+    overrideMissingSelectionHighlight: opts.overrideMissingSelectionHighlight,
   });
 
   const current = stripOwnedKeys(readAt(opts.target), ownedKeys(ctx, opts.target));
@@ -152,8 +152,8 @@ export async function applyPalettePair(
   opts: ApplyOptions,
 ): Promise<void> {
   const mapping = {
-    includeSelectionForeground: opts.includeSelectionForeground,
-    fillMissingSelection: opts.fillMissingSelection,
+    overrideIncludedSelectionForeground: opts.overrideIncludedSelectionForeground,
+    overrideMissingSelectionHighlight: opts.overrideMissingSelectionHighlight,
   };
   const darkColors = toColorCustomizations(dark, mapping);
   const lightColors = toColorCustomizations(light, mapping);

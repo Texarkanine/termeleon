@@ -1,12 +1,31 @@
 # Active Context
 
 ## Current Task: terminal-selection-visibility
-**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Planned rework: Settings categories (Picker Behavior / Color Preferences when Applying New Themes), override ids, inverted foreground default.
-- Highlight override remains selectionBackground + inactiveSelectionBackground; foreground override is a separate key.
-- Preflight confirmed the plan preserves the vscode-free core boundary, covers all affected consumers, and encodes TDD for every executable unit.
+- Split Settings into Picker Behavior and Color Preferences when Applying New Themes.
+- Replaced `fillMissingSelection` / `includeSelectionForeground` with `overrideMissingSelectionHighlight` (default on) and `overrideIncludedSelectionForeground` (default off, inverted: off honors authored fg).
+- Highlight override still writes selectionBackground + inactiveSelectionBackground only.
 
 ## Next Step
-- Build the approved rework plan. Advisory: consider a future settings-to-ApplyOptions adapter to localize default-value mapping.
+- QA of the rework.
+
+## Files modified
+- `/home/mobaxterm/git/termeleon/src/palette.ts`
+- `/home/mobaxterm/git/termeleon/src/apply.ts`
+- `/home/mobaxterm/git/termeleon/src/extension.ts`
+- `/home/mobaxterm/git/termeleon/package.json`
+- `/home/mobaxterm/git/termeleon/test/parsers.test.ts`
+- `/home/mobaxterm/git/termeleon/test/host/apply.test.ts`
+- `/home/mobaxterm/git/termeleon/test/host/preview.test.ts`
+- `/home/mobaxterm/git/termeleon/README.md`
+- `/home/mobaxterm/git/termeleon/STORE.md`
+
+## Decisions
+- Mapping-layer default writes authored selectionForeground unless the fg override is on.
+- Host `workspaceOpts` still defaults both overrides to false so isolation tests stay explicit.
+- Preview isolation reapply with fg override on asserts the committed background and omitted fg (not the previewed palette).
+
+## Deviations
+- None — built to plan. Host tests needed a writable `XDG_RUNTIME_DIR` plus `dbus-launch` on this WSL box (same as the first build).

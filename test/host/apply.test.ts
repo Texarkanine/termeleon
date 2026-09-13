@@ -13,9 +13,9 @@ import { fakeContext, inspectColors, resetSettings, samplePalette } from './help
 const workspaceOpts = (extra: Partial<ApplyOptions> = {}): ApplyOptions => ({
   target: 'workspace',
   scopeToActiveTheme: false,
-  includeSelectionForeground: false,
+  overrideIncludedSelectionForeground: false,
   setMinimumContrastRatio: false,
-  fillMissingSelection: false,
+  overrideMissingSelectionHighlight: false,
   ...extra,
 });
 
@@ -113,32 +113,32 @@ suite('apply / remove / snapshot', () => {
     assert.ok(!ownedKeys(ctx, 'workspace').includes('terminalCursor.foreground'));
   });
 
-  test('includeSelectionForeground false omits terminal.selectionForeground', async () => {
-    await applyPalette(ctx, samplePalette(), workspaceOpts({ includeSelectionForeground: false }));
+  test('overrideIncludedSelectionForeground on omits terminal.selectionForeground', async () => {
+    await applyPalette(ctx, samplePalette(), workspaceOpts({ overrideIncludedSelectionForeground: true }));
     const colors = inspectColors('workspace');
     assert.ok(!('terminal.selectionForeground' in colors));
   });
 
-  test('includeSelectionForeground true writes terminal.selectionForeground', async () => {
+  test('overrideIncludedSelectionForeground off writes terminal.selectionForeground', async () => {
     const palette = samplePalette();
-    await applyPalette(ctx, palette, workspaceOpts({ includeSelectionForeground: true }));
+    await applyPalette(ctx, palette, workspaceOpts({ overrideIncludedSelectionForeground: false }));
     assert.strictEqual(
       inspectColors('workspace')['terminal.selectionForeground'],
       palette.selectionForeground,
     );
   });
 
-  test('fillMissingSelection true writes overlay when palette has no selection', async () => {
+  test('overrideMissingSelectionHighlight true writes overlay when palette has no selection', async () => {
     const palette = samplePalette({ selectionBackground: undefined });
-    await applyPalette(ctx, palette, workspaceOpts({ fillMissingSelection: true }));
+    await applyPalette(ctx, palette, workspaceOpts({ overrideMissingSelectionHighlight: true }));
     const colors = inspectColors('workspace');
     assert.strictEqual(colors['terminal.selectionBackground'], '#ffffff80');
     assert.strictEqual(colors['terminal.inactiveSelectionBackground'], '#ffffff40');
   });
 
-  test('fillMissingSelection false omits overlay when palette has no selection', async () => {
+  test('overrideMissingSelectionHighlight false omits overlay when palette has no selection', async () => {
     const palette = samplePalette({ selectionBackground: undefined });
-    await applyPalette(ctx, palette, workspaceOpts({ fillMissingSelection: false }));
+    await applyPalette(ctx, palette, workspaceOpts({ overrideMissingSelectionHighlight: false }));
     const colors = inspectColors('workspace');
     assert.ok(!('terminal.selectionBackground' in colors));
     assert.ok(!('terminal.inactiveSelectionBackground' in colors));
@@ -146,39 +146,56 @@ suite('apply / remove / snapshot', () => {
 
   test('reapply remaps the last single palette with current options', async () => {
     const palette = samplePalette();
-    await applyPalette(ctx, palette, workspaceOpts({ includeSelectionForeground: false }));
+    await applyPalette(ctx, palette, workspaceOpts({ overrideIncludedSelectionForeground: false }));
     await recordLastApply(ctx, 'workspace', { kind: 'single', palette });
-    assert.ok(!('terminal.selectionForeground' in inspectColors('workspace')));
-
-    const result = await reapply(ctx, 'workspace', workspaceOpts({ includeSelectionForeground: true }));
-    assert.deepStrictEqual(result, { applied: true });
     assert.strictEqual(
       inspectColors('workspace')['terminal.selectionForeground'],
       palette.selectionForeground,
     );
+
+    const result = await reapply(ctx, 'workspace', workspaceOpts({ overrideIncludedSelectionForeground: true }));
+    assert.deepStrictEqual(result, { applied: true });
+    assert.ok(!('terminal.selectionForeground' in inspectColors('workspace')));
   });
 
   test('reapply remaps a recorded Ghostty pair into both preferred-theme scopes', async () => {
     const dark = samplePalette({ background: '#0a0a0a', selectionForeground: '#aaaaaa' });
     const light = samplePalette({ background: '#f0f0f0', selectionForeground: '#111111' });
-    await applyPalettePair(ctx, dark, light, workspaceOpts());
+    await applyPalettePair(ctx, dark, light, workspaceOpts({ overrideIncludedSelectionForeground: false }));
     await recordLastApply(ctx, 'workspace', { kind: 'pair', dark, light });
 
-    const result = await reapply(ctx, 'workspace', workspaceOpts({ includeSelectionForeground: true }));
-    assert.deepStrictEqual(result, { applied: true });
-
-    const colors = inspectColors('workspace');
+    const colorsBefore = inspectColors('workspace');
     const workbench = vscode.workspace.getConfiguration('workbench');
     const darkScope = `[${workbench.get<string>('preferredDarkColorTheme') ?? ''}]`;
     const lightScope = `[${workbench.get<string>('preferredLightColorTheme') ?? ''}]`;
-    assert.strictEqual(colors[darkScope]['terminal.selectionForeground'], dark.selectionForeground);
-    assert.strictEqual(colors[lightScope]['terminal.selectionForeground'], light.selectionForeground);
+    assert.strictEqual(colorsBefore[darkScope]['terminal.selectionForeground'], dark.selectionForeground);
+    assert.strictEqual(colorsBefore[lightScope]['terminal.selectionForeground'], light.selectionForeground);
+
+    const result = await reapply(ctx, 'workspace', workspaceOpts({ overrideIncludedSelectionForeground: true }));
+    assert.deepStrictEqual(result, { applied: true });
+
+    const colors = inspectColors('workspace');
+    assert.ok(!('terminal.selectionForeground' in (colors[darkScope] ?? {})));
+    assert.ok(!('terminal.selectionForeground' in (colors[lightScope] ?? {})));
   });
 
   test('reapply with no record does not write settings', async () => {
     const result = await reapply(ctx, 'workspace', workspaceOpts());
     assert.deepStrictEqual(result, { applied: false });
     assert.deepStrictEqual(inspectColors('workspace'), {});
+  });
+
+  test('reapply flips highlight override on a palette with no selection', async () => {
+    const palette = samplePalette({ selectionBackground: undefined });
+    await applyPalette(ctx, palette, workspaceOpts({ overrideMissingSelectionHighlight: false }));
+    await recordLastApply(ctx, 'workspace', { kind: 'single', palette });
+    assert.ok(!('terminal.selectionBackground' in inspectColors('workspace')));
+
+    const result = await reapply(ctx, 'workspace', workspaceOpts({ overrideMissingSelectionHighlight: true }));
+    assert.deepStrictEqual(result, { applied: true });
+    const colors = inspectColors('workspace');
+    assert.strictEqual(colors['terminal.selectionBackground'], '#ffffff80');
+    assert.strictEqual(colors['terminal.inactiveSelectionBackground'], '#ffffff40');
   });
 
   test('removeApplied clears the last-apply record', async () => {
@@ -190,7 +207,7 @@ suite('apply / remove / snapshot', () => {
     await removeApplied(ctx, 'workspace', false);
     assert.strictEqual(lastApply(ctx, 'workspace'), undefined);
 
-    const result = await reapply(ctx, 'workspace', workspaceOpts({ includeSelectionForeground: true }));
+    const result = await reapply(ctx, 'workspace', workspaceOpts({ overrideIncludedSelectionForeground: true }));
     assert.deepStrictEqual(result, { applied: false });
   });
 

@@ -74,72 +74,83 @@
         "category": "Termeleon"
       }
     ],
-    "configuration": {
-      "title": "Termeleon",
-      "properties": {
-        "termeleon.target": {
-          "type": "string",
-          "enum": [
-            "ask",
-            "global",
-            "workspace"
-          ],
-          "default": "ask",
-          "markdownDescription": "Which settings file to use for the imported palette. `ask` prompts each time; with no folder open it always uses user settings."
-        },
-        "termeleon.sources": {
-          "type": "array",
-          "items": {
+    "configuration": [
+      {
+        "id": "termeleon",
+        "title": "Picker Behavior",
+        "order": 1,
+        "properties": {
+          "termeleon.target": {
             "type": "string",
             "enum": [
-              "ghostty",
-              "kitty",
-              "alacritty",
-              "wezterm",
-              "iterm2",
-              "windows-terminal",
-              "xresources",
-              "mobaxterm"
-            ]
+              "ask",
+              "global",
+              "workspace"
+            ],
+            "default": "ask",
+            "markdownDescription": "Which settings file to use for the imported palette. `ask` prompts each time; with no folder open it always uses user settings."
           },
-          "default": [],
-          "description": "Emulators to scan. Empty means all of them."
-        },
-        "termeleon.extraDirectories": {
-          "type": "array",
-          "items": {
-            "type": "string"
+          "termeleon.sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ghostty",
+                "kitty",
+                "alacritty",
+                "wezterm",
+                "iterm2",
+                "windows-terminal",
+                "xresources",
+                "mobaxterm"
+              ]
+            },
+            "default": [],
+            "description": "Emulators to scan. Empty means all of them."
           },
-          "default": [],
-          "description": "Additional directories to sweep for theme files, e.g. a dotfiles checkout."
-        },
-        "termeleon.scopeToActiveTheme": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "Nest the colors under `[Your Theme Name]` so they only apply while that workbench theme is active. Off by default, so the terminal palette survives theme switching. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
-        },
-        "termeleon.setMinimumContrastRatio": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Also set `#terminal.integrated.minimumContrastRatio#` to 1. Without this, VS Code adjusts foreground colors toward a contrast target and the palette will not render as authored. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
-        },
-        "termeleon.includeSelectionForeground": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "Write `terminal.selectionForeground`. Off by default: setting it disables the behavior where selected text keeps its own color. Only themes that actually define a selection foreground will write one (MobaXterm palettes do not). Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
-        },
-        "termeleon.fillMissingSelection": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "When a theme has no selection color, write a translucent overlay so selected text is visible against the imported background. Authored selection colors are never replaced. Turn off to leave VS Code's workbench selection colors. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
-        },
-        "termeleon.livePreview": {
-          "type": "boolean",
-          "default": true,
-          "description": "Apply each theme as you navigate through the list. Turn off if the settings.json churn is disruptive."
+          "termeleon.extraDirectories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Additional directories to sweep for theme files, e.g. a dotfiles checkout."
+          },
+          "termeleon.livePreview": {
+            "type": "boolean",
+            "default": true,
+            "description": "Apply each theme as you navigate through the list. Turn off if the settings.json churn is disruptive."
+          }
+        }
+      },
+      {
+        "id": "termeleon",
+        "title": "Color Preferences when Applying New Themes",
+        "order": 2,
+        "properties": {
+          "termeleon.scopeToActiveTheme": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Nest the colors under `[Your Theme Name]` so they only apply while that workbench theme is active. Off by default, so the terminal palette survives theme switching. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
+          },
+          "termeleon.setMinimumContrastRatio": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "Also set `#terminal.integrated.minimumContrastRatio#` to 1. Without this, VS Code adjusts foreground colors toward a contrast target and the palette will not render as authored. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
+          },
+          "termeleon.overrideMissingSelectionHighlight": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "On: invent a highlight when the theme omitted one. Off: do not invent one. Does nothing when the theme already has a highlight. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
+          },
+          "termeleon.overrideIncludedSelectionForeground": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "On: ignore the theme's selection foreground and keep each cell's ANSI color. Off: use the theme's selection foreground. Does nothing when the theme has no selection foreground. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
+          }
         }
       }
-    }
+    ]
   },
   "scripts": {
     "compile": "tsc -p . --noEmit && esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",

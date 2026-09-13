@@ -62,11 +62,11 @@ Add anything else (a dotfiles checkout, a downloaded theme pack) via `termeleon.
 
 **Sets `terminal.integrated.minimumContrastRatio` to 1.** VS Code otherwise nudges foreground colors toward a contrast target, and your palette won't render as the theme author wrote it. Disable via `setMinimumContrastRatio` if you want the accessibility adjustment back.
 
-**Skips `terminal.selectionForeground`.** Writing that key disables the behavior where selected text keeps its own color. Opt in with `includeSelectionForeground`. Themes that never define a selection foreground (MobaXterm) still will not write one.
+**Honors an authored selection foreground.** If the theme defines one, Termeleon writes `terminal.selectionForeground`. Turn on `overrideIncludedSelectionForeground` to ignore it and keep each cell's ANSI color. Themes that never define a selection foreground (MobaXterm) still will not write one.
 
-**Fills missing selection backgrounds.** Themes with no selection color (MobaXterm, sparse Xresources) otherwise inherit the workbench `editor.selectionBackground`, which is often invisible on the imported terminal background. With `fillMissingSelection` (on by default) Termeleon writes a translucent overlay instead. Authored selection colors are never replaced. Turn the setting off to leave VS Code's colors.
+**Fills a missing selection highlight.** Themes with no selection color (MobaXterm, sparse Xresources) otherwise inherit the workbench `editor.selectionBackground`, which is often invisible on the imported terminal background. With `overrideMissingSelectionHighlight` (on by default) Termeleon writes a translucent overlay instead. Authored highlights are never replaced. Turn the setting off to leave VS Code's colors.
 
-**Mapping settings are not live.** `scopeToActiveTheme`, `setMinimumContrastRatio`, `includeSelectionForeground`, and `fillMissingSelection` are read when a theme is written. Toggle them, then Import, Mirror, or **Reapply Last Theme** — changing the checkbox does not rewrite colors by itself.
+**Color preferences are not live.** Settings under **Color Preferences when Applying New Themes** (`scopeToActiveTheme`, `setMinimumContrastRatio`, `overrideMissingSelectionHighlight`, `overrideIncludedSelectionForeground`) are read when a theme is written. Toggle them, then Import, Mirror, or **Reapply Last Theme**. **Picker Behavior** (`target`, `sources`, `extraDirectories`, `livePreview`) takes effect on the next pick or scan.
 
 **Live preview writes real settings.** Arrowing through the list applies each theme so you can see it, and the pre-picker value is restored if you cancel. If the `settings.json` churn bothers you, set `livePreview` to false. Preview does not count as the last theme for Reapply.
 

@@ -182,5 +182,16 @@ Rework terminal-selection-visibility: split Settings into Picker Behavior vs Col
 * Insights
     - Both current manifest consumers are in `test/parsers.test.ts`; its planned flattening helper covers the configuration-array migration.
 
+## 2026-09-13 - BUILD - COMPLETE (rework)
+
+* Work completed
+    - Renamed mapping options, inverted selection-fg default, split `contributes.configuration` into the two category titles, updated README/STORE.
+    - Parser suite 85+32+8 passing; host tests 47 passing (46 prior + 1 highlight-override reapply).
+* Decisions made
+    - `toColorCustomizations` writes `p.selectionForeground` unless `overrideIncludedSelectionForeground`.
+    - Contract tests flatten configuration whether object or array; old setting ids asserted absent.
+* Insights
+    - Host tests on this WSL box still need a writable `XDG_RUNTIME_DIR` (not `/run/user/1000`) plus `dbus-launch`, or Electron dies on `EACCES` for the vscode socket.
+
 
 

@@ -1,0 +1,1 @@
+Color Preferences (scope, contrast, missing-highlight override default on, included-fg override default off) apply on Import/Mirror/Reapply. Picker Behavior is live. FG override on keeps ANSI; off honors authored selection fg.

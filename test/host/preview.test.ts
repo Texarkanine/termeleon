@@ -13,9 +13,9 @@ import { fakeContext, inspectColors, resetSettings, samplePalette } from './help
 const opts: ApplyOptions = {
   target: 'workspace',
   scopeToActiveTheme: false,
-  includeSelectionForeground: false,
+  overrideIncludedSelectionForeground: false,
   setMinimumContrastRatio: false,
-  fillMissingSelection: false,
+  overrideMissingSelectionHighlight: false,
 };
 
 function delay(ms: number): Promise<void> {
@@ -221,10 +221,10 @@ suite('LivePreview', () => {
     await delay(PREVIEW_DEBOUNCE_MS + 400);
     await preview.cancel();
 
-    const result = await reapply(ctx, 'workspace', { ...opts, includeSelectionForeground: true });
+    const result = await reapply(ctx, 'workspace', { ...opts, overrideIncludedSelectionForeground: true });
     assert.deepStrictEqual(result, { applied: true });
     const colors = inspectColors('workspace');
     assert.strictEqual(colors['terminal.background'], '#111111');
-    assert.strictEqual(colors['terminal.selectionForeground'], '#abcdef');
+    assert.ok(!('terminal.selectionForeground' in colors));
   });
 });

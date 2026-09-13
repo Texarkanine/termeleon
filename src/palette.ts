@@ -92,17 +92,16 @@ export function fromFloatComponents(r: number, g: number, b: number): string {
 
 export interface MappingOptions {
   /**
-   * Write `terminal.selectionForeground`. Off by default: setting it disables
-   * the behavior where selected text keeps its own color, which some users
-   * rely on for legibility.
+   * When true, omit an authored selection foreground so selected text keeps
+   * per-cell ANSI color. Off by default: honor the theme's selection fg.
    */
-  includeSelectionForeground?: boolean;
+  overrideIncludedSelectionForeground?: boolean;
   /**
    * When the palette has no selectionBackground, write a translucent
    * overlay against the terminal background so the highlight is visible.
    * Off by default at this layer; apply passes the user setting.
    */
-  fillMissingSelection?: boolean;
+  overrideMissingSelectionHighlight?: boolean;
 }
 
 /**
@@ -158,12 +157,12 @@ export function toColorCustomizations(
   put('terminalCursor.background', p.cursorText);
 
   put('terminal.selectionBackground', p.selectionBackground);
-  if (!p.selectionBackground && opts.fillMissingSelection) {
+  if (!p.selectionBackground && opts.overrideMissingSelectionHighlight) {
     const fill = fallbackSelectionColors(p.background);
     put('terminal.selectionBackground', fill?.background);
     put('terminal.inactiveSelectionBackground', fill?.inactive);
   }
-  if (opts.includeSelectionForeground) {
+  if (!opts.overrideIncludedSelectionForeground) {
     put('terminal.selectionForeground', p.selectionForeground);
   }
 

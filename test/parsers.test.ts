@@ -15,6 +15,25 @@ const fix = (name: string) =>
 
 const repoRoot = path.join(__dirname, '..');
 
+type ConfigCategory = {
+  title?: string;
+  properties?: Record<string, any>;
+};
+
+function configurationCategories(pkg: {
+  contributes?: { configuration?: ConfigCategory | ConfigCategory[] };
+}): ConfigCategory[] {
+  const c = pkg.contributes?.configuration;
+  if (!c) { return []; }
+  return Array.isArray(c) ? c : [c];
+}
+
+function configurationProperties(pkg: {
+  contributes?: { configuration?: ConfigCategory | ConfigCategory[] };
+}): Record<string, any> {
+  return Object.assign({}, ...configurationCategories(pkg).map((cat) => cat.properties ?? {}));
+}
+
 let passed = 0;
 function test(name: string, fn: () => void) {
   try {
@@ -85,16 +104,19 @@ test('Broadcast maps to the exact VS Code block produced by hand', () => {
     'terminalCursor.foreground': '#ffffff',
     'terminalCursor.background': '#c0bbb6',
     'terminal.selectionBackground': '#5a647e',
+    'terminal.selectionForeground': '#e6e1dc',
   });
 });
 
-test('omits selectionForeground unless explicitly opted in', () => {
+test('default map writes authored selectionForeground', () => {
   const p = parseGhostty(fix('Broadcast'));
-  assert.ok(!('terminal.selectionForeground' in toColorCustomizations(p)));
-  assert.strictEqual(
-    toColorCustomizations(p, { includeSelectionForeground: true })['terminal.selectionForeground'],
-    '#e6e1dc',
-  );
+  assert.strictEqual(toColorCustomizations(p)['terminal.selectionForeground'], '#e6e1dc');
+});
+
+test('overrideIncludedSelectionForeground omits authored selectionForeground', () => {
+  const p = parseGhostty(fix('Broadcast'));
+  const out = toColorCustomizations(p, { overrideIncludedSelectionForeground: true });
+  assert.ok(!('terminal.selectionForeground' in out));
 });
 
 function sparsePalette(overrides: Partial<Palette> = {}): Palette {
@@ -104,52 +126,57 @@ function sparsePalette(overrides: Partial<Palette> = {}): Palette {
   };
 }
 
-test('authored selectionBackground is kept and fill does not add inactive', () => {
+test('authored selectionBackground is kept and highlight override does not add inactive', () => {
   const p = sparsePalette({ selectionBackground: '#5a647e', background: '#111111' });
-  const out = toColorCustomizations(p, { fillMissingSelection: true });
+  const out = toColorCustomizations(p, { overrideMissingSelectionHighlight: true });
   assert.strictEqual(out['terminal.selectionBackground'], '#5a647e');
   assert.ok(!('terminal.inactiveSelectionBackground' in out));
-  const off = toColorCustomizations(p, { fillMissingSelection: false });
+  const off = toColorCustomizations(p, { overrideMissingSelectionHighlight: false });
   assert.strictEqual(off['terminal.selectionBackground'], '#5a647e');
   assert.ok(!('terminal.inactiveSelectionBackground' in off));
 });
 
-test('fill on missing selection uses a light overlay on a dark background', () => {
+test('highlight override on missing selection uses a light overlay on a dark background', () => {
   const p = sparsePalette({ background: '#111111' });
-  const out = toColorCustomizations(p, { fillMissingSelection: true });
+  const out = toColorCustomizations(p, { overrideMissingSelectionHighlight: true });
   assert.strictEqual(out['terminal.selectionBackground'], '#ffffff80');
   assert.strictEqual(out['terminal.inactiveSelectionBackground'], '#ffffff40');
 });
 
-test('fill on missing selection uses a dark overlay on a light background', () => {
+test('highlight override on missing selection uses a dark overlay on a light background', () => {
   const p = sparsePalette({ background: '#f0f0f0' });
-  const out = toColorCustomizations(p, { fillMissingSelection: true });
+  const out = toColorCustomizations(p, { overrideMissingSelectionHighlight: true });
   assert.strictEqual(out['terminal.selectionBackground'], '#00000080');
   assert.strictEqual(out['terminal.inactiveSelectionBackground'], '#00000040');
 });
 
-test('fill off omits missing selection keys', () => {
+test('highlight override off omits missing selection keys', () => {
   const p = sparsePalette({ background: '#111111' });
-  const out = toColorCustomizations(p, { fillMissingSelection: false });
+  const out = toColorCustomizations(p, { overrideMissingSelectionHighlight: false });
   assert.ok(!('terminal.selectionBackground' in out));
   assert.ok(!('terminal.inactiveSelectionBackground' in out));
 });
 
-test('fill on with no background omits selection keys', () => {
+test('highlight override on with no background omits selection keys', () => {
   const p = sparsePalette();
-  const out = toColorCustomizations(p, { fillMissingSelection: true });
+  const out = toColorCustomizations(p, { overrideMissingSelectionHighlight: true });
   assert.ok(!('terminal.selectionBackground' in out));
   assert.ok(!('terminal.inactiveSelectionBackground' in out));
   assert.strictEqual(fallbackSelectionColors(undefined), undefined);
 });
 
-test('includeSelectionForeground does not invent a foreground', () => {
+test('overrideIncludedSelectionForeground does not invent a foreground', () => {
   const p = sparsePalette({ background: '#111111', selectionForeground: undefined });
   const out = toColorCustomizations(p, {
-    fillMissingSelection: true,
-    includeSelectionForeground: true,
+    overrideMissingSelectionHighlight: true,
+    overrideIncludedSelectionForeground: true,
   });
   assert.ok(!('terminal.selectionForeground' in out));
+  const honor = toColorCustomizations(p, {
+    overrideMissingSelectionHighlight: true,
+    overrideIncludedSelectionForeground: false,
+  });
+  assert.ok(!('terminal.selectionForeground' in honor));
 });
 
 test('managedKeys includes inactiveSelectionBackground', () => {
@@ -793,7 +820,7 @@ test('package.json declares termeleon identity, commands, and settings', () => {
     keywords?: string[];
     contributes?: {
       commands?: Array<{ command: string; category: string }>;
-      configuration?: { title: string; properties: Record<string, any> };
+      configuration?: ConfigCategory | ConfigCategory[];
     };
   };
 
@@ -819,23 +846,58 @@ test('package.json declares termeleon identity, commands, and settings', () => {
     assert.strictEqual(entry?.category, 'Termeleon');
   }
 
-  const props = pkg.contributes?.configuration?.properties ?? {};
-  assert.strictEqual(pkg.contributes?.configuration?.title, 'Termeleon');
+  const props = configurationProperties(pkg);
   assert.ok('termeleon.target' in props);
   assert.ok('termeleon.sources' in props);
   assert.ok('termeleon.extraDirectories' in props);
   assert.ok('termeleon.scopeToActiveTheme' in props);
   assert.ok('termeleon.setMinimumContrastRatio' in props);
-  assert.ok('termeleon.includeSelectionForeground' in props);
-  assert.ok('termeleon.fillMissingSelection' in props);
+  assert.ok('termeleon.overrideMissingSelectionHighlight' in props);
+  assert.ok('termeleon.overrideIncludedSelectionForeground' in props);
   assert.ok('termeleon.livePreview' in props);
+  assert.ok(!('termeleon.fillMissingSelection' in props));
+  assert.ok(!('termeleon.includeSelectionForeground' in props));
+});
+
+test('settings are grouped into Picker Behavior and Color Preferences', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')) as {
+    contributes?: { configuration?: ConfigCategory[] };
+  };
+  const cats = configurationCategories(pkg);
+  assert.strictEqual(cats.length, 2);
+  assert.strictEqual(cats[0]?.title, 'Picker Behavior');
+  assert.strictEqual(cats[1]?.title, 'Color Preferences when Applying New Themes');
+
+  const picker = cats[0]?.properties ?? {};
+  for (const key of [
+    'termeleon.target',
+    'termeleon.sources',
+    'termeleon.extraDirectories',
+    'termeleon.livePreview',
+  ]) {
+    assert.ok(key in picker, `${key} belongs in Picker Behavior`);
+  }
+  assert.ok(!('termeleon.scopeToActiveTheme' in picker));
+
+  const colors = cats[1]?.properties ?? {};
+  for (const key of [
+    'termeleon.scopeToActiveTheme',
+    'termeleon.setMinimumContrastRatio',
+    'termeleon.overrideMissingSelectionHighlight',
+    'termeleon.overrideIncludedSelectionForeground',
+  ]) {
+    assert.ok(key in colors, `${key} belongs in Color Preferences`);
+  }
+  assert.ok(!('termeleon.livePreview' in colors));
+  assert.strictEqual(colors['termeleon.overrideMissingSelectionHighlight']?.default, true);
+  assert.strictEqual(colors['termeleon.overrideIncludedSelectionForeground']?.default, false);
 });
 
 test('termeleon.sources enum includes mobaxterm', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')) as {
-    contributes?: { configuration?: { properties?: Record<string, { items?: { enum?: string[] } }> } };
+    contributes?: { configuration?: ConfigCategory | ConfigCategory[] };
   };
-  const sources = pkg.contributes?.configuration?.properties?.['termeleon.sources']?.items?.enum ?? [];
+  const sources = configurationProperties(pkg)['termeleon.sources']?.items?.enum ?? [];
   assert.ok(sources.includes('mobaxterm'), 'termeleon.sources enum must include mobaxterm');
 });
 
