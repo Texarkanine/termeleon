@@ -135,4 +135,10 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
 * Insights
     - Boolean mapping settings need tests for both polarities; contrast-off was the gap.
 
+## 2026-09-13 - POST-REFLECT - operator decision
+
+* Decisions made
+    - No selection-mode dropdown. VS Code has no per-cell selection invert; a fake default-fg/bg swap would flatten ANSI. `fillMissingSelection` checkbox is the two-option setting.
+
+
 
