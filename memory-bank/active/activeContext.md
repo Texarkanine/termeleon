@@ -1,16 +1,14 @@
 # Active Context
 
 ## Current Task: typescript-6-and-engine-pin
-**Phase:** BUILD - COMPLETE
+**Phase:** BUILD - COMPLETE (QA rework)
 
 ## What Was Done
-- TypeScript `^6.0.0` (lockfile 6.0.3). `tsconfig.json`: `moduleResolution: bundler`, `types: ["node"]`.
-- `@types/vscode` `~1.75.0` (lockfile 1.75.1). Dependabot ignores `>=1.76.0`. `engines.vscode` still `^1.75.0`.
-- Host picker suite pins `scopeToActiveTheme` off so unscoped preview assertions do not depend on the contributed default (on since #54).
-- `npm run compile`, `npm run test:parsers` (85+32+8), `npm run package`, `npm run test:host` (47) all green.
+- TypeScript 6.0.3, bundler `tsconfig`, `@types/vscode` `~1.75.0`, Dependabot ignore `>=1.76.0`.
+- QA FAIL (fixable): `techContext.md` claimed the parser `ci` tests lock the vscode ignore. Moved that note to the Package bullet; `ci` tests still only cover TS 7 and `@types/node`.
 
 ## Next Step
-- QA.
+- Re-run QA.
 
 ## Files modified
 - `/home/mobaxterm/git/termeleon/package.json`

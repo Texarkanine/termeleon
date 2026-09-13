@@ -81,6 +81,16 @@ No new technology - validation not required. TypeScript 6.0 is an upgrade of the
 - **Plan failed because we silenced TS5107 with `ignoreDeprecations` and left `node10` for TS 7:** already covered — unit 2 migrates to `bundler`.
 - **Plan failed because we added a second vsce (a package-validation command):** do not. vsce already compares `@types/vscode` to `engines.vscode`.
 
+## QA Results
+
+❌ **FAIL** — one blocking documentation finding; see `.qa-validation-status` for full detail.
+
+1. `memory-bank/techContext.md` claims the `ci` section of `test/parsers.test.ts` locks the `@types/vscode` `>=1.76.0` Dependabot ignore. The test asserts only the `typescript >=7.0.0` and `@types/node >=23.0.0` ignores. Plan unit 3 step 3 explicitly prohibited describing new parser contract tests for this pin. The sentence must be corrected so it does not attribute coverage the suite does not have.
+
+Advisory: the `test/host/picker.test.ts` `scopeToActiveTheme` pin was outside the written plan units but required by the plan's own `npm run test:host` verification step; minimal and documented. QA independently re-ran `compile`, the parser suite (85/85), and `package` — all green.
+
+**Next:** Build must rerun to fix the `techContext.md` sentence.
+
 ## Status
 
 - [x] Initialization complete

@@ -70,3 +70,22 @@ Upgrade the Termeleon compiler to TypeScript 6.0 to match VS Code upstream, and 
     - Pinned `scopeToActiveTheme` false in the mirror-preview host suite so those tests keep asserting unscoped keys; product default stays on.
 * Insights
     - CI does not run `test:host`. The picker preview test has been failing locally since the #54 default flip; it was not a TypeScript 6 regression.
+
+## 2026-09-13 - QA - COMPLETE (FAIL)
+
+* Work completed
+    - Semantic review of build commit `4703c51` against the Level 2 plan and project brief. Independently re-ran `npm run compile`, `npx tsx test/parsers.test.ts` (85/85), and `npm run package` — all green; vsce engines gate passes with `~1.75.0` against `engines.vscode` `^1.75.0`.
+    - Verified every plan unit as implemented: TS 6.0.3, `bundler` + `commonjs` + `types: ["node"]`, no `ignoreDeprecations`, `@types/vscode` `~1.75.0` (1.75.1), Dependabot ignore `>=1.76.0` with rationale comment, TS7/`@types/node` ignores retained, no change-detector tests, no src changes.
+* Decisions made
+    - FAIL on one documentation finding: `techContext.md` states the `ci` test section locks the `@types/vscode` `>=1.76.0` ignore; the test asserts only the TypeScript 7 and `@types/node` ignores. Plan unit 3 step 3 explicitly prohibited describing new parser contract tests for this pin. Build must rerun to correct the sentence.
+    - Advisory only: the `picker.test.ts` `scopeToActiveTheme` pin was outside the written plan units but required by the plan's own `test:host` verification step; accepted as minimal and documented.
+* Insights
+    - The pin's enforcement is policy (tilde range + Dependabot ignore + vsce declared-range check), not tests — the memory bank must not describe it as test-locked, or future work will trust a safety net that does not exist.
+
+## 2026-09-13 - BUILD - COMPLETE (QA rework)
+
+* Work completed
+    - Moved the `@types/vscode` tilde-pin / Dependabot ignore note to the Package bullet in `techContext.md`. The parser `ci` section again lists only the TypeScript 7 and `@types/node` ignores it actually asserts.
+* Decisions made
+    - One-line docs fix; no code change.
+
