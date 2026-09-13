@@ -140,5 +140,16 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
 * Decisions made
     - No selection-mode dropdown. VS Code has no per-cell selection invert; a fake default-fg/bg swap would flatten ANSI. `fillMissingSelection` checkbox is the two-option setting.
 
+## 2026-09-13 - REWORK INITIATED
+
+* Work completed
+    - Operator chose rework over archive: split Settings into Picker Behavior vs Color Preferences when Applying New Themes; rename the two selection toggles as overrides with obvious descriptions.
+* Decisions made
+    - Highlight override is selectionBackground + inactiveSelectionBackground (not a fg/bg combo). Ids: `overrideMissingSelectionHighlight` (default on), `overrideIncludedSelectionForeground` (default off).
+    - Foreground override polarity is inverted vs the old `includeSelectionForeground`: override off means honor the theme's selection fg; on means keep ANSI. That changes the previous skip-fg-by-default.
+    - Clean break: drop `fillMissingSelection` and `includeSelectionForeground`; 0.x, no alias.
+* Insights
+    - VS Code category objects have title/order/properties only; the Color Preferences title is the section-level "not live" signal.
+
 
 

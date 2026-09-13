@@ -45,3 +45,64 @@ If emulator themes carry selection colors, those should reach VS Code. If a sour
 5. A theme that already specifies selection colors (duskfox) still uses those authored colors, not a synthesized substitute, regardless of the fill setting.
 6. Light themes that already look fine do not lose selection contrast.
 7. Tests cover: setting on/off for fill and selection foreground, authored selection written through, missing selection fill vs omit, Reapply of last committed palette, live preview not replacing last-apply, and omit-foreground-by-default.
+
+## Rework (2026-09-13)
+
+Operator chose rework over archive. Keep the shipped fill, Reapply, Xresources mapping, and apply-time semantics. Change how the mapping settings are named, grouped, and polarized so the Settings UI matches how they actually behave.
+
+### User Story
+
+As a Termeleon user, I want Settings grouped into picker behavior vs color preferences, and I want the two selection toggles named and described as overrides so I can tell when they invent a highlight, when they ignore an authored selection foreground, and when they do nothing.
+
+### Resolved: highlight is not a fg/bg combo
+
+`fillMissingSelection` writes `terminal.selectionBackground` and `terminal.inactiveSelectionBackground` (translucent overlay). It never writes `terminal.selectionForeground`. The override is a missing-highlight fill, not a bg/fg pair. New id: `termeleon.overrideMissingSelectionHighlight`.
+
+### Settings categories
+
+Split `contributes.configuration` into two categories (titles exactly):
+
+1. **Picker Behavior** — `target`, `sources`, `extraDirectories`, `livePreview`. These take effect immediately (next pick/scan).
+2. **Color Preferences when Applying New Themes** — `scopeToActiveTheme`, `setMinimumContrastRatio`, `overrideMissingSelectionHighlight`, `overrideIncludedSelectionForeground`. These take effect on the next Import, Mirror, or Reapply. VS Code cannot show a category description; the title carries the apply-time meaning. Keep a short not-live note on each Color Preferences setting because search shows a setting without its heading.
+
+### Override semantics
+
+Replace `fillMissingSelection` and `includeSelectionForeground` (clean break; 0.x, no alias).
+
+**`termeleon.overrideMissingSelectionHighlight`** (default **on**)
+
+- On: if the theme has no selection highlight, invent the overlay (`#ffffff80`/`#ffffff40` dark, `#00000080`/`#00000040` light).
+- Off: if the theme has no selection highlight, write none.
+- Inert when the theme already has a selection background: authored highlight always wins.
+
+**`termeleon.overrideIncludedSelectionForeground`** (default **off**)
+
+- Off: if the theme provided a selection foreground, write `terminal.selectionForeground` (honor the theme).
+- On: if the theme provided a selection foreground, omit it so selected text keeps per-cell ANSI color.
+- Inert when the theme has no selection foreground: never invent one.
+
+Default-off for the foreground override **changes** the previous default: themes that author a selection foreground (Ghostty, kitty, iTerm2, Xresources highlightTextColor) now write that key unless the user turns the override on. Previous `includeSelectionForeground: false` skipped it.
+
+### UI names
+
+Keys above; Settings editor titles from those keys: "Override Missing Selection Highlight" and "Override Included Selection Foreground". Descriptions must state the on / off / inert cases in plain language, not implementation vocabulary.
+
+### Requirements
+
+1. Configuration array with the two category titles above; `id` so setting labels still strip the `termeleon` prefix; `order` so Picker is first.
+2. Rename mapping options through palette/apply/extension and tests. Remove the old setting ids.
+3. Descriptions make polarity obvious; Color Preferences settings still say they apply on next Import, Mirror, or Reapply.
+4. README/STORE match the new names, defaults, and polarity (including that honoring authored selection foreground is now the default).
+5. CI settings contract tests walk a configuration array, not a single object.
+
+### Constraints
+
+Same as the original brief: no invented ANSI/fg/bg/cursor; fill only when highlight is missing; vscode-free core; no live rewrite on toggle; last-apply is committed Import/Mirror only.
+
+### Acceptance Criteria
+
+1. Settings UI shows **Picker Behavior** and **Color Preferences when Applying New Themes** under Termeleon.
+2. `overrideMissingSelectionHighlight` default on: missing highlight → overlay; authored highlight unchanged; off → no synthetic keys.
+3. `overrideIncludedSelectionForeground` default off: authored selection fg is written; on → authored fg omitted (ANSI kept); no theme fg → omit either way.
+4. Old ids `fillMissingSelection` and `includeSelectionForeground` are gone.
+5. Tests cover both polarities, inert cases, Reapply flipping each override, and the configuration categories/contract.
