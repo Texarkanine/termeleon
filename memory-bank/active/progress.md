@@ -58,3 +58,15 @@ Upgrade the Termeleon compiler to TypeScript 6.0 to match VS Code upstream, and 
     - No plan edits needed this run; the prior preflight's fixable finding was already resolved in the re-plan.
 * Insights
     - vsce never inspects the lockfile-resolved `@types/vscode` version, only the string in `package.json` `devDependencies`. That is why caret float alone (already resolved to 1.134.0) never tripped `npm run package` — only a Dependabot-rewritten *declared* range would.
+
+## 2026-09-13 - BUILD - COMPLETE
+
+* Work completed
+    - Bumped TypeScript to 6.0.3; `moduleResolution: bundler`; `types: ["node"]`.
+    - Pinned `@types/vscode` to `~1.75.0` (1.75.1); Dependabot ignore `>=1.76.0`.
+    - Regenerated `package-lock.json` from a clean tree. `compile`, parser suite, `package`, and 47 host tests green.
+* Decisions made
+    - Did not add a package-validation command (vsce already gates declared ranges).
+    - Pinned `scopeToActiveTheme` false in the mirror-preview host suite so those tests keep asserting unscoped keys; product default stays on.
+* Insights
+    - CI does not run `test:host`. The picker preview test has been failing locally since the #54 default flip; it was not a TypeScript 6 regression.

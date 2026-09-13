@@ -28,7 +28,7 @@ Verification in Build (not new tests):
 
 ## Implementation Plan
 
-### 1. Engine-types pin and Dependabot ignore — prose/policy
+### 1. Engine-types pin and Dependabot ignore — prose/policy — done
 
 - Files: `package.json`, `.github/dependabot.yaml`
 - No tests: prose/policy artifact
@@ -36,7 +36,7 @@ Verification in Build (not new tests):
 1. Set `devDependencies['@types/vscode']` to `~1.75.0` (resolves 1.75.1). Leave `engines.vscode` at `^1.75.0`.
 2. Add a Dependabot ignore for `@types/vscode` versions `>=1.76.0`, with a comment that this package's minor is the VS Code version, not a compatible API bump. Keep the TypeScript `>=7.0.0` and `@types/node` `>=23.0.0` ignores.
 
-### 2. TypeScript 6.0 and tsconfig — prose/policy
+### 2. TypeScript 6.0 and tsconfig — prose/policy — done
 
 - Files: `package.json`, `package-lock.json`, `tsconfig.json`
 - No tests: prose/policy artifact
@@ -46,7 +46,7 @@ Verification in Build (not new tests):
 3. Regenerate `package-lock.json` from a clean tree (no `node_modules`) so linux CI can `npm ci`.
 4. Run `npx tsx test/parsers.test.ts`, `npm run compile`, and `npm run package`. If `tsc` errors because `@types/vscode` 1.75 lacks an API the source uses, change the call site to a 1.75-era API without changing product behavior. Do not raise `engines.vscode`. If a call-site fix would change user-visible behavior, stop and ask.
 
-### 3. Tech Context — prose/policy
+### 3. Tech Context — prose/policy — done
 
 - Files: `memory-bank/techContext.md`
 - No tests: prose/policy artifact
@@ -88,6 +88,6 @@ No new technology - validation not required. TypeScript 6.0 is an upgrade of the
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA

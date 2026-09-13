@@ -30,6 +30,9 @@ updates:
       # @types/node major should track .nvmrc (Node 22), not the latest Node release.
       - dependency-name: "@types/node"
         versions: [">=23.0.0"]
+      # @types/vscode minor is the VS Code version, not a compatible API bump.
+      - dependency-name: "@types/vscode"
+        versions: [">=1.76.0"]
 
   - package-ecosystem: github-actions
     directory: "/"
