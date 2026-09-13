@@ -229,6 +229,8 @@ Rework terminal-selection-visibility: split Settings into Picker Behavior vs Col
 * Work completed
     - README and STORE now match the three settings categories and `scopeToActiveTheme` default on.
 
+## 2026-09-13 - ARCHIVE - IN PROGRESS
+
 
 
 
