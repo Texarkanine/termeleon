@@ -15,7 +15,14 @@ export interface ApplyOptions {
   scopeToActiveTheme: boolean;
   includeSelectionForeground: boolean;
   setMinimumContrastRatio: boolean;
+  fillMissingSelection: boolean;
 }
+
+export type LastApply =
+  | { kind: 'single'; palette: Palette }
+  | { kind: 'pair'; dark: Palette; light: Palette };
+
+const LAST_APPLY_STATE = 'termeleon.lastApply';
 
 function configTarget(t: Target): vscode.ConfigurationTarget {
   return t === 'global'
@@ -55,6 +62,44 @@ async function setOwnedKeys(ctx: vscode.ExtensionContext, target: Target, keys: 
   await store.update(OWNED_STATE, keys);
 }
 
+export function lastApply(ctx: vscode.ExtensionContext, target: Target): LastApply | undefined {
+  const store = target === 'global' ? ctx.globalState : ctx.workspaceState;
+  const raw = store.get<LastApply>(LAST_APPLY_STATE);
+  if (!raw || typeof raw !== 'object') { return undefined; }
+  if (raw.kind === 'single' && raw.palette) { return raw; }
+  if (raw.kind === 'pair' && raw.dark && raw.light) { return raw; }
+  return undefined;
+}
+
+export async function recordLastApply(
+  ctx: vscode.ExtensionContext,
+  target: Target,
+  payload: LastApply,
+): Promise<void> {
+  const store = target === 'global' ? ctx.globalState : ctx.workspaceState;
+  await store.update(LAST_APPLY_STATE, payload);
+}
+
+export async function clearLastApply(ctx: vscode.ExtensionContext, target: Target): Promise<void> {
+  const store = target === 'global' ? ctx.globalState : ctx.workspaceState;
+  await store.update(LAST_APPLY_STATE, undefined);
+}
+
+export async function reapply(
+  ctx: vscode.ExtensionContext,
+  target: Target,
+  opts: ApplyOptions,
+): Promise<{ applied: boolean }> {
+  const last = lastApply(ctx, target);
+  if (!last) { return { applied: false }; }
+  if (last.kind === 'pair') {
+    await applyPalettePair(ctx, last.dark, last.light, opts);
+  } else {
+    await applyPalette(ctx, last.palette, opts);
+  }
+  return { applied: true };
+}
+
 /**
  * Merges a palette into workbench.colorCustomizations at the given target.
  *
@@ -69,6 +114,7 @@ export async function applyPalette(
 ): Promise<void> {
   const colors = toColorCustomizations(palette, {
     includeSelectionForeground: opts.includeSelectionForeground,
+    fillMissingSelection: opts.fillMissingSelection,
   });
 
   const current = stripOwnedKeys(readAt(opts.target), ownedKeys(ctx, opts.target));
@@ -99,7 +145,10 @@ export async function applyPalettePair(
   light: Palette,
   opts: ApplyOptions,
 ): Promise<void> {
-  const mapping = { includeSelectionForeground: opts.includeSelectionForeground };
+  const mapping = {
+    includeSelectionForeground: opts.includeSelectionForeground,
+    fillMissingSelection: opts.fillMissingSelection,
+  };
   const darkColors = toColorCustomizations(dark, mapping);
   const lightColors = toColorCustomizations(light, mapping);
 
@@ -261,6 +310,7 @@ export async function removeApplied(
 
   await restoreSnapshot(target, current);
   await setOwnedKeys(ctx, target, []);
+  await clearLastApply(ctx, target);
 
   if (readContrastRatioAt(target) === 1) {
     await writeContrastRatioAt(target, undefined);

@@ -97,6 +97,36 @@ export interface MappingOptions {
    * rely on for legibility.
    */
   includeSelectionForeground?: boolean;
+  /**
+   * When the palette has no selectionBackground, write a translucent
+   * overlay against the terminal background so the highlight is visible.
+   * Off by default at this layer; apply passes the user setting.
+   */
+  fillMissingSelection?: boolean;
+}
+
+/**
+ * Overlay colors for a terminal background that has no authored selection.
+ * Dark backgrounds get a light overlay; light backgrounds get a dark one.
+ * Returns undefined when `background` is missing or not a `#rrggbb`.
+ */
+export function fallbackSelectionColors(
+  background?: string,
+): { background: string; inactive: string } | undefined {
+  if (!background || !/^#[0-9a-f]{6}$/i.test(background)) { return undefined; }
+  const r = parseInt(background.slice(1, 3), 16);
+  const g = parseInt(background.slice(3, 5), 16);
+  const b = parseInt(background.slice(5, 7), 16);
+  const linear = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+  const dark = luminance <= 0.5;
+  return {
+    background: dark ? '#ffffff80' : '#00000080',
+    inactive: dark ? '#ffffff40' : '#00000040',
+  };
 }
 
 /**
@@ -128,6 +158,11 @@ export function toColorCustomizations(
   put('terminalCursor.background', p.cursorText);
 
   put('terminal.selectionBackground', p.selectionBackground);
+  if (!p.selectionBackground && opts.fillMissingSelection) {
+    const fill = fallbackSelectionColors(p.background);
+    put('terminal.selectionBackground', fill?.background);
+    put('terminal.inactiveSelectionBackground', fill?.inactive);
+  }
   if (opts.includeSelectionForeground) {
     put('terminal.selectionForeground', p.selectionForeground);
   }
@@ -141,6 +176,7 @@ export function managedKeys(): string[] {
     'terminal.background', 'terminal.foreground',
     'terminalCursor.foreground', 'terminalCursor.background',
     'terminal.selectionBackground', 'terminal.selectionForeground',
+    'terminal.inactiveSelectionBackground',
   ];
   for (const name of ANSI_NAMES) {
     keys.push(`terminal.ansi${name}`, `terminal.ansiBright${name}`);

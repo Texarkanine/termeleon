@@ -67,3 +67,16 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
 * Insights
     - Every emulator parser that already has native selection fields (kitty, Ghostty, iTerm2, Alacritty/WezTerm via `toml.ts`) maps them; only Xresources genuinely lacked the mapping, and Windows Terminal/MobaXterm genuinely have no selection fields in their formats — the plan's scope (Xresources mapping + generic fill) is exactly the right size, nothing missing.
 
+## 2026-09-13 - BUILD - COMPLETE
+
+* Work completed
+    - Implemented missing-selection fill, Xresources highlight mapping, last-apply + Reapply, and apply-time setting copy.
+    - Parser suite 83+32+8 passing; host tests 44 passing.
+* Decisions made
+    - Mapping-function default for fill is off; `ApplyOptions` / the user setting default on.
+    - Last-apply stores the Palette object per target; Remove clears it.
+    - Host preview delays bumped to `PREVIEW_DEBOUNCE_MS + 400` after 1.137 config.update races.
+* Insights
+    - Host tests hang without `XDG_RUNTIME_DIR` and a dbus session on this WSL box.
+
+

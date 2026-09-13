@@ -1,0 +1,1 @@
+Mapping settings take effect on next Import/Mirror/Reapply, not live. fillMissingSelection (default on) fills omitted selection only; Reapply Last Theme remaps the last committed palette.

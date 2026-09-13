@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as assert from 'assert';
 
-import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeColor, fromByteComponents, pairScopes, preferredPairScopes, mergeColors, mergePairedColors, stripOwnedKeys, restoreApplySnapshot } from '../src/palette';
+import { DiscoveredTheme, Palette, toColorCustomizations, isUsable, normalizeColor, fromByteComponents, pairScopes, preferredPairScopes, mergeColors, mergePairedColors, stripOwnedKeys, restoreApplySnapshot, fallbackSelectionColors, managedKeys } from '../src/palette';
 import { discoverThemes, toGhosttyDiscovered, activeGhosttyPair, mirrorCandidates } from '../src/discover';
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
@@ -95,6 +95,65 @@ test('omits selectionForeground unless explicitly opted in', () => {
     toColorCustomizations(p, { includeSelectionForeground: true })['terminal.selectionForeground'],
     '#e6e1dc',
   );
+});
+
+function sparsePalette(overrides: Partial<Palette> = {}): Palette {
+  return {
+    ansi: new Array(16).fill('#010101'),
+    ...overrides,
+  };
+}
+
+test('authored selectionBackground is kept and fill does not add inactive', () => {
+  const p = sparsePalette({ selectionBackground: '#5a647e', background: '#111111' });
+  const out = toColorCustomizations(p, { fillMissingSelection: true });
+  assert.strictEqual(out['terminal.selectionBackground'], '#5a647e');
+  assert.ok(!('terminal.inactiveSelectionBackground' in out));
+  const off = toColorCustomizations(p, { fillMissingSelection: false });
+  assert.strictEqual(off['terminal.selectionBackground'], '#5a647e');
+  assert.ok(!('terminal.inactiveSelectionBackground' in off));
+});
+
+test('fill on missing selection uses a light overlay on a dark background', () => {
+  const p = sparsePalette({ background: '#111111' });
+  const out = toColorCustomizations(p, { fillMissingSelection: true });
+  assert.strictEqual(out['terminal.selectionBackground'], '#ffffff80');
+  assert.strictEqual(out['terminal.inactiveSelectionBackground'], '#ffffff40');
+});
+
+test('fill on missing selection uses a dark overlay on a light background', () => {
+  const p = sparsePalette({ background: '#f0f0f0' });
+  const out = toColorCustomizations(p, { fillMissingSelection: true });
+  assert.strictEqual(out['terminal.selectionBackground'], '#00000080');
+  assert.strictEqual(out['terminal.inactiveSelectionBackground'], '#00000040');
+});
+
+test('fill off omits missing selection keys', () => {
+  const p = sparsePalette({ background: '#111111' });
+  const out = toColorCustomizations(p, { fillMissingSelection: false });
+  assert.ok(!('terminal.selectionBackground' in out));
+  assert.ok(!('terminal.inactiveSelectionBackground' in out));
+});
+
+test('fill on with no background omits selection keys', () => {
+  const p = sparsePalette();
+  const out = toColorCustomizations(p, { fillMissingSelection: true });
+  assert.ok(!('terminal.selectionBackground' in out));
+  assert.ok(!('terminal.inactiveSelectionBackground' in out));
+  assert.strictEqual(fallbackSelectionColors(undefined), undefined);
+});
+
+test('includeSelectionForeground does not invent a foreground', () => {
+  const p = sparsePalette({ background: '#111111', selectionForeground: undefined });
+  const out = toColorCustomizations(p, {
+    fillMissingSelection: true,
+    includeSelectionForeground: true,
+  });
+  assert.ok(!('terminal.selectionForeground' in out));
+});
+
+test('managedKeys includes inactiveSelectionBackground', () => {
+  assert.ok(managedKeys().includes('terminal.inactiveSelectionBackground'));
 });
 
 test('reads plain and split dark/light theme declarations', () => {
@@ -493,6 +552,29 @@ test('parses XParseColor rgb: form', () => {
   assert.strictEqual(p.ansi[3], '#000003');
 });
 
+test('maps highlightColor and highlightTextColor onto selection slots', () => {
+  const doc = [
+    '*.background: #1d1f21',
+    '*.highlightColor: #5a647e',
+    'URxvt*highlightTextColor: #c5c8c6',
+  ].concat(Array.from({ length: 16 }, (_, i) => `*.color${i}: #00000${(i % 10)}`))
+    .join('\n');
+  const p = parseXresources(doc);
+  assert.strictEqual(p.selectionBackground, '#5a647e');
+  assert.strictEqual(p.selectionForeground, '#c5c8c6');
+});
+
+test('maps highlightBackground onto selectionBackground', () => {
+  const doc = [
+    '*.background: #1d1f21',
+    '*.highlightBackground: #3a3a3a',
+  ].concat(Array.from({ length: 16 }, (_, i) => `*.color${i}: #00000${(i % 10)}`))
+    .join('\n');
+  const p = parseXresources(doc);
+  assert.strictEqual(p.selectionBackground, '#3a3a3a');
+  assert.strictEqual(p.background, '#1d1f21');
+});
+
 console.log('\nci');
 test('lockfile present', () => {
   assert.ok(
@@ -729,6 +811,7 @@ test('package.json declares termeleon identity, commands, and settings', () => {
     'termeleon.importWorkspace',
     'termeleon.mirror',
     'termeleon.remove',
+    'termeleon.reapply',
   ];
   for (const cmd of expectedCommands) {
     const entry = commands.find((c) => c.command === cmd);
@@ -744,6 +827,7 @@ test('package.json declares termeleon identity, commands, and settings', () => {
   assert.ok('termeleon.scopeToActiveTheme' in props);
   assert.ok('termeleon.setMinimumContrastRatio' in props);
   assert.ok('termeleon.includeSelectionForeground' in props);
+  assert.ok('termeleon.fillMissingSelection' in props);
   assert.ok('termeleon.livePreview' in props);
 });
 
@@ -1003,6 +1087,8 @@ test('parses [Colors] RGB triples into a complete palette', () => {
   assert.strictEqual(p.background, '#0a141e');
   assert.strictEqual(p.foreground, '#c8c9ca');
   assert.strictEqual(p.cursor, '#28323c');
+  assert.strictEqual(p.selectionBackground, undefined);
+  assert.strictEqual(p.selectionForeground, undefined);
 });
 
 test('ignores keys outside the [Colors] section', () => {

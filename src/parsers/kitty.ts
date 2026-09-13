@@ -73,6 +73,11 @@ export function parseXresources(text: string): Palette {
       case 'background': p.background = normalizeColor(value); break;
       case 'foreground': p.foreground = normalizeColor(value); break;
       case 'cursorcolor': p.cursor = normalizeColor(value); break;
+      case 'highlightcolor':
+      case 'highlightbackground':
+        p.selectionBackground = normalizeColor(value); break;
+      case 'highlighttextcolor':
+        p.selectionForeground = normalizeColor(value); break;
     }
   }
   return p;

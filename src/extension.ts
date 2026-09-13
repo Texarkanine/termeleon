@@ -4,6 +4,7 @@ import { discoverThemes, mirrorCandidates, MirrorCandidate } from './discover';
 import { cacheKey, ThemeCache } from './cache';
 import {
   Target, ApplyOptions, applyPalette, applyPalettePair, removeApplied, LivePreview,
+  recordLastApply, reapply,
 } from './apply';
 
 const CONFIG = 'termeleon';
@@ -29,6 +30,7 @@ function settings() {
     scopeToActiveTheme: c.get<boolean>('scopeToActiveTheme', false),
     setMinimumContrastRatio: c.get<boolean>('setMinimumContrastRatio', true),
     includeSelectionForeground: c.get<boolean>('includeSelectionForeground', false),
+    fillMissingSelection: c.get<boolean>('fillMissingSelection', true),
     livePreview: c.get<boolean>('livePreview', true),
   };
 }
@@ -40,6 +42,7 @@ function applyOptions(target: Target): ApplyOptions {
     scopeToActiveTheme: s.scopeToActiveTheme,
     setMinimumContrastRatio: s.setMinimumContrastRatio,
     includeSelectionForeground: s.includeSelectionForeground,
+    fillMissingSelection: s.fillMissingSelection,
   };
 }
 
@@ -191,6 +194,7 @@ async function pickAndApply(
   if (!picked) { return; }
 
   await applyPalette(ctx, picked.palette, opts);
+  await recordLastApply(ctx, target, { kind: 'single', palette: picked.palette });
   const where = target === 'global' ? 'user settings' : 'workspace settings';
   vscode.window.showInformationMessage(
     `Applied "${picked.name}" from ${SOURCE_LABELS[picked.source] ?? picked.source} to ${where}.`,
@@ -293,6 +297,11 @@ async function commandMirror(ctx: vscode.ExtensionContext) {
   const opts = applyOptions(target);
   if (chosen.kind === 'pair') {
     await applyPalettePair(ctx, chosen.dark.palette, chosen.light.palette, opts);
+    await recordLastApply(ctx, target, {
+      kind: 'pair',
+      dark: chosen.dark.palette,
+      light: chosen.light.palette,
+    });
     vscode.window.showInformationMessage(
       `Mirrored Ghostty dark/light pair "${chosen.dark.name}" / "${chosen.light.name}".`,
     );
@@ -300,6 +309,7 @@ async function commandMirror(ctx: vscode.ExtensionContext) {
   }
 
   await applyPalette(ctx, chosen.theme.palette, opts);
+  await recordLastApply(ctx, target, { kind: 'single', palette: chosen.theme.palette });
   vscode.window.showInformationMessage(
     `Mirrored "${chosen.theme.name}" from ${SOURCE_LABELS[chosen.theme.source] ?? chosen.theme.source}.`,
   );
@@ -326,6 +336,21 @@ async function commandRemove(ctx: vscode.ExtensionContext) {
   );
 }
 
+async function commandReapply(ctx: vscode.ExtensionContext) {
+  const target = await resolveTarget();
+  if (!target) { return; }
+
+  const result = await reapply(ctx, target, applyOptions(target));
+  if (!result.applied) {
+    vscode.window.showWarningMessage(
+      'No imported theme to reapply. Import or Mirror a theme first.',
+    );
+    return;
+  }
+  const where = target === 'global' ? 'user settings' : 'workspace settings';
+  vscode.window.showInformationMessage(`Reapplied the last terminal theme to ${where}.`);
+}
+
 export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(
     vscode.commands.registerCommand(`${CONFIG}.import`, () => commandImport(ctx)),
@@ -333,6 +358,7 @@ export function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand(`${CONFIG}.importWorkspace`, () => commandImport(ctx, 'workspace')),
     vscode.commands.registerCommand(`${CONFIG}.mirror`, () => commandMirror(ctx)),
     vscode.commands.registerCommand(`${CONFIG}.remove`, () => commandRemove(ctx)),
+    vscode.commands.registerCommand(`${CONFIG}.reapply`, () => commandReapply(ctx)),
   );
   const { key, scan } = scanNow();
   void themeCache.load(key, scan);

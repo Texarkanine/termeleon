@@ -105,5 +105,5 @@ No new technology - validation not required
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
 - [x] Preflight (PASS)
-- [ ] Build
+- [x] Build
 - [ ] QA

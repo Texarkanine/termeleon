@@ -67,6 +67,11 @@
         "command": "termeleon.remove",
         "title": "Remove Imported Terminal Theme",
         "category": "Termeleon"
+      },
+      {
+        "command": "termeleon.reapply",
+        "title": "Reapply Last Theme",
+        "category": "Termeleon"
       }
     ],
     "configuration": {
@@ -111,17 +116,22 @@
         "termeleon.scopeToActiveTheme": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Nest the colors under `[Your Theme Name]` so they only apply while that workbench theme is active. Off by default, so the terminal palette survives theme switching."
+          "markdownDescription": "Nest the colors under `[Your Theme Name]` so they only apply while that workbench theme is active. Off by default, so the terminal palette survives theme switching. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
         },
         "termeleon.setMinimumContrastRatio": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Also set `#terminal.integrated.minimumContrastRatio#` to 1. Without this, VS Code adjusts foreground colors toward a contrast target and the palette will not render as authored."
+          "markdownDescription": "Also set `#terminal.integrated.minimumContrastRatio#` to 1. Without this, VS Code adjusts foreground colors toward a contrast target and the palette will not render as authored. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
         },
         "termeleon.includeSelectionForeground": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Write `terminal.selectionForeground`. Off by default: setting it disables the behavior where selected text keeps its own color."
+          "markdownDescription": "Write `terminal.selectionForeground`. Off by default: setting it disables the behavior where selected text keeps its own color. Only themes that actually define a selection foreground will write one (MobaXterm palettes do not). Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
+        },
+        "termeleon.fillMissingSelection": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "When a theme has no selection color, write a translucent overlay so selected text is visible against the imported background. Authored selection colors are never replaced. Turn off to leave VS Code's workbench selection colors. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
         },
         "termeleon.livePreview": {
           "type": "boolean",
