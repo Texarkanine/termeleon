@@ -19,16 +19,17 @@ VS Code terminal selection is often invisible after Termeleon apply because many
 - Selection foreground opt-in: true and palette has `selectionForeground` → write it. True and palette has none → still omit (do not invent a foreground).
 - Xresources: `highlightColor` / `highlightTextColor` (last identifier, case-insensitive) → `selectionBackground` / `selectionForeground`.
 - MobaXterm parse: still no selection slots on the Palette (format has none); fill happens at map time.
-- Reapply: after `recordLastApply` of a committed single palette, `reapply` with flipped `includeSelectionForeground` writes or omits that key using current options.
+- Reapply single: after `recordLastApply` of a committed single palette, `reapply` with flipped `includeSelectionForeground` writes or omits that key using current options.
+- Reapply pair: after `recordLastApply` of a Ghostty dark/light pair, `reapply` with current options rewrites both preferred-theme scopes (`[preferredDarkColorTheme]` and `[preferredLightColorTheme]`).
 - Reapply with no record: returns a no-op result (no settings write).
-- Live preview must not call `recordLastApply` (preview then cancel leaves the previous last-apply, or none).
+- Live-preview isolation: record a committed palette, `LivePreview.schedule` (and cancel) a different palette, then `reapply` → the committed palette is remapped, not the previewed one.
 - `removeApplied` clears the last-apply record for that target.
 - `managedKeys()` includes `terminal.inactiveSelectionBackground`.
 
 ### Test Infrastructure
 
 - Framework: Node `assert` via `tsx` (`test/parsers.test.ts`); Mocha TDD in the extension host (`test/host/*.ts` via `vscode-test`)
-- Test location: `test/parsers.test.ts` (palette mapping, Xresources, MobaXterm parse); `test/host/apply.test.ts` (apply/reapply/remove); `test/host/preview.test.ts` only if a LivePreview test is needed to prove it does not record last-apply
+- Test location: `test/parsers.test.ts` (palette mapping, Xresources, MobaXterm parse); `test/host/apply.test.ts` (apply, fill, single and pair reapply, remove); `test/host/preview.test.ts` (mandatory live-preview isolation for last-apply)
 - Conventions: `test('name', () => { ... })` in parsers; Mocha `suite`/`test` in host; `samplePalette(overrides)` for palettes; inspect `workbench.colorCustomizations` at one target
 - New test files: none
 
@@ -54,12 +55,12 @@ VS Code terminal selection is often invisible after Termeleon apply because many
 
 ### 3. Apply options, last-apply, Reapply — executable
 
-- Files: `src/apply.ts`, `src/extension.ts`, `package.json`, `test/host/apply.test.ts`, `test/host/helpers.ts` if apply-option helpers need the new flag, `test/host/preview.test.ts` only if last-apply leak must be asserted there
+- Files: `src/apply.ts`, `src/extension.ts`, `package.json`, `test/host/apply.test.ts`, `test/host/helpers.ts`, `test/host/preview.test.ts`
 
-1. Stub tests: host cases for fill on/off through `applyPalette`; `recordLastApply` + `reapply` flipping `includeSelectionForeground`; `reapply` with no record; `removeApplied` clears last-apply.
-2. Stub interface: `ApplyOptions.fillMissingSelection`; `LastApply` type; `recordLastApply` / `lastApply` / `clearLastApply` / `reapply` in `src/apply.ts`; `termeleon.reapply` command and `termeleon.fillMissingSelection` config in `package.json`; `settings()` reads the new flag.
-3. Write tests and run red: `npm run test:host` (or the single apply suite).
-4. Write code and run green: pass `fillMissingSelection` into `toColorCustomizations`; persist last apply on committed Import/Mirror only (`commandImport` after accept, `commandMirror` after apply — **not** `LivePreview.schedule` / `schedulePair`); `reapply` reads current `applyOptions` and calls `applyPalette` / `applyPalettePair`; `removeApplied` clears last-apply; Reapply uses `resolveTarget` and shows a warning when empty.
+1. Stub tests: in `test/host/apply.test.ts`, fill on/off through `applyPalette`; `recordLastApply` + `reapply` flipping `includeSelectionForeground` for a single palette; the same for a Ghostty pair (both preferred-theme scopes rewritten); `reapply` with no record; `removeApplied` clears last-apply. In `test/host/preview.test.ts`, a mandatory isolation case: `recordLastApply` a committed palette, `schedule` a different one, `cancel`, `reapply` → committed colors, not previewed.
+2. Stub interface: `ApplyOptions.fillMissingSelection`; `LastApply` type (single or pair) stored per target in the matching Memento; `recordLastApply` / `lastApply` / `clearLastApply` / `reapply` in `src/apply.ts`; `termeleon.reapply` command and `termeleon.fillMissingSelection` config in `package.json`; `settings()` reads the new flag.
+3. Write tests and run red: `npm run test:host`.
+4. Write code and run green: pass `fillMissingSelection` into `toColorCustomizations`; `recordLastApply` immediately after the committed `applyPalette` in `pickAndApply` (Import has no palette after that function returns) and after `applyPalette` / `applyPalettePair` in `commandMirror`; **not** from `LivePreview.schedule` / `schedulePair` or from `applyPalette` itself; `reapply` reads current `applyOptions` and calls `applyPalette` or `applyPalettePair` for that target only; `removeApplied` clears last-apply; Reapply uses `resolveTarget` and shows a warning when empty.
 
 ### 4. Apply-time setting copy — prose/policy
 
@@ -84,7 +85,7 @@ No new technology - validation not required
 ## Challenges & Mitigations
 
 - **Toggle looks broken:** already confirmed. Mitigation: descriptions + Reapply; no `onDidChangeConfiguration` rewrite.
-- **Live preview vs last-apply:** recording inside `applyPalette` would make cancel+Reapply restore the previewed theme. Mitigation: record only from committed command paths; preview tests if we add a leak assertion.
+- **Live preview vs last-apply:** recording inside `applyPalette` would make cancel+Reapply restore the previewed theme. Mitigation: record only after committed apply in `pickAndApply` and `commandMirror`; mandatory `preview.test.ts` isolation test.
 - **Invented colors surprise:** fill is a setting, default on for the MobaXterm bug, off restores "only authored keys".
 - **Alpha stripped by `normalizeColor`:** fallback overlay strings are built directly as `#rrggbbaa`, not run through `normalizeColor` (that helper drops alpha on 8-digit emulator colors on purpose).
 - **Xresources name variants:** map the common `highlightColor` / `highlightTextColor` / `highlightBackground` identifiers the existing last-token parser already extracts; do not chase every URxvt prefix.
@@ -103,6 +104,6 @@ No new technology - validation not required
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
+- [ ] Preflight (re-run after FAIL (fixable))
 - [ ] Build
 - [ ] QA

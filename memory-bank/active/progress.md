@@ -37,3 +37,23 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
 * Insights
     - VS Code's default `terminal.selectionBackground` is `editor.selectionBackground`, which is why MobaXterm-on-duskfox-workbench can have no visible terminal selection.
 
+## 2026-09-13 - PREFLIGHT - COMPLETE (FAIL (fixable))
+
+* Work completed
+    - Validated the Level 2 plan against the Palette mapping hub, apply shell, command flow, and existing parser and extension-host test suites.
+* Decisions made
+    - Re-plan before build: make pair replay and live-preview isolation explicit, mandatory host-test coverage.
+    - Record an accepted Import in `pickAndApply`, which owns the accepted palette, rather than in `commandImport`.
+* Insights
+    - `LastApply` must be target-scoped in the matching Memento, so Reapply cannot cross user and workspace settings.
+
+## 2026-09-13 - PLAN - COMPLETE (re-plan after preflight)
+
+* Work completed
+    - Made Ghostty pair reapply and live-preview last-apply isolation mandatory host tests.
+    - Moved Import last-apply recording to `pickAndApply` after the committed `applyPalette`.
+* Decisions made
+    - Last-apply stays per-target in the matching Memento (preflight advisory kept).
+* Insights
+    - `commandImport` never sees the accepted palette; only `pickAndApply` does.
+
