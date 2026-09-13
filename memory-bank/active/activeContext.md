@@ -1,11 +1,11 @@
 # Active Context
 
 ## Current Task: terminal-selection-visibility
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Rework initiated: Settings categories plus override naming/polarity for the two selection toggles.
-- Classified Level 2: same mapping hub and apply shell; rename, regroup, invert the foreground-override default.
+- Planned rework: Settings categories (Picker Behavior / Color Preferences when Applying New Themes), override ids, inverted foreground default.
+- Highlight override remains selectionBackground + inactiveSelectionBackground; foreground override is a separate key.
 
 ## Next Step
-- Load the Level 2 workflow and run Plan.
+- Preflight validation of the rework plan.

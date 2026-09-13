@@ -161,5 +161,16 @@ Rework terminal-selection-visibility: split Settings into Picker Behavior vs Col
 * Insights
     - Default-off for `overrideIncludedSelectionForeground` means authored selection fg is now written unless the user opts out — opposite of the first build's skip-by-default.
 
+## 2026-09-13 - PLAN - COMPLETE (rework)
+
+* Work completed
+    - Wrote Level 2 rework plan: mapping polarity, apply option rename, configuration array, README/STORE copy.
+* Decisions made
+    - Mapping-layer default writes authored selectionForeground unless `overrideIncludedSelectionForeground` is true (invert the old include flag).
+    - Broadcast exact-map test must include `#e6e1dc` selection fg.
+    - Contract tests flatten `configuration` whether object or array.
+* Insights
+    - Host `workspaceOpts` currently defaults include-fg false to omit; after invert, override-off will write `samplePalette`'s `#ffffff` unless tests set the override on.
+
 
 
