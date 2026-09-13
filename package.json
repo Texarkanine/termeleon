@@ -67,69 +67,97 @@
         "command": "termeleon.remove",
         "title": "Remove Imported Terminal Theme",
         "category": "Termeleon"
+      },
+      {
+        "command": "termeleon.reapply",
+        "title": "Reapply Last Theme",
+        "category": "Termeleon"
       }
     ],
-    "configuration": {
-      "title": "Termeleon",
-      "properties": {
-        "termeleon.target": {
-          "type": "string",
-          "enum": [
-            "ask",
-            "global",
-            "workspace"
-          ],
-          "default": "ask",
-          "markdownDescription": "Which settings file to use for the imported palette. `ask` prompts each time; with no folder open it always uses user settings."
-        },
-        "termeleon.sources": {
-          "type": "array",
-          "items": {
+    "configuration": [
+      {
+        "id": "termeleon",
+        "title": "Command Palette UI Behavior",
+        "order": 1,
+        "properties": {
+          "termeleon.target": {
             "type": "string",
             "enum": [
-              "ghostty",
-              "kitty",
-              "alacritty",
-              "wezterm",
-              "iterm2",
-              "windows-terminal",
-              "xresources",
-              "mobaxterm"
-            ]
+              "ask",
+              "global",
+              "workspace"
+            ],
+            "default": "ask",
+            "markdownDescription": "Which settings file to use for the imported palette. `ask` prompts each time; with no folder open it always uses user settings."
           },
-          "default": [],
-          "description": "Emulators to scan. Empty means all of them."
-        },
-        "termeleon.extraDirectories": {
-          "type": "array",
-          "items": {
-            "type": "string"
+          "termeleon.livePreview": {
+            "type": "boolean",
+            "default": true,
+            "description": "Apply each theme as you navigate through the list. Turn off if the settings.json churn is disruptive."
+          }
+        }
+      },
+      {
+        "id": "termeleon",
+        "title": "Theme Discovery",
+        "order": 2,
+        "properties": {
+          "termeleon.extraDirectories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Additional directories to sweep for theme files, e.g. a dotfiles checkout."
           },
-          "default": [],
-          "description": "Additional directories to sweep for theme files, e.g. a dotfiles checkout."
-        },
-        "termeleon.scopeToActiveTheme": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "Nest the colors under `[Your Theme Name]` so they only apply while that workbench theme is active. Off by default, so the terminal palette survives theme switching."
-        },
-        "termeleon.setMinimumContrastRatio": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Also set `#terminal.integrated.minimumContrastRatio#` to 1. Without this, VS Code adjusts foreground colors toward a contrast target and the palette will not render as authored."
-        },
-        "termeleon.includeSelectionForeground": {
-          "type": "boolean",
-          "default": false,
-          "markdownDescription": "Write `terminal.selectionForeground`. Off by default: setting it disables the behavior where selected text keeps its own color."
-        },
-        "termeleon.livePreview": {
-          "type": "boolean",
-          "default": true,
-          "description": "Apply each theme as you navigate through the list. Turn off if the settings.json churn is disruptive."
+          "termeleon.sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ghostty",
+                "kitty",
+                "alacritty",
+                "wezterm",
+                "iterm2",
+                "windows-terminal",
+                "xresources",
+                "mobaxterm"
+              ]
+            },
+            "default": [],
+            "description": "Emulators to scan. Empty means all of them."
+          }
+        }
+      },
+      {
+        "id": "termeleon",
+        "title": "Color Preferences when Applying New Themes",
+        "order": 3,
+        "properties": {
+          "termeleon.scopeToActiveTheme": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "VS Code themes may specify terminal colors - most do. When you switch VS Code themes, the terminal colors will normally be replaced. If you've used Termeleon to import terminal colors, what should be done in that situation?\n\n**On:** Imported terminal colors are attached to the VS Code theme that is active at the time of import. When you switch themes, the new theme's terminal colors will be used.\n\n**Off:** Imported terminal colors stay when you switch VS Code themes - even if a VS Code theme provides its own terminal colors."
+          },
+          "termeleon.setMinimumContrastRatio": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "VS Code adjusts foreground colors towards a specific contrast target for ease of visibility. Depending on the theme, this can significantly change its appearance.\n\n**On:** Set `#terminal.integrated.minimumContrastRatio#` to 1 to preserve source themes exactly.\n\n**Off:** Allow VS Code to adjust theme display colors.."
+          },
+          "termeleon.overrideMissingSelectionHighlight": {
+            "type": "boolean",
+            "default": true,
+            "markdownDescription": "Some themes do not specify colors for highlighting selected text. In those cases, it can be quite hard to see which text is selected. What should be done in that case?\n\n**On:** invent a highlight color based on the theme's other colors.\n\n**Off:** do not invent one - leave selection colors alone."
+          },
+          "termeleon.overrideIncludedSelectionForeground": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Some themes specify a single foreground color for highlighting selected text. In this case, terminal colors will not be visible in text selections. What should be done in that case?\n\n**On:** ignore the theme's selection foreground and keep each cell's ANSI color.\n\n**Off:** use the theme's selection foreground."
+          }
         }
       }
-    }
+    ]
   },
   "scripts": {
     "compile": "tsc -p . --noEmit && esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",

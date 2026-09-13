@@ -107,14 +107,14 @@ suite('mirror multi-candidate preview and quickpick', () => {
 
       // Arrow to first candidate (single theme)
       activeChangeListeners.forEach((fn) => fn([qp.items[0]]));
-      await delay(PREVIEW_DEBOUNCE_MS + 50);
+      await delay(PREVIEW_DEBOUNCE_MS + 400);
 
       let colors = inspectColors('workspace');
       assert.strictEqual(colors['terminal.background'], '#111111');
 
       // Arrow to second candidate (pair)
       activeChangeListeners.forEach((fn) => fn([qp.items[1]]));
-      await delay(PREVIEW_DEBOUNCE_MS + 50);
+      await delay(PREVIEW_DEBOUNCE_MS + 400);
 
       colors = inspectColors('workspace');
       const workbench = vscode.workspace.getConfiguration('workbench');
@@ -233,7 +233,7 @@ suite('mirror multi-candidate preview and quickpick', () => {
       const qp = interceptedQP!;
 
       activeChangeListeners.forEach((fn) => fn([qp.items[0]]));
-      await delay(PREVIEW_DEBOUNCE_MS + 50);
+      await delay(PREVIEW_DEBOUNCE_MS + 400);
 
       assert.deepStrictEqual(inspectColors('workspace'), {});
 

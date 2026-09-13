@@ -35,6 +35,7 @@ Prefixed with `Termeleon: `
 | Command | What it does |
 | --- | --- |
 | `Mirror Active Terminal Theme` | Applies whatever theme your emulator is configured to use right now. |
+| `Reapply Last Theme` | Rewrites the last imported or mirrored palette using your current mapping settings. |
 | `Remove Imported Terminal Theme` | Resets; removes only the keys this extension wrote. |
 | `Import Terminal Theme…` | Scans the machine, shows a picker with live preview, writes the palette. |
 | `Import to User Settings…` | Same, skipping the scope prompt. |
@@ -57,13 +58,17 @@ Add anything else (a dotfiles checkout, a downloaded theme pack) via `termeleon.
 
 ## Behavior worth knowing
 
-**Writes flat, not theme-scoped.** By default the palette goes in at the top level of `workbench.colorCustomizations`, so it survives switching workbench themes. Set `scopeToActiveTheme` if you'd rather it apply only under your current theme.
+**Attaches to the Color Theme at import.** By default (`scopeToActiveTheme` on), imported colors ride with the VS Code Color Theme that was active when you applied them. Switch Color Theme and that theme's terminal colors are used. Turn the setting off if Termeleon's colors should stay put across theme switches.
 
 **Sets `terminal.integrated.minimumContrastRatio` to 1.** VS Code otherwise nudges foreground colors toward a contrast target, and your palette won't render as the theme author wrote it. Disable via `setMinimumContrastRatio` if you want the accessibility adjustment back.
 
-**Skips `terminal.selectionForeground`.** Writing that key disables the behavior where selected text keeps its own color. Opt in with `includeSelectionForeground`.
+**Honors an authored selection foreground.** If the theme defines one, Termeleon writes `terminal.selectionForeground`. Turn on `overrideIncludedSelectionForeground` to ignore it and keep each cell's ANSI color. Themes that never define a selection foreground (MobaXterm) still will not write one.
 
-**Live preview writes real settings.** Arrowing through the list applies each theme so you can see it, and the pre-picker value is restored if you cancel. If the `settings.json` churn bothers you, set `livePreview` to false.
+**Fills a missing selection highlight.** Themes with no selection color (MobaXterm, sparse Xresources) otherwise inherit the workbench `editor.selectionBackground`, which is often invisible on the imported terminal background. With `overrideMissingSelectionHighlight` (on by default) Termeleon writes a translucent overlay instead. Authored highlights are never replaced. Turn the setting off to leave VS Code's colors.
+
+**Color preferences are not live.** Settings under **Color Preferences when Applying New Themes** are read when a theme is written. Toggle them, then Import, Mirror, or **Reapply Last Theme**. **Command Palette UI Behavior** and **Theme Discovery** take effect on the next pick or scan.
+
+**Live preview writes real settings.** Arrowing through the list applies each theme so you can see it, and the pre-picker value is restored if you cancel. If the `settings.json` churn bothers you, set `livePreview` to false. Preview does not count as the last theme for Reapply.
 
 **Ghostty dark/light pairs follow auto-detect.** Mirror of `theme = dark:X,light:Y` writes both palettes as theme-scoped blocks named after your preferred dark and light workbench themes (the values of `workbench.preferredDarkColorTheme` and `workbench.preferredLightColorTheme`, for example `[One Dark Pro]` and `[GitHub Light]`). Those are the themes `window.autoDetectColorScheme` switches between. The extension does not turn auto-detect on for you. The import picker still applies one theme at a time.
 
@@ -76,6 +81,7 @@ Emulators disagree about what to call the same pixel:
 - Windows Terminal calls the magenta slot `purple`
 - MobaXterm writes ANSI colors as `r,g,b` decimals and names fg/bg/cursor with British `Colour`
 - Alacritty writes colors as `0xrrggbb`; Xresources uses `rgb:rr/gg/bb`
+- Xresources `highlightColor` / `highlightBackground` / `highlightTextColor` → terminal selection colors
 - iTerm2 stores 0..1 float components in an XML plist
 
 ## Known limits

@@ -13,9 +13,16 @@ export interface ApplyOptions {
   target: Target;
   /** Nest the colors under `[Active Theme Name]` instead of writing them flat. */
   scopeToActiveTheme: boolean;
-  includeSelectionForeground: boolean;
+  overrideIncludedSelectionForeground: boolean;
   setMinimumContrastRatio: boolean;
+  overrideMissingSelectionHighlight: boolean;
 }
+
+export type LastApply =
+  | { kind: 'single'; palette: Palette }
+  | { kind: 'pair'; dark: Palette; light: Palette };
+
+const LAST_APPLY_STATE = 'termeleon.lastApply';
 
 function configTarget(t: Target): vscode.ConfigurationTarget {
   return t === 'global'
@@ -28,6 +35,17 @@ function readAt(target: Target): Record<string, any> {
   const inspected = vscode.workspace.getConfiguration(SECTION).inspect<Record<string, any>>(KEY);
   const raw = target === 'global' ? inspected?.globalValue : inspected?.workspaceValue;
   return raw ? JSON.parse(JSON.stringify(raw)) : {};
+}
+
+/** Writes 1 so the palette renders as authored, or clears a 1 we previously wrote. */
+async function applyContrastRatio(target: Target, setToOne: boolean): Promise<void> {
+  if (setToOne) {
+    await writeContrastRatioAt(target, 1);
+    return;
+  }
+  if (readContrastRatioAt(target) === 1) {
+    await writeContrastRatioAt(target, undefined);
+  }
 }
 
 function readContrastRatioAt(target: Target): number | undefined {
@@ -55,6 +73,44 @@ async function setOwnedKeys(ctx: vscode.ExtensionContext, target: Target, keys: 
   await store.update(OWNED_STATE, keys);
 }
 
+export function lastApply(ctx: vscode.ExtensionContext, target: Target): LastApply | undefined {
+  const store = target === 'global' ? ctx.globalState : ctx.workspaceState;
+  const raw = store.get<LastApply>(LAST_APPLY_STATE);
+  if (!raw || typeof raw !== 'object') { return undefined; }
+  if (raw.kind === 'single' && raw.palette) { return raw; }
+  if (raw.kind === 'pair' && raw.dark && raw.light) { return raw; }
+  return undefined;
+}
+
+export async function recordLastApply(
+  ctx: vscode.ExtensionContext,
+  target: Target,
+  payload: LastApply,
+): Promise<void> {
+  const store = target === 'global' ? ctx.globalState : ctx.workspaceState;
+  await store.update(LAST_APPLY_STATE, payload);
+}
+
+export async function clearLastApply(ctx: vscode.ExtensionContext, target: Target): Promise<void> {
+  const store = target === 'global' ? ctx.globalState : ctx.workspaceState;
+  await store.update(LAST_APPLY_STATE, undefined);
+}
+
+export async function reapply(
+  ctx: vscode.ExtensionContext,
+  target: Target,
+  opts: ApplyOptions,
+): Promise<{ applied: boolean }> {
+  const last = lastApply(ctx, target);
+  if (!last) { return { applied: false }; }
+  if (last.kind === 'pair') {
+    await applyPalettePair(ctx, last.dark, last.light, opts);
+  } else {
+    await applyPalette(ctx, last.palette, opts);
+  }
+  return { applied: true };
+}
+
 /**
  * Merges a palette into workbench.colorCustomizations at the given target.
  *
@@ -68,7 +124,8 @@ export async function applyPalette(
   opts: ApplyOptions,
 ): Promise<void> {
   const colors = toColorCustomizations(palette, {
-    includeSelectionForeground: opts.includeSelectionForeground,
+    overrideIncludedSelectionForeground: opts.overrideIncludedSelectionForeground,
+    overrideMissingSelectionHighlight: opts.overrideMissingSelectionHighlight,
   });
 
   const current = stripOwnedKeys(readAt(opts.target), ownedKeys(ctx, opts.target));
@@ -79,12 +136,7 @@ export async function applyPalette(
   await config.update(KEY, next, configTarget(opts.target));
 
   await setOwnedKeys(ctx, opts.target, owned);
-
-  if (opts.setMinimumContrastRatio) {
-    // Without this, VS Code nudges foreground colors toward a contrast target
-    // and the applied palette does not render as authored.
-    await writeContrastRatioAt(opts.target, 1);
-  }
+  await applyContrastRatio(opts.target, opts.setMinimumContrastRatio);
 }
 
 /**
@@ -99,7 +151,10 @@ export async function applyPalettePair(
   light: Palette,
   opts: ApplyOptions,
 ): Promise<void> {
-  const mapping = { includeSelectionForeground: opts.includeSelectionForeground };
+  const mapping = {
+    overrideIncludedSelectionForeground: opts.overrideIncludedSelectionForeground,
+    overrideMissingSelectionHighlight: opts.overrideMissingSelectionHighlight,
+  };
   const darkColors = toColorCustomizations(dark, mapping);
   const lightColors = toColorCustomizations(light, mapping);
 
@@ -116,10 +171,7 @@ export async function applyPalettePair(
   const config = vscode.workspace.getConfiguration(SECTION);
   await config.update(KEY, next, configTarget(opts.target));
   await setOwnedKeys(ctx, opts.target, owned);
-
-  if (opts.setMinimumContrastRatio) {
-    await writeContrastRatioAt(opts.target, 1);
-  }
+  await applyContrastRatio(opts.target, opts.setMinimumContrastRatio);
 }
 
 /** Restores a previously captured raw colorCustomizations value verbatim. */
@@ -261,6 +313,7 @@ export async function removeApplied(
 
   await restoreSnapshot(target, current);
   await setOwnedKeys(ctx, target, []);
+  await clearLastApply(ctx, target);
 
   if (readContrastRatioAt(target) === 1) {
     await writeContrastRatioAt(target, undefined);

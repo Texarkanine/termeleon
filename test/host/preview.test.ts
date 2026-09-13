@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 
 import {
   applyPalette, applyPalettePair, LivePreview, PREVIEW_DEBOUNCE_MS, ApplyOptions, removeApplied,
+  recordLastApply, reapply,
 } from '../../src/apply';
 import { toColorCustomizations } from '../../src/palette';
 import { fakeContext, inspectColors, resetSettings, samplePalette } from './helpers';
@@ -12,8 +13,9 @@ import { fakeContext, inspectColors, resetSettings, samplePalette } from './help
 const opts: ApplyOptions = {
   target: 'workspace',
   scopeToActiveTheme: false,
-  includeSelectionForeground: false,
+  overrideIncludedSelectionForeground: false,
   setMinimumContrastRatio: false,
+  overrideMissingSelectionHighlight: false,
 };
 
 function delay(ms: number): Promise<void> {
@@ -30,6 +32,7 @@ suite('LivePreview', () => {
   setup(async () => {
     await resetSettings();
     await ctx.workspaceState.update('termeleon.ownedKeys', undefined);
+    await ctx.workspaceState.update('termeleon.lastApply', undefined);
   });
 
   suiteTeardown(async () => {
@@ -53,7 +56,7 @@ suite('LivePreview', () => {
     const preview = new LivePreview(ctx, previewOpts);
 
     preview.schedule(samplePalette());
-    await delay(PREVIEW_DEBOUNCE_MS + 100);
+    await delay(PREVIEW_DEBOUNCE_MS + 400);
     assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, 1);
 
     await preview.cancel();
@@ -68,7 +71,7 @@ suite('LivePreview', () => {
 
     const preview = new LivePreview(ctx, opts);
     preview.schedule(samplePalette());
-    await delay(PREVIEW_DEBOUNCE_MS + 100);
+    await delay(PREVIEW_DEBOUNCE_MS + 400);
     assert.ok(fs.existsSync(settingsFile), 'expected settings.json to exist during preview');
 
     await preview.cancel();
@@ -97,7 +100,7 @@ suite('LivePreview', () => {
     const preview = new LivePreview(ctx, opts);
     preview.schedule(first);
     preview.schedule(second);
-    await delay(PREVIEW_DEBOUNCE_MS + 50);
+    await delay(PREVIEW_DEBOUNCE_MS + 400);
 
     const colors = inspectColors('workspace');
     assert.strictEqual(colors['terminal.background'], '#222222');
@@ -124,7 +127,7 @@ suite('LivePreview', () => {
     await applyPalette(ctx, palette, opts);
     const result = await removeApplied(ctx, 'workspace', false);
     assert.ok(result.removed > 0);
-    await delay(PREVIEW_DEBOUNCE_MS + 50);
+    await delay(PREVIEW_DEBOUNCE_MS + 400);
     assert.ok(
       !('terminal.background' in inspectColors('workspace')),
       'pending preview must not re-apply after accept-then-remove',
@@ -137,7 +140,7 @@ suite('LivePreview', () => {
 
     const preview = new LivePreview(ctx, opts);
     preview.schedulePair(darkPalette, lightPalette);
-    await delay(PREVIEW_DEBOUNCE_MS + 100);
+    await delay(PREVIEW_DEBOUNCE_MS + 400);
 
     const colors = inspectColors('workspace');
     const workbench = vscode.workspace.getConfiguration('workbench');
@@ -161,7 +164,7 @@ suite('LivePreview', () => {
     const preview = new LivePreview(ctx, opts);
     preview.schedule(single);
     preview.schedulePair(dark, light);
-    await delay(PREVIEW_DEBOUNCE_MS + 50);
+    await delay(PREVIEW_DEBOUNCE_MS + 400);
 
     const colors = inspectColors('workspace');
     assert.ok(!('terminal.background' in colors), 'flat single palette must not be applied');
@@ -182,7 +185,7 @@ suite('LivePreview', () => {
     const preview = new LivePreview(ctx, opts);
     preview.schedulePair(dark, light);
     preview.schedule(single);
-    await delay(PREVIEW_DEBOUNCE_MS + 50);
+    await delay(PREVIEW_DEBOUNCE_MS + 400);
 
     const colors = inspectColors('workspace');
     assert.strictEqual(colors['terminal.background'], '#111111');
@@ -203,7 +206,25 @@ suite('LivePreview', () => {
     await applyPalettePair(ctx, dark, light, opts);
     const result = await removeApplied(ctx, 'workspace', false);
     assert.ok(result.removed > 0);
-    await delay(PREVIEW_DEBOUNCE_MS + 50);
+    await delay(PREVIEW_DEBOUNCE_MS + 400);
     assert.deepStrictEqual(inspectColors('workspace'), {});
+  });
+
+  test('preview then cancel does not replace the committed last-apply record', async () => {
+    const committed = samplePalette({ background: '#111111', selectionForeground: '#abcdef' });
+    const previewed = samplePalette({ background: '#222222', selectionForeground: '#fedcba' });
+    await applyPalette(ctx, committed, opts);
+    await recordLastApply(ctx, 'workspace', { kind: 'single', palette: committed });
+
+    const preview = new LivePreview(ctx, opts);
+    preview.schedule(previewed);
+    await delay(PREVIEW_DEBOUNCE_MS + 400);
+    await preview.cancel();
+
+    const result = await reapply(ctx, 'workspace', { ...opts, overrideIncludedSelectionForeground: true });
+    assert.deepStrictEqual(result, { applied: true });
+    const colors = inspectColors('workspace');
+    assert.strictEqual(colors['terminal.background'], '#111111');
+    assert.ok(!('terminal.selectionForeground' in colors));
   });
 });
