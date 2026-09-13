@@ -116,4 +116,23 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
 * Insights
     - `applyPalette` and `applyPalettePair` set the ratio to 1 when enabled but make no corresponding update when disabled, so a true-to-false Reapply leaves the old override intact despite the setting's documented apply-time semantics.
 
+## 2026-09-13 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Re-reviewed the build's contrast-ratio fix against the plan and re-ran the complete suite: 83 parser, 32 discovery, 8 cache, and 46 extension-host tests (44 prior + 2 new regression tests) all passed.
+* Decisions made
+    - PASS: the fix closes the last blocking finding, and the rest of the implementation (fill, Xresources mapping, last-apply/Reapply, remove, docs) remains correct on re-check. One non-blocking advisory noted for `systemPatterns.md` completeness.
+* Insights
+    - `applyContrastRatio` now mirrors `removeApplied`'s existing "clear a 1 we wrote, leave a user's custom value" heuristic, so apply, reapply, and remove all agree on when the extension owns that setting.
+
+## 2026-09-13 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-terminal-selection-visibility.md`.
+    - Updated Surgical Settings Ownership and Live Preview sections in `systemPatterns.md`.
+* Decisions made
+    - productContext and techContext: skip.
+* Insights
+    - Boolean mapping settings need tests for both polarities; contrast-off was the gap.
+
 

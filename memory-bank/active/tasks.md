@@ -106,4 +106,16 @@ No new technology - validation not required
 - [x] Pre-Mortem complete
 - [x] Preflight (PASS)
 - [x] Build
-- [ ] QA
+- [x] QA (PASS)
+
+## QA Results (2026-09-13)
+
+- **FAIL (fixable).** The earlier duplicate iTerm2 README bullet is fixed. Re-review found one remaining blocking defect: Reapply with `setMinimumContrastRatio` changed from true to false leaves the previously written `terminal.integrated.minimumContrastRatio: 1` in place. The setting's descriptions promise that it takes effect on Reapply, but `applyPalette` and `applyPalettePair` only write the `true` case and never clear the extension-written value. Build must make the false case effective and add regression coverage.
+- All other implementation reviewed clean against the plan: fill logic, Xresources highlight mapping, last-apply/Reapply (single, pair, no-record, preview isolation), `removeApplied` clearing, `managedKeys`, setting defaults, and not-live copy in package.json/README/STORE. Full parser and extension-host suites passed (83 + 32 + 8 parser/discovery/cache tests; 44 host tests).
+
+## QA Results (2026-09-13, re-review after contrast-ratio fix)
+
+- **PASS.** `applyContrastRatio` now clears a previously-written `terminal.integrated.minimumContrastRatio: 1` when `setMinimumContrastRatio` is false, wired into both `applyPalette` and `applyPalettePair` so Import, Mirror, and Reapply all pick it up. Two new regression tests cover it; both pass.
+- Full suite re-run and green: 83 parser + 32 discovery + 8 cache + 46 extension-host tests (44 prior + 2 new).
+- Re-checked the rest of the implementation against the plan: fill semantics, authored-selection precedence, no invented foreground, Xresources highlight mapping, per-target last-apply with live-preview isolation, pair reapply, remove-clears-record, `managedKeys`, and not-live setting copy — all still correct. No debris or stray duplicates found.
+- Advisory (non-blocking): `systemPatterns.md`'s Surgical Settings Ownership note covers `removeApplied` clearing a stray `minimumContrastRatio: 1` but not that apply/Reapply now do the same on disable. Optional follow-up.
