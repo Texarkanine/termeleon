@@ -204,4 +204,13 @@ Rework terminal-selection-visibility: split Settings into Picker Behavior vs Col
 * Insights
     - The rework's clean-break constraint held throughout: the only remaining occurrences of `includeSelectionForeground` / `fillMissingSelection` are the negative assertions proving they are gone.
 
+## 2026-09-13 - REFLECT - COMPLETE (rework)
+
+* Work completed
+    - Rewrote `memory-bank/active/reflection/reflection-terminal-selection-visibility.md` to cover original delivery plus rework.
+* Decisions made
+    - productContext, systemPatterns, techContext: skip.
+* Insights
+    - Override-off-means-honor-the-theme is the mapping default we would have wanted from the start; the first build's skip-fg-by-default was the include-flag polarity.
+
 
