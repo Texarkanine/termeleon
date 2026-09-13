@@ -99,3 +99,13 @@ Upgrade the Termeleon compiler to TypeScript 6.0 to match VS Code upstream, and 
 * Insights
     - Divergent local branch history (a branch cut before an unpushed release-please commit landed on a sibling branch) can make a naive `git diff <old-tag>..HEAD` show phantom regressions; always confirm the actual merge-base with `git log --oneline --parents` before trusting a diff stat.
 
+## 2026-09-13 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-typescript-6-and-engine-pin.md`.
+* Decisions made
+    - productContext and systemPatterns: skip. techContext: already updated in build/rework.
+* Insights
+    - vsce compares declared `@types/vscode` ranges, not the lockfile. Document the pin as package policy, not as a parser contract test.
+
+
