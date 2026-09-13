@@ -172,5 +172,15 @@ Rework terminal-selection-visibility: split Settings into Picker Behavior vs Col
 * Insights
     - Host `workspaceOpts` currently defaults include-fg false to omit; after invert, override-off will write `samplePalette`'s `#ffffff` unless tests set the override on.
 
+## 2026-09-13 - PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
+
+* Work completed
+    - Validated the Level 2 rework plan against the palette mapping hub, apply shell, extension settings flow, parser contract tests, and host apply/preview suites.
+    - Confirmed all executable units encode test stubs and red runs before implementation, and the manifest-array contract test is a public extension contract rather than a change-detector.
+* Decisions made
+    - PASS WITH ADVISORY: no plan changes are required before Build.
+* Insights
+    - Both current manifest consumers are in `test/parsers.test.ts`; its planned flattening helper covers the configuration-array migration.
+
 
 
