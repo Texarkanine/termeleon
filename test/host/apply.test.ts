@@ -202,6 +202,24 @@ suite('apply / remove / snapshot', () => {
     assert.strictEqual(inspected?.globalValue, undefined);
   });
 
+  test('reapply with setMinimumContrastRatio false clears a 1 written by a prior apply', async () => {
+    const palette = samplePalette();
+    await applyPalette(ctx, palette, workspaceOpts({ setMinimumContrastRatio: true }));
+    await recordLastApply(ctx, 'workspace', { kind: 'single', palette });
+    const termConfig = vscode.workspace.getConfiguration('terminal.integrated');
+    assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, 1);
+
+    await reapply(ctx, 'workspace', workspaceOpts({ setMinimumContrastRatio: false }));
+    assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, undefined);
+  });
+
+  test('setMinimumContrastRatio false leaves a custom contrast other than 1', async () => {
+    const termConfig = vscode.workspace.getConfiguration('terminal.integrated');
+    await termConfig.update('minimumContrastRatio', 3, vscode.ConfigurationTarget.Workspace);
+    await applyPalette(ctx, samplePalette(), workspaceOpts({ setMinimumContrastRatio: false }));
+    assert.strictEqual(termConfig.inspect<number>('minimumContrastRatio')?.workspaceValue, 3);
+  });
+
   test('removeApplied clears minimumContrastRatio when set to 1 at target', async () => {
     await applyPalette(ctx, samplePalette(), workspaceOpts({ setMinimumContrastRatio: true }));
     const termConfig = vscode.workspace.getConfiguration('terminal.integrated');

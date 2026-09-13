@@ -86,6 +86,14 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
 * Decisions made
     - One-line docs fix; no code change.
 
+## 2026-09-13 - BUILD - COMPLETE (QA rework 2)
+
+* Work completed
+    - Reapply / apply with `setMinimumContrastRatio` false now clears a previously written `1`, leaving custom values other than 1 alone.
+* Decisions made
+    - Same heuristic as Remove: only a `1` at that target is cleared, not a user-set 3 or 4.5.
+
+
 
 ## 2026-09-13 - QA - COMPLETE (FAIL (fixable))
 
@@ -97,5 +105,15 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
     - All implementation code judged clean: fill semantics, authored-selection precedence, no invented foreground, per-target last-apply with live-preview isolation, pair reapply, remove-clears-record, and not-live setting copy all match the plan.
 * Insights
     - The only defect in the change is documentation debris; the executable behavior and tests are complete and pattern-conformant.
+
+## 2026-09-13 - QA - COMPLETE (FAIL (fixable), re-review)
+
+* Work completed
+    - Confirmed the prior documentation-debris finding was corrected.
+    - Re-reviewed the feature and ran the complete suite: 83 parser, 32 discovery, 8 cache, and 44 extension-host tests passed.
+* Decisions made
+    - Build must rerun: Reapply must make `setMinimumContrastRatio: false` effective by clearing the extension-written value and add regression coverage.
+* Insights
+    - `applyPalette` and `applyPalettePair` set the ratio to 1 when enabled but make no corresponding update when disabled, so a true-to-false Reapply leaves the old override intact despite the setting's documented apply-time semantics.
 
 

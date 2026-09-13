@@ -37,6 +37,17 @@ function readAt(target: Target): Record<string, any> {
   return raw ? JSON.parse(JSON.stringify(raw)) : {};
 }
 
+/** Writes 1 so the palette renders as authored, or clears a 1 we previously wrote. */
+async function applyContrastRatio(target: Target, setToOne: boolean): Promise<void> {
+  if (setToOne) {
+    await writeContrastRatioAt(target, 1);
+    return;
+  }
+  if (readContrastRatioAt(target) === 1) {
+    await writeContrastRatioAt(target, undefined);
+  }
+}
+
 function readContrastRatioAt(target: Target): number | undefined {
   const inspected = vscode.workspace.getConfiguration('terminal.integrated')
     .inspect<number>('minimumContrastRatio');
@@ -125,12 +136,7 @@ export async function applyPalette(
   await config.update(KEY, next, configTarget(opts.target));
 
   await setOwnedKeys(ctx, opts.target, owned);
-
-  if (opts.setMinimumContrastRatio) {
-    // Without this, VS Code nudges foreground colors toward a contrast target
-    // and the applied palette does not render as authored.
-    await writeContrastRatioAt(opts.target, 1);
-  }
+  await applyContrastRatio(opts.target, opts.setMinimumContrastRatio);
 }
 
 /**
@@ -165,10 +171,7 @@ export async function applyPalettePair(
   const config = vscode.workspace.getConfiguration(SECTION);
   await config.update(KEY, next, configTarget(opts.target));
   await setOwnedKeys(ctx, opts.target, owned);
-
-  if (opts.setMinimumContrastRatio) {
-    await writeContrastRatioAt(opts.target, 1);
-  }
+  await applyContrastRatio(opts.target, opts.setMinimumContrastRatio);
 }
 
 /** Restores a previously captured raw colorCustomizations value verbatim. */
