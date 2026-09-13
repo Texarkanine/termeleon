@@ -1,0 +1,1 @@
+@types/vscode caret lets the lockfile drift; vsce only compares declared ranges to engines.vscode. Pin ~ to the engine floor and Dependabot-ignore the next minor.
