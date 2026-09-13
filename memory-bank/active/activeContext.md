@@ -4,8 +4,8 @@
 **Phase:** REFLECT COMPLETE
 
 ## What Was Done
-- Reflected on the original fill/Reapply work and the rework: Settings categories, override names, inverted selection-fg default.
-- Persistent files: skip productContext, systemPatterns, techContext.
+- Reflected on fill/Reapply and the rework (override names, inverted selection-fg default).
+- Operator rewrote Color Preferences copy (On/Off, `\n\n` paragraphs), split settings into three categories (Command Palette UI Behavior, Theme Discovery, Color Preferences when Applying New Themes), and flipped `scopeToActiveTheme` default to on.
 
 ## Next Step
-- Run `/niko-archive` to archive this standalone task.
+- Open/land the PR from `terminal-selection`. Then `/niko-archive`.

@@ -213,4 +213,16 @@ Rework terminal-selection-visibility: split Settings into Picker Behavior vs Col
 * Insights
     - Override-off-means-honor-the-theme is the mapping default we would have wanted from the start; the first build's skip-fg-by-default was the include-flag polarity.
 
+## 2026-09-13 - OPERATOR COPY (post-reflect)
+
+* Work completed
+    - Operator rewrote Color Preferences `markdownDescription`s as situation + On/Off paragraphs.
+    - Split `contributes.configuration` into three categories: Command Palette UI Behavior, Theme Discovery, Color Preferences when Applying New Themes.
+* Decisions made
+    - `scopeToActiveTheme` default is **on** (was off): imported colors attach to the Color Theme active at apply unless the user turns this off.
+    - Checkbox copy stays at the two-way choice; do not explain VS Code's colorCustomizations cascade in the setting text.
+* Insights
+    - README/STORE still describe two groups named Picker Behavior and `scopeToActiveTheme` default off — they lag `package.json`.
+
+
 

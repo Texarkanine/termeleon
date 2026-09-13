@@ -859,27 +859,28 @@ test('package.json declares termeleon identity, commands, and settings', () => {
   assert.ok(!('termeleon.includeSelectionForeground' in props));
 });
 
-test('settings are grouped into Picker Behavior and Color Preferences', () => {
+test('settings are grouped into Command Palette, Theme Discovery, and Color Preferences', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')) as {
     contributes?: { configuration?: ConfigCategory[] };
   };
   const cats = configurationCategories(pkg);
-  assert.strictEqual(cats.length, 2);
-  assert.strictEqual(cats[0]?.title, 'Picker Behavior');
-  assert.strictEqual(cats[1]?.title, 'Color Preferences when Applying New Themes');
+  assert.strictEqual(cats.length, 3);
+  assert.strictEqual(cats[0]?.title, 'Command Palette UI Behavior');
+  assert.strictEqual(cats[1]?.title, 'Theme Discovery');
+  assert.strictEqual(cats[2]?.title, 'Color Preferences when Applying New Themes');
 
   const picker = cats[0]?.properties ?? {};
-  for (const key of [
-    'termeleon.target',
-    'termeleon.sources',
-    'termeleon.extraDirectories',
-    'termeleon.livePreview',
-  ]) {
-    assert.ok(key in picker, `${key} belongs in Picker Behavior`);
+  for (const key of ['termeleon.target', 'termeleon.livePreview']) {
+    assert.ok(key in picker, `${key} belongs in Command Palette UI Behavior`);
   }
   assert.ok(!('termeleon.scopeToActiveTheme' in picker));
 
-  const colors = cats[1]?.properties ?? {};
+  const discovery = cats[1]?.properties ?? {};
+  for (const key of ['termeleon.extraDirectories', 'termeleon.sources']) {
+    assert.ok(key in discovery, `${key} belongs in Theme Discovery`);
+  }
+
+  const colors = cats[2]?.properties ?? {};
   for (const key of [
     'termeleon.scopeToActiveTheme',
     'termeleon.setMinimumContrastRatio',
@@ -889,6 +890,7 @@ test('settings are grouped into Picker Behavior and Color Preferences', () => {
     assert.ok(key in colors, `${key} belongs in Color Preferences`);
   }
   assert.ok(!('termeleon.livePreview' in colors));
+  assert.strictEqual(colors['termeleon.scopeToActiveTheme']?.default, true);
   assert.strictEqual(colors['termeleon.overrideMissingSelectionHighlight']?.default, true);
   assert.strictEqual(colors['termeleon.overrideIncludedSelectionForeground']?.default, false);
 });
