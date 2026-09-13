@@ -10,10 +10,10 @@ The project is licensed AGPL-3.0-or-later via the root `LICENSE` file (`license`
 
 ## Build Tools
 
-- TypeScript project: `tsconfig.json` (`strict`, CommonJS, ES2021). `include` is `src/**/*.ts` only — the parser suite is not part of this `tsc` program. Host tests compile via `tsconfig.test.json`.
+- TypeScript project: `tsconfig.json` (`strict`, CommonJS, ES2021, `moduleResolution: bundler`, `types: ["node"]`). TypeScript 6.0 is the compiler; Dependabot still ignores `>=7.0.0`. `include` is `src/**/*.ts` only — the parser suite is not part of this `tsc` program. Host tests compile via `tsconfig.test.json`.
 - Bundle and typecheck: `compile` in `package.json` (`tsc --noEmit` then esbuild of `src/extension.ts`, `vscode` external, Node platform).
 - Packaging ignore list: `.vscodeignore` (source, tests, TypeScript, `.github/`, agent/memory-bank trees, local scratch assets, developer `README.md`, and release-please config/manifest stay out of the VSIX; extension icon at `images/icon.png` and store readme at `STORE.md` are bundled).
-- Package: `package` in `package.json` (`prepackage` compiles, then `vsce package --no-dependencies --readme-path STORE.md`). Publisher id is `texarkanine` (matching registered Open VSX namespace), icon is configured at `images/icon.png`, and marketplace store readme is sourced from `STORE.md`.
+- Package: `package` in `package.json` (`prepackage` compiles, then `vsce package --no-dependencies --readme-path STORE.md`). Publisher id is `texarkanine` (matching registered Open VSX namespace), icon is configured at `images/icon.png`, and marketplace store readme is sourced from `STORE.md`. `@types/vscode` is tilde-pinned to the `engines.vscode` floor (`~1.75.0`); Dependabot ignores `>=1.76.0`. vsce compares those declared ranges; the parser `ci` tests do not.
 - CI: `.github/workflows/ci.yaml` on `pull_request` and `push` to `initialdev` and `main`. Job uses `actions/setup-node` with `.nvmrc` and npm cache, then `npm ci`, `npm run test:coverage` (with `c8` emitting `coverage/lcov.info`), `codecov/codecov-action` using `CODECOV_TOKEN`, `npm run compile`, `npm run package`. No REUSE lint or VS Marketplace publish.
 
 ## Testing Process

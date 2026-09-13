@@ -17,7 +17,7 @@ Termeleon scans the theme files and addons sitting on your local disk and applie
 
 ✅ pick and mirror · 📝 pick only
 
-## Features
+## Key Features
 
 - **Live Preview:** Arrow through your installed themes in the picker to preview each palette live in your integrated terminal before applying.
 - **Mirror Active Emulator Theme:** Match whatever theme your terminal emulator is running right now with a single command.

@@ -60,10 +60,22 @@ suite('mirror multi-candidate preview and quickpick', () => {
 
   setup(async () => {
     await resetSettings();
+    // Preview assertions inspect unscoped terminal.* keys. The contributed default for
+    // scopeToActiveTheme is now on; pin it off so this suite does not depend on that default.
+    await vscode.workspace.getConfiguration('termeleon').update(
+      'scopeToActiveTheme',
+      false,
+      vscode.ConfigurationTarget.Workspace,
+    );
     await ctx.workspaceState.update('termeleon.ownedKeys', undefined);
   });
 
   suiteTeardown(async () => {
+    await vscode.workspace.getConfiguration('termeleon').update(
+      'scopeToActiveTheme',
+      undefined,
+      vscode.ConfigurationTarget.Workspace,
+    );
     await resetSettings();
   });
 
