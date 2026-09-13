@@ -1,11 +1,11 @@
 # Active Context
 
 ## Current Task: typescript-6-and-engine-pin
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Classified Level 2: TypeScript 6.0 toolchain plus `@types/vscode` pin against `engines.vscode`.
-- Operator confirmed the VS Code support floor does not move (`engines.vscode` stays `^1.75.0`).
+- Planned TypeScript 6.0 (`moduleResolution: bundler` + `module: commonjs`, `types: ["node"]`) and `@types/vscode` tilde-pin to the `engines.vscode` 1.75 floor with a Dependabot ignore `>=1.76.0`.
+- Operator confirmed the published VS Code floor does not move.
 
 ## Next Step
-- Load the Level 2 workflow and enter Plan.
+- Preflight validates the plan, then Build.
