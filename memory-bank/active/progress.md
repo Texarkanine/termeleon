@@ -79,4 +79,23 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
 * Insights
     - Host tests hang without `XDG_RUNTIME_DIR` and a dbus session on this WSL box.
 
+## 2026-09-13 - BUILD - COMPLETE (QA rework)
+
+* Work completed
+    - Removed the duplicate iTerm2 semantic-mismatch bullet in README.md.
+* Decisions made
+    - One-line docs fix; no code change.
+
+
+## 2026-09-13 - QA - COMPLETE (FAIL (fixable))
+
+* Work completed
+    - Semantic review of the build against the Level 2 plan: mapping-hub fill, Xresources highlight keys, last-apply + Reapply, and apply-time setting copy.
+    - Re-ran the parser suite at review time: 83 passed.
+* Decisions made
+    - FAIL (fixable): `README.md` gained a duplicate "iTerm2 stores 0..1 float components in an XML plist" bullet (lines 85-86) — edit debris that must be deleted before acceptance. Build must rerun for the one-line docs fix.
+    - All implementation code judged clean: fill semantics, authored-selection precedence, no invented foreground, per-target last-apply with live-preview isolation, pair reapply, remove-clears-record, and not-live setting copy all match the plan.
+* Insights
+    - The only defect in the change is documentation debris; the executable behavior and tests are complete and pattern-conformant.
+
 

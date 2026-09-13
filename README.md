@@ -83,7 +83,6 @@ Emulators disagree about what to call the same pixel:
 - Alacritty writes colors as `0xrrggbb`; Xresources uses `rgb:rr/gg/bb`
 - Xresources `highlightColor` / `highlightBackground` / `highlightTextColor` → terminal selection colors
 - iTerm2 stores 0..1 float components in an XML plist
-- iTerm2 stores 0..1 float components in an XML plist
 
 ## Known limits
 
