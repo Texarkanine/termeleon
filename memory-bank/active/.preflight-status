@@ -1,5 +1,0 @@
-PASS WITH ADVISORY
-
-Level 2 plan is complete, executable units encode TDD in the required order, and the planned palette-to-apply-to-extension flow preserves the vscode-free core boundary. The planned `package.json` configuration-array update accounts for both existing consumers in `test/parsers.test.ts`; the configuration contract is a published extension manifest contract, not a change-detector. The plan covers all rework requirements: clean removal of both old ids, default and inert override behavior, apply/reapply coverage, category ordering and membership, and matching README/STORE prose.
-
-Advisory — the two option names occur across the core mapping interface, VS Code shell interface, and settings manifest. Consider defining a small settings-to-`ApplyOptions` adapter with an explicit mapping test as the sole boundary for default values. This would make a future settings rename a localized change, but it is not required for this contained rework and should not delay the planned implementation.
