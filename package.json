@@ -77,7 +77,7 @@
     "configuration": [
       {
         "id": "termeleon",
-        "title": "Picker Behavior",
+        "title": "Command Palette UI Behavior",
         "order": 1,
         "properties": {
           "termeleon.target": {
@@ -89,6 +89,26 @@
             ],
             "default": "ask",
             "markdownDescription": "Which settings file to use for the imported palette. `ask` prompts each time; with no folder open it always uses user settings."
+          },
+          "termeleon.livePreview": {
+            "type": "boolean",
+            "default": true,
+            "description": "Apply each theme as you navigate through the list. Turn off if the settings.json churn is disruptive."
+          }
+        }
+      },
+      {
+        "id": "termeleon",
+        "title": "Theme Discovery",
+        "order": 2,
+        "properties": {
+          "termeleon.extraDirectories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Additional directories to sweep for theme files, e.g. a dotfiles checkout."
           },
           "termeleon.sources": {
             "type": "array",
@@ -107,46 +127,33 @@
             },
             "default": [],
             "description": "Emulators to scan. Empty means all of them."
-          },
-          "termeleon.extraDirectories": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "default": [],
-            "description": "Additional directories to sweep for theme files, e.g. a dotfiles checkout."
-          },
-          "termeleon.livePreview": {
-            "type": "boolean",
-            "default": true,
-            "description": "Apply each theme as you navigate through the list. Turn off if the settings.json churn is disruptive."
           }
         }
       },
       {
         "id": "termeleon",
         "title": "Color Preferences when Applying New Themes",
-        "order": 2,
+        "order": 3,
         "properties": {
           "termeleon.scopeToActiveTheme": {
             "type": "boolean",
-            "default": false,
-            "markdownDescription": "Nest the colors under `[Your Theme Name]` so they only apply while that workbench theme is active. Off by default, so the terminal palette survives theme switching. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
+            "default": true,
+            "markdownDescription": "VS Code themes may specify terminal colors - most do. When you switch VS Code themes, the terminal colors will normally be replaced. If you've used Termeleon to import terminal colors, what should be done in that situation?\n\n**On:** Imported terminal colors are attached to the VS Code theme that is active at the time of import. When you switch themes, the new theme's terminal colors will be used.\n\n**Off:** Imported terminal colors stay when you switch VS Code themes - even if a VS Code theme provides its own terminal colors."
           },
           "termeleon.setMinimumContrastRatio": {
             "type": "boolean",
             "default": true,
-            "markdownDescription": "Also set `#terminal.integrated.minimumContrastRatio#` to 1. Without this, VS Code adjusts foreground colors toward a contrast target and the palette will not render as authored. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
+            "markdownDescription": "VS Code adjusts foreground colors towards a specific contrast target for ease of visibility. Depending on the theme, this can significantly change its appearance.\n\n**On:** Set `#terminal.integrated.minimumContrastRatio#` to 1 to preserve source themes exactly.\n\n**Off:** Allow VS Code to adjust theme display colors.."
           },
           "termeleon.overrideMissingSelectionHighlight": {
             "type": "boolean",
             "default": true,
-            "markdownDescription": "On: invent a highlight when the theme omitted one. Off: do not invent one. Does nothing when the theme already has a highlight. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
+            "markdownDescription": "Some themes do not specify colors for highlighting selected text. In those cases, it can be quite hard to see which text is selected. What should be done in that case?\n\n**On:** invent a highlight color based on the theme's other colors.\n\n**Off:** do not invent one - leave selection colors alone."
           },
           "termeleon.overrideIncludedSelectionForeground": {
             "type": "boolean",
             "default": false,
-            "markdownDescription": "On: ignore the theme's selection foreground and keep each cell's ANSI color. Off: use the theme's selection foreground. Does nothing when the theme has no selection foreground. Takes effect the next time you Import, Mirror, or Reapply — this toggle is not live."
+            "markdownDescription": "Some themes specify a single foreground color for highlighting selected text. In this case, terminal colors will not be visible in text selections. What should be done in that case?\n\n**On:** ignore the theme's selection foreground and keep each cell's ANSI color.\n\n**Off:** use the theme's selection foreground."
           }
         }
       }
