@@ -20,7 +20,7 @@ As a Termeleon maintainer, I want the toolchain on TypeScript 6.0 to match VS Co
 2. Keep `engines.vscode` at `^1.75.0`. Do not raise the supported VS Code floor.
 3. Pin `@types/vscode` so it cannot drift above that claimed floor (lockfile, `package.json` range, and Dependabot).
 4. Keep the existing Dependabot ignore for TypeScript 7 (`>=7.0.0`) and `@types/node` (`>=23.0.0`); extend policy so `@types/vscode` cannot be bumped past `engines.vscode`.
-5. Update CI contract tests in `test/parsers.test.ts` so they lock the new toolchain and pin policy.
+5. Verify with `npm run compile`, `npm run test:parsers` (existing suite stays green), and `npm run package` (vsce engines check). Do not add `package.json` or Dependabot yaml change-detectors.
 
 ## Constraints
 
@@ -35,4 +35,4 @@ As a Termeleon maintainer, I want the toolchain on TypeScript 6.0 to match VS Co
 2. `engines.vscode` is still `^1.75.0`.
 3. `@types/vscode` cannot exceed that floor via caret float or Dependabot; `npm run package` does not fail the vsce engines check.
 4. `dependabot.yaml` still ignores `typescript >=7.0.0` and `@types/node >=23.0.0`, and prevents `@types/vscode` from drifting above `engines.vscode`.
-5. Parser CI-contract tests fail if those policies are removed.
+5. Existing parser CI-contract tests (TypeScript 7 ignore, `@types/node` vs `.nvmrc`) stay green. No new tests that only assert manifest or yaml text.

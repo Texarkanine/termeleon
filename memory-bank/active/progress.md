@@ -26,3 +26,24 @@ Upgrade the Termeleon compiler to TypeScript 6.0 to match VS Code upstream, and 
 * Insights
     - TypeScript 6.0 documents `bundler` + `commonjs` as the upgrade off deprecated `node10`.
     - Current lockfile `@types/vscode` 1.134 already drifted above the claimed floor; vsce only failed once Dependabot rewrote the declared range to `^1.136.0`.
+
+## 2026-09-13 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the Level 2 plan against the repository, TypeScript 6.0.2, dependency touchpoints, and project conventions.
+    - Removed scheduled configuration change-detector test steps from the implementation plan as required by the project TDD rule.
+* Decisions made
+    - Preflight result is `FAIL (fixable)`: the plan must reconcile its requirement for CI-contract tests with the prohibition on configuration change-detectors before Build.
+* Insights
+    - TypeScript 6.0.2 accepts the planned `module: commonjs`, `moduleResolution: bundler`, `types: ["node"]`, and `skipLibCheck` combination.
+
+## 2026-09-13 - PLAN - COMPLETE (re-plan after preflight)
+
+* Work completed
+    - Removed requirement/AC for new parser CI-contract tests. Test Plan is now "no new executable behavior."
+    - Rewrote units 1–2 as prose/policy toolchain steps; vsce `npm run package` remains the engines gate.
+* Decisions made
+    - Do not add package.json or Dependabot yaml change-detectors. Do not add a second vsce as a package-validation command.
+    - Existing typescript-7 / `@types/node` contract tests stay; they are not extended.
+* Insights
+    - `@types/vscode` minors are VS Code versions; caret float and Dependabot grouping both treat 1.75 → 1.136 as a minor. Tilde plus `>=1.76.0` ignore is the pin.
