@@ -1,10 +1,10 @@
 # Active Context
 
 ## Current Task: terminal-selection-visibility
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS)
 
 ## What Was Done
-- Re-planned after preflight FAIL (fixable): pair reapply and live-preview isolation are mandatory host tests; Import records last-apply in `pickAndApply`.
+- Re-validated the re-planned Level 2 plan; all three prior `FAIL (fixable)` findings (pair reapply test, mandatory live-preview isolation, Import recording location) confirmed closed against the real codebase. No plan changes needed.
 
 ## Next Step
-- Preflight validation.
+- Build.

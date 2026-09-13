@@ -57,3 +57,13 @@ Make VS Code integrated-terminal selection visible after Termeleon apply/Mirror,
 * Insights
     - `commandImport` never sees the accepted palette; only `pickAndApply` does.
 
+## 2026-09-13 - PREFLIGHT - COMPLETE (PASS)
+
+* Work completed
+    - Re-validated the re-planned Level 2 plan against `src/palette.ts`, `src/apply.ts`, `src/extension.ts`, `src/parsers/*`, and both test suites.
+    - Confirmed all three prior `FAIL (fixable)` findings (pair-reapply test, mandatory live-preview isolation, Import recording location) are closed in the current plan.
+* Decisions made
+    - No plan changes required; proceed to Build.
+* Insights
+    - Every emulator parser that already has native selection fields (kitty, Ghostty, iTerm2, Alacritty/WezTerm via `toml.ts`) maps them; only Xresources genuinely lacked the mapping, and Windows Terminal/MobaXterm genuinely have no selection fields in their formats — the plan's scope (Xresources mapping + generic fill) is exactly the right size, nothing missing.
+
