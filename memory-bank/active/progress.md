@@ -47,3 +47,14 @@ Upgrade the Termeleon compiler to TypeScript 6.0 to match VS Code upstream, and 
     - Existing typescript-7 / `@types/node` contract tests stay; they are not extended.
 * Insights
     - `@types/vscode` minors are VS Code versions; caret float and Dependabot grouping both treat 1.75 → 1.136 as a minor. Tilde plus `>=1.76.0` ignore is the pin.
+
+## 2026-09-13 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the re-planned Level 2 plan against the repository. First line of `.preflight-status`: `PASS WITH ADVISORY`.
+    - Empirically compiled `src/**/*.ts` and `test/host/**/*.ts` under TypeScript 6.0.2 with the planned `tsconfig` options against `@types/vscode@1.75.1` — zero errors, confirming the plan's fallback call-site-fix branch will not trigger.
+    - Confirmed via `vscode-vsce` source (`validateVSCodeTypesCompatibility`) that vsce's engines/types check compares only the declared range strings, not the resolved lockfile version — validating the plan's root-cause diagnosis.
+* Decisions made
+    - No plan edits needed this run; the prior preflight's fixable finding was already resolved in the re-plan.
+* Insights
+    - vsce never inspects the lockfile-resolved `@types/vscode` version, only the string in `package.json` `devDependencies`. That is why caret float alone (already resolved to 1.134.0) never tripped `npm run package` — only a Dependabot-rewritten *declared* range would.
