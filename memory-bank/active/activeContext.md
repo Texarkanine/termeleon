@@ -1,11 +1,11 @@
 # Active Context
 
 ## Current Task: terminal-selection-visibility
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Intent confirmed: diagnose `includeSelectionForeground`, map any dropped selection fields, and make selection pop on themes that currently have none (MobaXterm Mirror), without breaking themes that already look OK.
-- Classified as Level 2: bug-adjacent enhancement in the existing Palette mapping/apply path, not a new subsystem.
+- Planned missing-selection fill (setting, default on), Xresources highlight keys, Reapply Last Theme for the last committed apply, and apply-time copy on mapping settings.
+- Operator decisions recorded: not-live settings + explicit Reapply; fill is opt-out.
 
 ## Next Step
-- Load the Level 2 workflow and execute the Plan phase.
+- Preflight validation.
