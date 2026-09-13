@@ -58,7 +58,7 @@ Add anything else (a dotfiles checkout, a downloaded theme pack) via `termeleon.
 
 ## Behavior worth knowing
 
-**Writes flat, not theme-scoped.** By default the palette goes in at the top level of `workbench.colorCustomizations`, so it survives switching workbench themes. Set `scopeToActiveTheme` if you'd rather it apply only under your current theme.
+**Attaches to the Color Theme at import.** By default (`scopeToActiveTheme` on), imported colors ride with the VS Code Color Theme that was active when you applied them. Switch Color Theme and that theme's terminal colors are used. Turn the setting off if Termeleon's colors should stay put across theme switches.
 
 **Sets `terminal.integrated.minimumContrastRatio` to 1.** VS Code otherwise nudges foreground colors toward a contrast target, and your palette won't render as the theme author wrote it. Disable via `setMinimumContrastRatio` if you want the accessibility adjustment back.
 
@@ -66,7 +66,7 @@ Add anything else (a dotfiles checkout, a downloaded theme pack) via `termeleon.
 
 **Fills a missing selection highlight.** Themes with no selection color (MobaXterm, sparse Xresources) otherwise inherit the workbench `editor.selectionBackground`, which is often invisible on the imported terminal background. With `overrideMissingSelectionHighlight` (on by default) Termeleon writes a translucent overlay instead. Authored highlights are never replaced. Turn the setting off to leave VS Code's colors.
 
-**Color preferences are not live.** Settings under **Color Preferences when Applying New Themes** (`scopeToActiveTheme`, `setMinimumContrastRatio`, `overrideMissingSelectionHighlight`, `overrideIncludedSelectionForeground`) are read when a theme is written. Toggle them, then Import, Mirror, or **Reapply Last Theme**. **Picker Behavior** (`target`, `sources`, `extraDirectories`, `livePreview`) takes effect on the next pick or scan.
+**Color preferences are not live.** Settings under **Color Preferences when Applying New Themes** are read when a theme is written. Toggle them, then Import, Mirror, or **Reapply Last Theme**. **Command Palette UI Behavior** and **Theme Discovery** take effect on the next pick or scan.
 
 **Live preview writes real settings.** Arrowing through the list applies each theme so you can see it, and the pre-picker value is restored if you cancel. If the `settings.json` churn bothers you, set `livePreview` to false. Preview does not count as the last theme for Reapply.
 

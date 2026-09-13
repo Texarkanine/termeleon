@@ -224,5 +224,11 @@ Rework terminal-selection-visibility: split Settings into Picker Behavior vs Col
 * Insights
     - README/STORE still describe two groups named Picker Behavior and `scopeToActiveTheme` default off — they lag `package.json`.
 
+## 2026-09-13 - DOCS ALIGNED FOR RELEASE
+
+* Work completed
+    - README and STORE now match the three settings categories and `scopeToActiveTheme` default on.
+
+
 
 
