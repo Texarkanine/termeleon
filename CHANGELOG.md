@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/Texarkanine/termeleon/compare/v0.7.0...v0.8.0) (2026-09-14)
+
+
+### Features
+
+* keep imported terminal selection highlight visible after apply ([#54](https://github.com/Texarkanine/termeleon/issues/54)) ([d8e8a20](https://github.com/Texarkanine/termeleon/commit/d8e8a20e1cfd8be5e288ecd31f35cf650330fb38))
+
 ## [0.7.0](https://github.com/Texarkanine/termeleon/compare/v0.6.0...v0.7.0) (2026-09-04)
 
 
