@@ -9,3 +9,12 @@
 - **What changed:** mocha-scoped `overrides` in `package.json` (`diff@^8.0.3`, `serialize-javascript@^7.0.5`). Lockfile refreshed from a clean tree. Resolved `diff@8.0.4` and `serialize-javascript@7.1.1`. `@vscode/test-cli` stays at `^0.0.15`.
 - **Verdicts:** all three are fixable via those overrides; none via `npm audit fix` alone.
 - **Files:** `package.json`, `package-lock.json`
+
+## QA Results
+
+- **Status:** PASS
+- Overrides confirmed mocha-scoped (not global); lockfile clean with integrity hashes; orphaned `randombytes` removed.
+- `npm audit` re-verified: 0 vulnerabilities.
+- Engine floor of `serialize-javascript@7` (node >= 20) satisfied by `.nvmrc` node 22; both packages are dev-only, not bundled into the VSIX.
+- Parser/discover/cache suites re-run: 125 passed. Host suite (47) passed during build; no source or test files changed since.
+- No blocking findings; no advisories.

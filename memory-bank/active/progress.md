@@ -28,3 +28,14 @@ Assess the three `npm audit` findings (`diff` via mocha, `serialize-javascript` 
 * Insights
     - `npm audit fix` is a no-op here: mocha 11's ranges cannot reach the patched majors
     - Host tests on this WSL box fail if `XDG_RUNTIME_DIR=/run/user/1000` is missing; pointing it at a tmpdir is an environment workaround, not a product change
+
+## 2026-09-13 - QA - COMPLETE (PASS)
+
+* Work completed
+    - Semantic review of the overrides change against the project brief and constraints
+    - Re-verified `npm audit` (0 vulnerabilities) and re-ran parser/discover/cache suites (125 passed)
+    - Confirmed `serialize-javascript@7` engine floor (node >= 20) is satisfied by the `.nvmrc` node 22 pin used by CI
+* Decisions made
+    - PASS with no advisories: overrides are correctly mocha-scoped, lockfile is clean, verdicts documented per acceptance criteria
+* Insights
+    - The orphaned `randombytes` lockfile entry dropped out naturally when `serialize-javascript` 7 removed that dependency
