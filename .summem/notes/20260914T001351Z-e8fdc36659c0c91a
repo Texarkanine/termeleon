@@ -1,0 +1,1 @@
+mocha 11 via @vscode/test-cli cannot take patched diff/serialize-javascript (pins ^7 and ^6); mocha-scoped npm overrides (diff ^8.0.3, serialize-javascript ^7.0.5) clear npm audit without bumping mocha to 12
