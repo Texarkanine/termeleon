@@ -1,10 +1,11 @@
 # Active Context
 
 ## Current Task: npm-audit-mocha-transitives
-**Phase:** BUILD - READY
+**Phase:** BUILD - COMPLETE
 
 ## What Was Done
-- Classified as Level 1 (Quick Bug Fix): error-correction of known npm audit findings, single subsystem (dev-only mocha tree via `@vscode/test-cli`), isolated risk.
+- All three audit findings are remediable via mocha-scoped npm overrides; `npm audit fix` cannot satisfy mocha 11's ranges.
+- Overrides: `diff@^8.0.3`, `serialize-javascript@^7.0.5`. Audit is clean. Parser and host suites passed.
 
 ## Next Step
-- Execute Level 1 Build
+- Level 1 QA via subagent
