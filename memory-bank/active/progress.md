@@ -37,3 +37,16 @@ Discover the color schemes Windows Terminal offers, including inbox schemes in `
     - Verdict is PASS WITH ADVISORY: three non-blocking advisories (pin source on the unparseable-settings test, thread DiscoverOptions into discoverWindowsTerminal, recorded merge-layer alternative without adopting it)
 * Insights
     - All preflight names are new (no conflicts); docs unit targets verified sentences in README, productContext, and systemPatterns
+
+## 2026-10-06 - BUILD - COMPLETE
+
+* Work completed
+    - Implemented `resolveWindowsTerminalActiveScheme` and inbox-scheme discovery
+    - Parser, discovery, cache, and host suites passed; `npm run compile` succeeded
+    - Updated README, productContext, and systemPatterns
+* Decisions made
+    - Shared the profile walk in `presentColorSchemes` and deleted the unused `wtDefaultsSchemes`
+    - Unparseable user settings stay `explicit` with no names, so a broken `settings.json` does not fall through to the inbox default
+    - Case-insensitive scheme names: a settings palette replaces the inbox palette and keeps the settings spelling
+* Insights
+    - On this install, `defaults.json` already names Campbell on the default profile, so Mirror of an omitted `colorScheme` reads that name from the file rather than the constant

@@ -40,7 +40,7 @@ On Windows, discovery lists the schemes Windows Terminal offers: inbox schemes f
 
 ## Implementation Plan
 
-### 1. Active-scheme resolution — executable
+### 1. Active-scheme resolution — executable ✅
 
 - Files: `src/parsers/iterm2.ts`, `test/parsers.test.ts`
 
@@ -49,7 +49,7 @@ On Windows, discovery lists the schemes Windows Terminal offers: inbox schemes f
 3. Write tests and run red: fill the assertions. `activeWindowsTerminalScheme` stays the explicit reader and still returns `[]` when the key is absent. Run `npx tsx test/parsers.test.ts` and confirm the new cases fail.
 4. Write code and run green: implement the resolver with the existing profile walk (`undefined` from the colorScheme reader means the key is absent; an array means it is present). Order: user file, then defaults file, then `[assumedName]` when `assumedName` is non-empty. Unparseable user text yields `names: []` and does not consult the defaults file. Run `npx tsx test/parsers.test.ts` until the new cases and the existing Windows Terminal cases pass.
 
-### 2. Discovery of inbox schemes — executable
+### 2. Discovery of inbox schemes — executable ✅
 
 - Files: `src/discover.ts`, `test/discover.test.ts`
 
@@ -58,7 +58,7 @@ On Windows, discovery lists the schemes Windows Terminal offers: inbox schemes f
 3. Write tests and run red: write temp `settings.json` / `defaults.json` files and pass them in `windowsTerminalFiles`. Palettes in those files include all 16 ANSI colors so `isUsable` keeps them. Run `npx tsx test/discover.test.ts` and confirm the new cases fail. The off-win32 case is skipped when `process.platform === 'win32'`, matching `windowsDocumentsDir`.
 4. Write code and run green: when `windowsTerminalFiles` is passed, scan only those pairs and do not read `LOCALAPPDATA` or spawn. Otherwise keep today's three `settings.json` candidates, and pair the Store and Preview candidates with `windowsTerminalDefaultsFiles()` (powershell `Get-AppxPackage` for `Microsoft.WindowsTerminal` and `Microsoft.WindowsTerminalPreview`, `InstallLocation` + `defaults.json`, memoized, no spawn unless `process.platform === 'win32'`). For each pair, parse schemes from defaults then settings; a settings scheme with the same name (case-insensitive) replaces the inbox palette and origin. Active names come from `resolveWindowsTerminalActiveScheme` for that pair. Mark `active` only through `isWindowsTerminalSchemeActive` against usable schemes. A missing or unreadable file is skipped. Run `npx tsx test/discover.test.ts`, then `npm run test:parsers`.
 
-### 3. Docs for the retired limit — prose/policy
+### 3. Docs for the retired limit — prose/policy ✅
 
 - Files: `README.md`, `memory-bank/productContext.md`, `memory-bank/systemPatterns.md`
 - No tests: prose/policy artifact
@@ -97,6 +97,6 @@ No new technology - validation not required. Package lookup reuses `spawnSync('p
 - [x] Implementation plan complete
 - [x] Technology validation complete
 - [x] Pre-Mortem complete
-- [ ] Preflight
-- [ ] Build
+- [x] Preflight
+- [x] Build
 - [ ] QA

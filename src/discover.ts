@@ -7,7 +7,7 @@ import { DiscoveredTheme, Palette, isUsable } from './palette';
 import { parseGhostty, activeGhosttyThemes } from './parsers/ghostty';
 import { parseKitty, parseXresources } from './parsers/kitty';
 import { parseAlacritty, alacrittyImports, resolveAlacrittyImport, parseWezterm, weztermSchemeName } from './parsers/toml';
-import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from './parsers/iterm2';
+import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, resolveWindowsTerminalActiveScheme, isWindowsTerminalSchemeActive } from './parsers/iterm2';
 import { parseMobaXterm } from './parsers/mobaxterm';
 
 /** Hard ceilings so a pathological directory can't stall the picker. */
@@ -321,30 +321,72 @@ function discoverIterm2(extraDirs: string[]): DiscoveredTheme[] {
   return out;
 }
 
-function discoverWindowsTerminal(): DiscoveredTheme[] {
-  const local = process.env.LOCALAPPDATA;
-  if (!local) { return []; }
-  const candidates = [
-    path.join(local, 'Packages', 'Microsoft.WindowsTerminal_8wekyb3d8bbwe', 'LocalState', 'settings.json'),
-    path.join(local, 'Packages', 'Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe', 'LocalState', 'settings.json'),
-    path.join(local, 'Microsoft', 'Windows Terminal', 'settings.json'),
-  ];
-  const out: DiscoveredTheme[] = [];
+interface WindowsTerminalInstallFiles {
+  settings?: string;
+  defaults?: string;
+}
 
-  for (const file of candidates) {
-    const text = readText(file);
-    if (!text) { continue; }
-    const activeNames = activeWindowsTerminalScheme(text);
+function windowsTerminalSchemes(install: WindowsTerminalInstallFiles): DiscoveredTheme[] {
+  const settingsText = install.settings ? readText(install.settings) : undefined;
+  const defaultsText = install.defaults ? readText(install.defaults) : undefined;
+  const activeNames = resolveWindowsTerminalActiveScheme(settingsText, defaultsText).names;
+  const byName = new Map<string, DiscoveredTheme>();
+
+  const add = (file: string | undefined, text: string | undefined) => {
+    if (!file || !text) { return; }
     for (const { name, palette } of parseWindowsTerminal(text)) {
       if (!isUsable(palette)) { continue; }
-      out.push({
+      byName.set(name.toLowerCase(), {
         name,
         source: 'windows-terminal',
         origin: file,
-        active: isWindowsTerminalSchemeActive(name, activeNames),
+        active: false,
         palette,
       });
     }
+  };
+
+  add(install.defaults, defaultsText);
+  add(install.settings, settingsText);
+
+  const themes = [...byName.values()];
+  for (const theme of themes) {
+    theme.active = isWindowsTerminalSchemeActive(theme.name, activeNames);
+  }
+  return themes;
+}
+
+function windowsTerminalInstalls(): WindowsTerminalInstallFiles[] {
+  const local = process.env.LOCALAPPDATA;
+  const defaultsFiles = windowsTerminalDefaultsFiles();
+  const previewDefaults = defaultsFiles.find((file) => file.includes('WindowsTerminalPreview'));
+  const stableDefaults = defaultsFiles.find((file) => !file.includes('WindowsTerminalPreview'));
+  const installs: WindowsTerminalInstallFiles[] = [];
+
+  if (local) {
+    installs.push({
+      settings: path.join(local, 'Packages', 'Microsoft.WindowsTerminal_8wekyb3d8bbwe', 'LocalState', 'settings.json'),
+      defaults: stableDefaults,
+    });
+    installs.push({
+      settings: path.join(local, 'Packages', 'Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe', 'LocalState', 'settings.json'),
+      defaults: previewDefaults,
+    });
+    installs.push({
+      settings: path.join(local, 'Microsoft', 'Windows Terminal', 'settings.json'),
+    });
+  } else {
+    if (stableDefaults) { installs.push({ defaults: stableDefaults }); }
+    if (previewDefaults) { installs.push({ defaults: previewDefaults }); }
+  }
+  return installs;
+}
+
+function discoverWindowsTerminal(files: WindowsTerminalInstallFiles[] | undefined): DiscoveredTheme[] {
+  const installs = files ?? windowsTerminalInstalls();
+  const out: DiscoveredTheme[] = [];
+  for (const install of installs) {
+    out.push(...windowsTerminalSchemes(install));
   }
   return out;
 }
@@ -505,6 +547,37 @@ export function expandWindowsEnv(value: string): string {
   });
 }
 
+/** Reads `Get-AppxPackage` install-location lines. Blank lines are ignored. */
+export function parseAppxInstallLocations(stdout: string): string[] {
+  const out: string[] = [];
+  for (const line of stdout.split(/\r?\n/)) {
+    const value = line.trim();
+    if (value) { out.push(value); }
+  }
+  return out;
+}
+
+let windowsTerminalDefaultsMemo: { value: string[] } | undefined;
+
+/**
+ * `defaults.json` paths for installed Windows Terminal packages.
+ * Empty off win32. Tests inject `windowsTerminalFiles` instead of calling this.
+ */
+export function windowsTerminalDefaultsFiles(): string[] {
+  if (process.platform !== 'win32') { return []; }
+  if (windowsTerminalDefaultsMemo) { return windowsTerminalDefaultsMemo.value; }
+  const fromPs = spawnSync('powershell', [
+    '-NoProfile',
+    '-NonInteractive',
+    '-Command',
+    'Get-AppxPackage -Name Microsoft.WindowsTerminal | Select-Object -ExpandProperty InstallLocation; Get-AppxPackage -Name Microsoft.WindowsTerminalPreview | Select-Object -ExpandProperty InstallLocation',
+  ], { encoding: 'utf8', windowsHide: true });
+  const value = parseAppxInstallLocations(fromPs.stdout ?? '')
+    .map((dir) => path.join(dir, 'defaults.json'));
+  windowsTerminalDefaultsMemo = { value };
+  return value;
+}
+
 let documentsDirMemo: { value: string | undefined } | undefined;
 
 /**
@@ -546,6 +619,11 @@ export interface DiscoverOptions {
   extraDirs?: string[];
   /** Known Folder Documents directory. Tests inject this to skip the win32 lookup. */
   documentsDir?: string;
+  /**
+   * Windows Terminal settings/defaults pairs. When set, discovery scans these
+   * files and does not consult LOCALAPPDATA or the Appx install location.
+   */
+  windowsTerminalFiles?: { settings?: string; defaults?: string }[];
 }
 
 /**
@@ -570,7 +648,7 @@ export function discoverThemes(opts: DiscoverOptions = {}): DiscoveredTheme[] {
   run('alacritty', () => discoverAlacritty(extraDirs));
   run('wezterm', () => discoverWezterm(extraDirs));
   run('iterm2', () => discoverIterm2(extraDirs));
-  run('windows-terminal', discoverWindowsTerminal);
+  run('windows-terminal', () => discoverWindowsTerminal(opts.windowsTerminalFiles));
   run('xresources', discoverXresources);
   run('mobaxterm', () => discoverMobaXterm(extraDirs, opts.documentsDir ?? windowsDocumentsDir()));
 

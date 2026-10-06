@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import { discoverThemes, parseGetFolderPathOutput, parseUserShellFoldersPersonal, expandWindowsEnv, windowsDocumentsDir } from '../src/discover';
+import { discoverThemes, parseGetFolderPathOutput, parseUserShellFoldersPersonal, expandWindowsEnv, windowsDocumentsDir, parseAppxInstallLocations, windowsTerminalDefaultsFiles } from '../src/discover';
 import { isUsable } from '../src/palette';
 
 const fixtures = path.join(__dirname, 'fixtures');
@@ -725,6 +725,214 @@ test('windowsDocumentsDir on non-win32 returns undefined without spawning', () =
     return;
   }
   assert.strictEqual(windowsDocumentsDir(), undefined);
+});
+
+function wtScheme(name: string, green = '#13A10E') {
+  return {
+    name,
+    background: '#0C0C0C',
+    foreground: '#CCCCCC',
+    black: '#0C0C0C',
+    red: '#C50F1F',
+    green,
+    yellow: '#C19C00',
+    blue: '#0037DA',
+    purple: '#881798',
+    cyan: '#3A96DD',
+    white: '#CCCCCC',
+    brightBlack: '#767676',
+    brightRed: '#E74856',
+    brightGreen: '#16C60C',
+    brightYellow: '#F9F1A5',
+    brightBlue: '#3B78FF',
+    brightPurple: '#B4009E',
+    brightCyan: '#61D6D6',
+    brightWhite: '#F2F2F2',
+  };
+}
+
+function writeWtJson(dir: string, name: string, doc: unknown): string {
+  const file = path.join(dir, name);
+  fs.writeFileSync(file, typeof doc === 'string' ? doc : JSON.stringify(doc));
+  return file;
+}
+
+function withWtInstall(
+  build: (dir: string) => { settings?: string; defaults?: string }[],
+  body: (found: ReturnType<typeof discoverThemes>) => void,
+): void {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vtt-wt-'));
+  try {
+    const found = discoverThemes({
+      sources: ['windows-terminal'],
+      windowsTerminalFiles: build(dir),
+    });
+    body(found);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test('inbox schemes are listed when settings schemes are empty', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', colorScheme: 'Vintage' }],
+      schemes: [wtScheme('Vintage')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { defaults: {}, list: [{ guid: '{bbbb}', name: 'Ubuntu' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].name, 'Vintage');
+    assert.ok(found[0].origin.endsWith(`${path.sep}defaults.json`));
+  });
+});
+
+test('a settings scheme replaces the inbox palette of the same name', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      schemes: [wtScheme('Campbell', '#111111')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      schemes: [wtScheme('campbell', '#222222')],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].name, 'campbell');
+    assert.strictEqual(found[0].palette.ansi[2], '#222222');
+    assert.ok(found[0].origin.endsWith(`${path.sep}settings.json`));
+  });
+});
+
+test('omitted settings colorScheme marks the inbox default scheme active', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', colorScheme: 'Vintage' }],
+      schemes: [wtScheme('Vintage'), wtScheme('Campbell')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { defaults: {}, list: [{ guid: '{bbbb}' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    const vintage = found.find((t) => t.name === 'Vintage');
+    const campbell = found.find((t) => t.name === 'Campbell');
+    assert.ok(vintage);
+    assert.strictEqual(vintage.active, true);
+    assert.ok(campbell);
+    assert.strictEqual(campbell.active, false);
+  });
+});
+
+test('an explicit settings colorScheme uses the inbox palette', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', colorScheme: 'Vintage' }],
+      schemes: [wtScheme('Campbell'), wtScheme('Vintage')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { list: [{ guid: '{bbbb}', colorScheme: 'Campbell' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    const campbell = found.find((t) => t.name === 'Campbell');
+    assert.ok(campbell);
+    assert.strictEqual(campbell.active, true);
+    assert.ok(campbell.origin.endsWith(`${path.sep}defaults.json`));
+    assert.strictEqual(found.find((t) => t.name === 'Vintage')?.active, false);
+  });
+});
+
+test('an assumed scheme name that was not loaded is not active', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', name: 'PowerShell' }],
+      schemes: [wtScheme('Vintage')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { defaults: {}, list: [{ guid: '{bbbb}' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.ok(found.some((t) => t.name === 'Vintage'));
+    assert.ok(found.every((t) => t.active === false));
+  });
+});
+
+test('a broken defaults file still yields a named settings scheme', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', '{');
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { list: [{ guid: '{bbbb}', colorScheme: 'Solarized Dark' }] },
+      schemes: [wtScheme('Solarized Dark')],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].name, 'Solarized Dark');
+    assert.strictEqual(found[0].active, true);
+  });
+});
+
+test('a defaults scheme with fewer than 16 ANSI colors is dropped', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', colorScheme: 'Campbell' }],
+      schemes: [{ name: 'Campbell', black: '#000000', red: '#ff0000' }],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { defaults: {}, list: [{ guid: '{bbbb}' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.deepStrictEqual(found, []);
+  });
+});
+
+test('windows terminal discovery without injected files or LOCALAPPDATA finds nothing off win32', () => {
+  if (process.platform === 'win32') { return; }
+  withFixtureHome(() => {}, () => {
+    assert.deepStrictEqual(discoverThemes({ sources: ['windows-terminal'] }), []);
+  });
+});
+
+test('parseAppxInstallLocations reads install paths and rejects blank output', () => {
+  const stdout = [
+    'C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.0_x64__8wekyb3d8bbwe',
+    '',
+    'C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminalPreview_1.0_x64__8wekyb3d8bbwe',
+    '   ',
+  ].join('\r\n');
+  assert.deepStrictEqual(parseAppxInstallLocations(stdout), [
+    'C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.0_x64__8wekyb3d8bbwe',
+    'C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminalPreview_1.0_x64__8wekyb3d8bbwe',
+  ]);
+  assert.deepStrictEqual(parseAppxInstallLocations(''), []);
+  assert.deepStrictEqual(parseAppxInstallLocations('  \n\t  '), []);
+});
+
+test('windowsTerminalDefaultsFiles on non-win32 returns no paths', () => {
+  if (process.platform === 'win32') { return; }
+  assert.deepStrictEqual(windowsTerminalDefaultsFiles(), []);
 });
 
 console.log(`\n${passed} passed\n`);
