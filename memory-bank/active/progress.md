@@ -27,3 +27,13 @@ Discover the color schemes Windows Terminal offers, including inbox schemes in `
     - Mark a scheme active only when a usable discovered palette matches the resolved name
 * Insights
     - This install's inbox default is already a `colorScheme` on the legacy default profile inside `defaults.json`, so the constant is the stand-in for when that read comes back empty
+
+## 2026-10-06 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the Level 2 plan against codebase reality (default-preflight checks 1-7); no plan edits were needed
+    - Wrote `memory-bank/active/.preflight-status` with first line `PASS WITH ADVISORY`
+* Decisions made
+    - Verdict is PASS WITH ADVISORY: three non-blocking advisories (pin source on the unparseable-settings test, thread DiscoverOptions into discoverWindowsTerminal, recorded merge-layer alternative without adopting it)
+* Insights
+    - All preflight names are new (no conflicts); docs unit targets verified sentences in README, productContext, and systemPatterns

@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: Windows Terminal inbox schemes and mirror
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
 
 ## What Was Done
 - Operator confirmed the intent, including the follow-up: an omitted `colorScheme` still mirrors, the assumed name lives in one place in the code, and that name is read from `defaults.json` when the file states it
