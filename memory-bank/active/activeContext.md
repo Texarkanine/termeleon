@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: Windows Terminal inbox schemes and mirror
-**Phase:** BUILD - COMPLETE
+**Phase:** QA - COMPLETE (PASS)
 
 ## What Was Done
 - Inbox schemes are read from each install's `defaults.json`, and a `settings.json` scheme of the same name (case-insensitive) replaces that palette
@@ -26,4 +26,4 @@
 - The no-files discovery test skips on win32, because a real Appx install would still be found after `LOCALAPPDATA` is unset
 
 ## Next Step
-- QA review
+- Reflect phase (/niko-reflect)
