@@ -62,3 +62,13 @@ Discover the color schemes Windows Terminal offers, including inbox schemes in `
 * Insights
     - Shared `presentColorSchemes` helper eliminated duplication while cleanly differentiating between key absence and empty/unusable values
 
+## 2026-10-06 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote `memory-bank/active/reflection/reflection-windows-terminal-inbox-schemes.md`
+    - Reconciled persistent files: productContext and systemPatterns already state the contract; techContext needed no change
+* Decisions made
+    - Keep the explicit reader and the resolver separate. Do not merge `defaults.json` and `settings.json` into one document
+* Insights
+    - A real `defaults.json` names its default scheme on the default profile, so the constant is the stand-in, and a test must use a non-Campbell inbox name to prove the file is the source
+
