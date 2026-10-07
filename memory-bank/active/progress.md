@@ -1,8 +1,8 @@
 # Progress
 
-Mirror applies the theme the user just picked in their emulator, using the catalog already scanned for this window. It re-reads the live selection and does not walk theme directories again.
+A failed Windows Terminal install lookup is retried on the next scan. Mirror uses the same home directory discovery uses.
 
-**Complexity:** Level 2
+**Complexity:** Level 1
 
 ## 2026-10-06 - COMPLEXITY-ANALYSIS - COMPLETE
 
@@ -204,3 +204,12 @@ Mirror applies the theme the user just picked in their emulator, using the catal
     - The partial-scheme overlay and the stable/Preview pairing test stay out of this rework
 * Insights
     - Item 1 had been deferred as non-blocking. The operator wants it fixed on this branch anyway
+
+## 2026-10-07 - COMPLEXITY-ANALYSIS - COMPLETE
+
+* Work completed
+    - Classified the review rework as Level 1
+* Decisions made
+    - Level 1, because both fixes are corrections inside `src/discover.ts` and the behavior is already specified
+* Insights
+    - The partial-scheme overlay and the install-pairing test are not part of this rework
