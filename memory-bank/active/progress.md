@@ -92,3 +92,15 @@ Mirror applies the theme the user just picked in their emulator, using the catal
 * Insights
     - Hand-edited color codes are out of scope. A pick stored as a name uses the cached palette. A pick stored by rewriting one known file is re-read
 
+## 2026-10-07 - PLAN - COMPLETE
+
+* Work completed
+    - Wrote the Level 2 plan for Mirror's live theme pick in `memory-bank/active/tasks.md`
+    - Mapped the behaviors to `test/discover.test.ts` and the call site to `commandMirror`
+* Decisions made
+    - `mirrorLiveThemes` takes explicit path readers. It does not call `walk` or `discoverThemes`
+    - A cached `active` flag is not evidence, except a Ghostty inline config matched by origin when the fresh config has no `theme =` line
+    - MobaXterm and kitty parse the one live file fresh, because that file is where the emulator records the pick
+* Insights
+    - Windows Terminal's scheme list is the two JSON files Mirror already has to open, so that source does not need the cached palette bytes
+

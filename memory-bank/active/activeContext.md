@@ -1,10 +1,11 @@
 # Active Context
 
 ## Current Task: Mirror the theme just picked
-**Phase:** COMPLEXITY-ANALYSIS - COMPLETE
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Classified the rework as Level 2. Mirror must follow a theme pick in the emulator without walking theme directories again. The change stays inside Mirror's use of the existing catalog and the live config reads. The approach is already chosen.
+- Planned `mirrorLiveThemes` over the cached catalog. Mirror re-reads the live selection and does not walk theme directories. Named Ghostty and Alacritty picks use cached palettes. MobaXterm, kitty, Xresources, and the Windows Terminal scheme files are parsed from those reads.
+- Hand-edited color codes inside a theme file whose selection name did not change stay out of scope.
 
 ## Next Step
-- Load the Level 2 workflow and plan the rework.
+- Run preflight on this plan.
