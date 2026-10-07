@@ -116,6 +116,17 @@ Mirror applies the theme the user just picked in their emulator, using the catal
 * Insights
     - The import-pick test must seed imported themes only. Seeding the config as a cached theme hides the bug
 
+## 2026-10-07 - PLAN - COMPLETE
+
+* Work completed
+    - Revised the plan so Mirror keeps honoring `termeleon.sources`
+* Decisions made
+    - A non-empty `sources` list skips other emulators before their readers run, including `windowsDocumentsDir` when MobaXterm is off
+    - The active Alacritty import is the last import in config order whose path is a cached origin. Import files are not read
+    - Missing Windows Terminal settings still consults that install's `defaults.json`. Missing both files yields no Windows Terminal theme
+* Insights
+    - Fresh parses of kitty, MobaXterm, Xresources, and Windows Terminal bypass the catalog, so the sources filter has to be applied at the live read and not by filtering cached themes afterward
+
 ## 2026-10-07 - PREFLIGHT - COMPLETE
 
 * Work completed

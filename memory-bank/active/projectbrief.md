@@ -56,6 +56,7 @@ They are choosing a theme the emulator already offered. They are not typing colo
 2. Mirror does not walk theme directories again. The catalog from the startup scan stays the catalog.
 3. A theme file that was not in that catalog can stay invisible until the window is reloaded.
 4. Import keeps using the cached catalog, including its checkmarks from scan time.
+5. Mirror honors `termeleon.sources`. An emulator the user turned off is not offered.
 
 ### What a pick looks like
 
