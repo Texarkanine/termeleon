@@ -104,3 +104,14 @@ Mirror applies the theme the user just picked in their emulator, using the catal
 * Insights
     - Windows Terminal's scheme list is the two JSON files Mirror already has to open, so that source does not need the cached palette bytes
 
+## 2026-10-07 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Validated the Mirror live-pick plan against `src/discover.ts`, `src/extension.ts`, `src/cache.ts`, and the parsers
+    - Wrote `memory-bank/active/.preflight-status` with first line `FAIL (fixable)`
+* Decisions made
+    - Verdict is FAIL (fixable): the plan finds the Alacritty config through cached origins, but an import-only `alacritty.toml` is never cached, so Mirror would lose Alacritty
+    - Advisories: pin Windows Terminal palette precedence, test the `commandMirror` wiring through one exported composition, and take the MobaXterm ini path from discovery roots
+* Insights
+    - `discoverAlacritty` caches a config only when it parses as a usable palette; imported theme files are the usual cached origins
+
