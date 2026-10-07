@@ -171,3 +171,25 @@ Mirror applies the theme the user just picked in their emulator, using the catal
     - Alacritty import files are not read. The last import whose path is already cached is the pick
 * Insights
     - `os.homedir()` is cached by Node, so Mirror's live paths prefer `HOME` or `USERPROFILE` when set. That matches the process home at runtime and lets the path test use a fixture home
+
+## 2026-10-07 - QA - COMPLETE
+
+* Work completed
+    - Evaluated implementation against KISS, DRY, YAGNI, Completeness, Regression, Integrity, and Documentation
+    - Verified all test suites pass (94 parser tests, 64 discover tests, 8 cache tests, 47 host tests) and zero linter errors
+    - Confirmed requirements, constraints, and acceptance criteria are satisfied
+* Decisions made
+    - QA verdict: PASS (no blocking findings or regressions)
+* Insights
+    - Clean separation of path discovery (`defaultMirrorLiveReaders`) and live theme resolution (`mirrorLiveThemes`) made it simple to test without filesystem I/O
+    - Non-mutating `stampTheme` ensures the catalog cached at startup remains pristine for subsequent `Import` invocations
+
+## 2026-10-07 - REFLECT - COMPLETE
+
+* Work completed
+    - Wrote the rework reflection in `memory-bank/active/reflection/reflection-windows-terminal-inbox-schemes.md`, keeping the earlier inbox-scheme reflection in the same file
+    - Checked product context, system patterns, and tech context. None needed a further edit. The Mirror selection contract is already in `systemPatterns.md`
+* Decisions made
+    - Catalog stays a startup scan. Mirror is the only command that re-reads the live selection
+* Insights
+    - The first two preflights each restored a requirement the plan had dropped: `termeleon.sources`, and Alacritty configs that are not themselves cached themes
