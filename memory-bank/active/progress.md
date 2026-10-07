@@ -72,3 +72,14 @@ Discover the color schemes Windows Terminal offers, including inbox schemes in `
 * Insights
     - A real `defaults.json` names its default scheme on the default profile, so the constant is the stand-in, and a test must use a non-Campbell inbox name to prove the file is the source
 
+## 2026-10-07 - REWORK - INITIATED
+
+* Work completed
+    - Operator chose rework of `windows-terminal-inbox-schemes` after a live smoke test, before archive
+* Decisions made
+    - Mirror must propagate a theme the user just picked in the emulator. Hand-editing color codes is out of scope
+    - Mirror re-reads the live selection. It does not walk theme directories again. The startup cache stays the catalog
+    - A theme file that was not in that catalog can stay invisible until the window reloads
+* Insights
+    - The smoke test failed because `ThemeCache` served the startup scan: Windows Terminal "Set as default" had written `profiles.defaults.colorScheme` `One Half Dark`, and a fresh resolve of that file returned that name, while the same window's Mirror still offered Campbell
+

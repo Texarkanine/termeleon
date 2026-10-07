@@ -37,3 +37,32 @@ The default profile has no `colorScheme`, and `profiles.defaults` has none eithe
 2. Mirror applies the resolved scheme when both the default profile and `profiles.defaults` omit `colorScheme`.
 3. The assumed scheme name is defined in one place in the code.
 4. When `defaults.json` states the default, that file is the source of the name and of the palette. A baked-in name is only the configurable stand-in for when the file does not state one.
+
+## Rework
+
+### Smoke test
+
+On 2026-10-07, Windows Terminal **Set as default** switched the live scheme to One Half Dark. `settings.json` had `profiles.defaults.colorScheme` set to that name, and a fresh resolve of the file returned it. A second Mirror in the same window still offered Campbell, the scheme from the scan at startup.
+
+### Locked behavior
+
+The user already runs Termeleon. They open their terminal emulator, look through its themes, and pick one. The emulator changes. They come back to VS Code and run Mirror. The integrated terminal matches the theme they just picked.
+
+They are choosing a theme the emulator already offered. They are not typing color codes. A person who hand-edits color codes can hand-edit VS Code settings. That is not this fix.
+
+### Requirements
+
+1. Mirror applies the theme the emulator is using now, after a pick made since this window started.
+2. Mirror does not walk theme directories again. The catalog from the startup scan stays the catalog.
+3. A theme file that was not in that catalog can stay invisible until the window is reloaded.
+4. Import keeps using the cached catalog, including its checkmarks from scan time.
+
+### What a pick looks like
+
+- Windows Terminal and Ghostty store the pick as a theme name. Mirror reads that name from the live config and uses the cached palette for the name.
+- Alacritty stores the pick as the config file or the last usable import. Mirror reads that path and uses the cached palette for the file.
+- MobaXterm and kitty store the pick by writing the chosen theme into one known file (`MobaXterm.ini`, `current-theme.conf`). That write is the emulator recording the pick. Mirror re-reads that file. The cached copy of the file is the previous pick.
+- Xresources is the two known dotfiles. Mirror re-reads them.
+- WezTerm and iTerm2 do not report a live theme. Mirror does not start reporting one.
+
+Editing the color codes inside a theme file while the emulator's selection still names that same theme is out of scope. A Ghostty theme file keeps the palette from the startup scan until reload. A Windows Terminal scheme whose name did not change keeps the cached palette until reload.
