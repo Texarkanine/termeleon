@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: Mirror the theme just picked
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (PASS WITH ADVISORY)
 
 ## What Was Done
 - Re-planned after a second fixable preflight. `mirrorLiveThemes` and `mirrorSelection` take `sources` and skip emulators the user turned off before calling their readers.

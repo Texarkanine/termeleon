@@ -149,3 +149,13 @@ Mirror applies the theme the user just picked in their emulator, using the catal
 * Insights
     - `resolveWindowsTerminalActiveScheme(undefined, defaults)` falls through to the inbox default, so a "settings missing" test only yields no theme when `defaults.json` is also missing
 
+## 2026-10-07 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Re-validated the revised Mirror live-pick plan and brief against `src/discover.ts`, `src/extension.ts`, `src/parsers/`, and `package.json`
+    - Wrote `memory-bank/active/.preflight-status` with first line `PASS WITH ADVISORY`
+* Decisions made
+    - Verdict is PASS WITH ADVISORY: the `termeleon.sources`, Alacritty config path, Windows Terminal missing-file, and `readers.readText` findings are all fixed in the plan
+    - Advisories: add a test that the cached catalog is not mutated (brief requirement 4), fix the `MirrorLiveReaders` field list in the stub step, and make the `windowsDocumentsDir` and Windows Terminal "no palette" tests observable
+* Insights
+    - Several negative behaviors pass against the empty stub, so the red run will show only the positive behaviors failing
