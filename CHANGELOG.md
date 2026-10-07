@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/Texarkanine/termeleon/compare/v0.8.1...v0.9.0) (2026-10-07)
+
+
+### Features
+
+* discover Windows Terminal inbox schemes and mirror the default ([#65](https://github.com/Texarkanine/termeleon/issues/65)) ([602e186](https://github.com/Texarkanine/termeleon/commit/602e1863b203e79c78cf42f3b0b9e25e7150ef5e))
+
 ## [0.8.1](https://github.com/Texarkanine/termeleon/compare/v0.8.0...v0.8.1) (2026-10-07)
 
 
