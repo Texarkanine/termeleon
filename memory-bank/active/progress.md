@@ -224,3 +224,16 @@ A failed Windows Terminal install lookup is retried on the next scan. Mirror use
     - The lookup decision is `resolveWindowsTerminalDefaultsLookup`, so the retry behavior is tested without spawning PowerShell
 * Insights
     - On this Node, `os.homedir()` follows `HOME` when `HOME` is set. The mismatch shows up when `HOME` is unset and `USERPROFILE` points somewhere else, which is the Windows case the review described
+
+## 2026-10-07 - QA - COMPLETE
+
+* Work completed
+    - Evaluated implementation against KISS, DRY, YAGNI, Completeness, Regression, Integrity, and Documentation
+    - Verified all test suites pass (94 parser tests, 68 discover tests, 8 cache tests, 47 host tests) and zero linter errors
+    - Confirmed requirements, constraints, and acceptance criteria are satisfied
+* Decisions made
+    - QA verdict: PASS (no blocking findings or regressions)
+* Insights
+    - Isolating Appx lookup retry logic in `resolveWindowsTerminalDefaultsLookup` allowed comprehensive unit testing of error handling and retry states without spawning PowerShell
+    - Aligning `liveHome` directly with `homeDir` (`os.homedir()`) ensures consistent path resolution between Mirror and initial discovery
+
