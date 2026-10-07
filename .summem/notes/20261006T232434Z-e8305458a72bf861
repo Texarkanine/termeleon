@@ -1,0 +1,1 @@
+WT inbox schemes come from defaults.json. Omitted colorScheme uses that file's resolved scheme, then WINDOWS_TERMINAL_ASSUMED_COLOR_SCHEME. Unparseable settings.json does not fall through.

@@ -3,8 +3,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import { discoverThemes, parseGetFolderPathOutput, parseUserShellFoldersPersonal, expandWindowsEnv, windowsDocumentsDir } from '../src/discover';
-import { isUsable } from '../src/palette';
+import { discoverThemes, parseGetFolderPathOutput, parseUserShellFoldersPersonal, expandWindowsEnv, windowsDocumentsDir, parseAppxInstallLocations, windowsTerminalDefaultsFiles, resolveWindowsTerminalDefaultsLookup, mirrorLiveThemes, mirrorSelection, defaultMirrorLiveReaders, activeGhosttyPair, MirrorLiveReaders } from '../src/discover';
+import { DiscoveredTheme, Palette, isUsable } from '../src/palette';
 
 const fixtures = path.join(__dirname, 'fixtures');
 
@@ -725,6 +725,650 @@ test('windowsDocumentsDir on non-win32 returns undefined without spawning', () =
     return;
   }
   assert.strictEqual(windowsDocumentsDir(), undefined);
+});
+
+function wtScheme(name: string, green = '#13A10E') {
+  return {
+    name,
+    background: '#0C0C0C',
+    foreground: '#CCCCCC',
+    black: '#0C0C0C',
+    red: '#C50F1F',
+    green,
+    yellow: '#C19C00',
+    blue: '#0037DA',
+    purple: '#881798',
+    cyan: '#3A96DD',
+    white: '#CCCCCC',
+    brightBlack: '#767676',
+    brightRed: '#E74856',
+    brightGreen: '#16C60C',
+    brightYellow: '#F9F1A5',
+    brightBlue: '#3B78FF',
+    brightPurple: '#B4009E',
+    brightCyan: '#61D6D6',
+    brightWhite: '#F2F2F2',
+  };
+}
+
+function writeWtJson(dir: string, name: string, doc: unknown): string {
+  const file = path.join(dir, name);
+  fs.writeFileSync(file, typeof doc === 'string' ? doc : JSON.stringify(doc));
+  return file;
+}
+
+function withWtInstall(
+  build: (dir: string) => { settings?: string; defaults?: string }[],
+  body: (found: ReturnType<typeof discoverThemes>) => void,
+): void {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vtt-wt-'));
+  try {
+    const found = discoverThemes({
+      sources: ['windows-terminal'],
+      windowsTerminalFiles: build(dir),
+    });
+    body(found);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test('inbox schemes are listed when settings schemes are empty', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', colorScheme: 'Vintage' }],
+      schemes: [wtScheme('Vintage')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { defaults: {}, list: [{ guid: '{bbbb}', name: 'Ubuntu' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].name, 'Vintage');
+    assert.ok(found[0].origin.endsWith(`${path.sep}defaults.json`));
+  });
+});
+
+test('a settings scheme replaces the inbox palette of the same name', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      schemes: [wtScheme('Campbell', '#111111')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      schemes: [wtScheme('campbell', '#222222')],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].name, 'campbell');
+    assert.strictEqual(found[0].palette.ansi[2], '#222222');
+    assert.ok(found[0].origin.endsWith(`${path.sep}settings.json`));
+  });
+});
+
+test('omitted settings colorScheme marks the inbox default scheme active', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', colorScheme: 'Vintage' }],
+      schemes: [wtScheme('Vintage'), wtScheme('Campbell')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { defaults: {}, list: [{ guid: '{bbbb}' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    const vintage = found.find((t) => t.name === 'Vintage');
+    const campbell = found.find((t) => t.name === 'Campbell');
+    assert.ok(vintage);
+    assert.strictEqual(vintage.active, true);
+    assert.ok(campbell);
+    assert.strictEqual(campbell.active, false);
+  });
+});
+
+test('an explicit settings colorScheme uses the inbox palette', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', colorScheme: 'Vintage' }],
+      schemes: [wtScheme('Campbell'), wtScheme('Vintage')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { list: [{ guid: '{bbbb}', colorScheme: 'Campbell' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    const campbell = found.find((t) => t.name === 'Campbell');
+    assert.ok(campbell);
+    assert.strictEqual(campbell.active, true);
+    assert.ok(campbell.origin.endsWith(`${path.sep}defaults.json`));
+    assert.strictEqual(found.find((t) => t.name === 'Vintage')?.active, false);
+  });
+});
+
+test('an assumed scheme name that was not loaded is not active', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', name: 'PowerShell' }],
+      schemes: [wtScheme('Vintage')],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { defaults: {}, list: [{ guid: '{bbbb}' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.ok(found.some((t) => t.name === 'Vintage'));
+    assert.ok(found.every((t) => t.active === false));
+  });
+});
+
+test('a broken defaults file still yields a named settings scheme', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', '{');
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { list: [{ guid: '{bbbb}', colorScheme: 'Solarized Dark' }] },
+      schemes: [wtScheme('Solarized Dark')],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.strictEqual(found.length, 1);
+    assert.strictEqual(found[0].name, 'Solarized Dark');
+    assert.strictEqual(found[0].active, true);
+  });
+});
+
+test('a defaults scheme with fewer than 16 ANSI colors is dropped', () => {
+  withWtInstall((dir) => {
+    const defaults = writeWtJson(dir, 'defaults.json', {
+      defaultProfile: '{aaaa}',
+      profiles: [{ guid: '{aaaa}', colorScheme: 'Campbell' }],
+      schemes: [{ name: 'Campbell', black: '#000000', red: '#ff0000' }],
+    });
+    const settings = writeWtJson(dir, 'settings.json', {
+      defaultProfile: '{bbbb}',
+      profiles: { defaults: {}, list: [{ guid: '{bbbb}' }] },
+      schemes: [],
+    });
+    return [{ settings, defaults }];
+  }, (found) => {
+    assert.deepStrictEqual(found, []);
+  });
+});
+
+test('windows terminal discovery without injected files or LOCALAPPDATA finds nothing off win32', () => {
+  if (process.platform === 'win32') { return; }
+  withFixtureHome(() => {}, () => {
+    assert.deepStrictEqual(discoverThemes({ sources: ['windows-terminal'] }), []);
+  });
+});
+
+test('parseAppxInstallLocations reads install paths and rejects blank output', () => {
+  const stdout = [
+    'C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.0_x64__8wekyb3d8bbwe',
+    '',
+    'C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminalPreview_1.0_x64__8wekyb3d8bbwe',
+    '   ',
+  ].join('\r\n');
+  assert.deepStrictEqual(parseAppxInstallLocations(stdout), [
+    'C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.0_x64__8wekyb3d8bbwe',
+    'C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminalPreview_1.0_x64__8wekyb3d8bbwe',
+  ]);
+  assert.deepStrictEqual(parseAppxInstallLocations(''), []);
+  assert.deepStrictEqual(parseAppxInstallLocations('  \n\t  '), []);
+});
+
+test('windowsTerminalDefaultsFiles on non-win32 returns no paths', () => {
+  if (process.platform === 'win32') { return; }
+  assert.deepStrictEqual(windowsTerminalDefaultsFiles(), []);
+});
+
+test('a failed Windows Terminal install lookup is not memoized', () => {
+  let calls = 0;
+  const lookup = () => {
+    calls += 1;
+    if (calls === 1) { return { status: 1, stdout: '' }; }
+    return { status: 0, stdout: 'C:\\WindowsTerminal\n' };
+  };
+  const failed = resolveWindowsTerminalDefaultsLookup(undefined, lookup);
+  assert.deepStrictEqual(failed.paths, []);
+  assert.strictEqual(failed.memo, undefined);
+  const retried = resolveWindowsTerminalDefaultsLookup(failed.memo, lookup);
+  assert.strictEqual(calls, 2);
+  assert.deepStrictEqual(retried.paths, [path.join('C:\\WindowsTerminal', 'defaults.json')]);
+  const held = resolveWindowsTerminalDefaultsLookup(retried.memo, () => {
+    throw new Error('lookup ran after a successful memo');
+  });
+  assert.deepStrictEqual(held.paths, retried.paths);
+});
+
+test('a Windows Terminal lookup that succeeds with no package is memoized empty', () => {
+  let calls = 0;
+  const lookup = () => {
+    calls += 1;
+    return { status: 0, stdout: '' };
+  };
+  const first = resolveWindowsTerminalDefaultsLookup(undefined, lookup);
+  assert.deepStrictEqual(first.paths, []);
+  assert.ok(first.memo);
+  const second = resolveWindowsTerminalDefaultsLookup(first.memo, lookup);
+  assert.strictEqual(calls, 1);
+  assert.deepStrictEqual(second.paths, []);
+});
+
+test('a Windows Terminal lookup that fails to spawn is not memoized', () => {
+  const failed = resolveWindowsTerminalDefaultsLookup(undefined, () => ({
+    status: null,
+    error: new Error('spawn powershell ENOENT'),
+    stdout: '',
+  }));
+  assert.strictEqual(failed.memo, undefined);
+  assert.deepStrictEqual(failed.paths, []);
+});
+
+function paint(green: string): Palette {
+  const ansi = new Array(16).fill('#000000');
+  ansi[2] = green;
+  return { ansi, background: '#111111', foreground: '#eeeeee' };
+}
+
+function theme(
+  source: string,
+  name: string,
+  origin: string,
+  palette: Palette,
+  active = false,
+): DiscoveredTheme {
+  return { source, name, origin, palette, active };
+}
+
+function filesReader(
+  files: Record<string, string>,
+  over: Partial<MirrorLiveReaders> = {},
+): { readers: MirrorLiveReaders; seen: string[] } {
+  const seen: string[] = [];
+  const readers: MirrorLiveReaders = {
+    readText(file) {
+      seen.push(file);
+      return files[file];
+    },
+    windowsTerminalInstalls: over.windowsTerminalInstalls ?? (() => []),
+    ghosttyConfigPaths: over.ghosttyConfigPaths ?? (() => []),
+    alacrittyConfigPaths: over.alacrittyConfigPaths ?? (() => []),
+    kittyCurrentThemePath: over.kittyCurrentThemePath ?? (() => ''),
+    mobaIniPaths: over.mobaIniPaths ?? (() => []),
+    xresourcesPaths: over.xresourcesPaths ?? (() => []),
+  };
+  return { readers, seen };
+}
+
+function wtFile(colorScheme: string | undefined, scheme?: ReturnType<typeof wtScheme>): string {
+  return JSON.stringify({
+    defaultProfile: '{aaaa}',
+    profiles: {
+      defaults: colorScheme ? { colorScheme } : {},
+      list: [{ guid: '{aaaa}' }],
+    },
+    schemes: scheme ? [scheme] : [],
+  });
+}
+
+function ansiColors(green: string): string {
+  const line = (i: number) => `color${i} ${i === 2 ? green : '#000000'}`;
+  return Array.from({ length: 16 }, (_, i) => line(i)).join('\n');
+}
+
+function xColors(green: string): string {
+  return Array.from({ length: 16 }, (_, i) => `*.color${i}: ${i === 2 ? green : '#000000'}`).join('\n');
+}
+
+function mobaColors(greenByte: number): string {
+  const keys = [
+    'Black', 'Red', 'Green', 'Yellow', 'Blue', 'Magenta', 'Cyan', 'White',
+    'BoldBlack', 'BoldRed', 'BoldGreen', 'BoldYellow',
+    'BoldBlue', 'BoldMagenta', 'BoldCyan', 'BoldWhite',
+  ];
+  const rows = keys.map((key, i) => `${key}=${i === 2 ? `0,${greenByte},0` : '0,0,0'}`);
+  return `[Colors]\n${rows.join('\n')}\n`;
+}
+
+function alacrittyPalette(green: string): string {
+  const names = ['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'];
+  const row = (list: string) => names
+    .map((name) => `${name} = "${name === 'green' ? green : '#000000'}"`)
+    .join('\n');
+  return [
+    '[colors.primary]',
+    'background = "#111111"',
+    'foreground = "#eeeeee"',
+    '[colors.normal]',
+    row('normal'),
+    '[colors.bright]',
+    row('bright'),
+  ].join('\n');
+}
+
+test('stale Windows Terminal flag loses to the fresh scheme files', () => {
+  const cached = [
+    theme('windows-terminal', 'Campbell', '/old/defaults.json', paint('#111111'), true),
+    theme('windows-terminal', 'One Half Dark', '/old/defaults.json', paint('#222222')),
+  ];
+  const { readers } = filesReader({
+    S: wtFile('One Half Dark'),
+    D: wtFile(undefined, wtScheme('One Half Dark', '#00ff00')),
+  }, { windowsTerminalInstalls: () => [{ settings: 'S', defaults: 'D' }] });
+  const got = mirrorLiveThemes(cached, readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].name, 'One Half Dark');
+  assert.strictEqual(got[0].palette.ansi[2], '#00ff00');
+  assert.strictEqual(cached[1].palette.ansi[2], '#222222');
+});
+
+test('Windows Terminal name with no palette is dropped even if the cache has that name', () => {
+  const cached = [theme('windows-terminal', 'Mystery', '/old/settings.json', paint('#00ff00'), true)];
+  const { readers } = filesReader({
+    S: wtFile('Mystery'),
+    D: wtFile(undefined),
+  }, { windowsTerminalInstalls: () => [{ settings: 'S', defaults: 'D' }] });
+  assert.deepStrictEqual(mirrorLiveThemes(cached, readers), []);
+});
+
+test('omitted Windows Terminal colorScheme uses the fresh defaults file', () => {
+  const cached = [theme('windows-terminal', 'Campbell', '/old/defaults.json', paint('#111111'), true)];
+  const { readers } = filesReader({
+    S: wtFile(undefined),
+    D: JSON.stringify({
+      defaultProfile: '{bbbb}',
+      profiles: [{ guid: '{bbbb}', colorScheme: 'Vintage' }],
+      schemes: [wtScheme('Vintage', '#00ff00')],
+    }),
+  }, { windowsTerminalInstalls: () => [{ settings: 'S', defaults: 'D' }] });
+  const got = mirrorLiveThemes(cached, readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].name, 'Vintage');
+  assert.strictEqual(got[0].origin, 'D');
+});
+
+test('missing Windows Terminal settings and defaults do not revive the cache', () => {
+  const cached = [theme('windows-terminal', 'Campbell', '/old/defaults.json', paint('#111111'), true)];
+  const { readers } = filesReader({}, {
+    windowsTerminalInstalls: () => [{ settings: 'S', defaults: 'D' }],
+  });
+  assert.deepStrictEqual(mirrorLiveThemes(cached, readers), []);
+});
+
+test('Ghostty pick joins the cache by name and does not read theme files', () => {
+  const a = theme('ghostty', 'A', '/themes/A', paint('#111111'), true);
+  const b = theme('ghostty', 'B', '/themes/B', paint('#00ff00'));
+  const { readers, seen } = filesReader(
+    { '/ghostty/config': 'theme = B\n' },
+    { ghosttyConfigPaths: () => ['/ghostty/config'] },
+  );
+  const got = mirrorLiveThemes([a, b], readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].name, 'B');
+  assert.strictEqual(got[0].active, true);
+  assert.strictEqual(got[0].palette, b.palette);
+  assert.strictEqual(a.active, true);
+  assert.deepStrictEqual(seen, ['/ghostty/config']);
+});
+
+test('Ghostty dark/light pick restamps appearance without editing the cache', () => {
+  const a = theme('ghostty', 'A', '/themes/A', paint('#111111'));
+  const b = theme('ghostty', 'B', '/themes/B', paint('#00ff00'));
+  const { readers } = filesReader(
+    { '/ghostty/config': 'theme = dark:A,light:B\n' },
+    { ghosttyConfigPaths: () => ['/ghostty/config'] },
+  );
+  const got = mirrorLiveThemes([a, b], readers);
+  const pair = activeGhosttyPair(got);
+  assert.ok(pair);
+  assert.strictEqual(pair?.dark.name, 'A');
+  assert.strictEqual(pair?.light.name, 'B');
+  assert.strictEqual(a.appearance, undefined);
+  assert.strictEqual(b.appearance, undefined);
+});
+
+test('Ghostty name missing from the cache drops the stale active theme', () => {
+  const old = theme('ghostty', 'Old', '/themes/Old', paint('#111111'), true);
+  const { readers } = filesReader(
+    { '/ghostty/config': 'theme = New\n' },
+    { ghosttyConfigPaths: () => ['/ghostty/config'] },
+  );
+  assert.deepStrictEqual(mirrorLiveThemes([old], readers), []);
+  assert.strictEqual(old.active, true);
+});
+
+test('Ghostty config with no theme line keeps a cached inline theme', () => {
+  const inline = theme('ghostty', 'Ghostty config (inline)', '/ghostty/config', paint('#00ff00'), true);
+  const { readers } = filesReader(
+    { '/ghostty/config': 'background = #111111\nforeground = #eeeeee\n' },
+    { ghosttyConfigPaths: () => ['/ghostty/config'] },
+  );
+  const got = mirrorLiveThemes([inline], readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].palette, inline.palette);
+  assert.strictEqual(got[0].active, true);
+});
+
+test('Ghostty named theme does not stay active after the config stops naming it', () => {
+  const named = theme('ghostty', 'A', '/themes/A', paint('#111111'), true);
+  const { readers } = filesReader(
+    { '/ghostty/config': 'background = #111111\n' },
+    { ghosttyConfigPaths: () => ['/ghostty/config'] },
+  );
+  assert.deepStrictEqual(mirrorLiveThemes([named], readers), []);
+});
+
+test('Alacritty import pick joins the cache by path', () => {
+  const first = theme('alacritty', 'one', '/themes/one.toml', paint('#111111'), true);
+  const second = theme('alacritty', 'two', '/themes/two.toml', paint('#00ff00'));
+  const { readers, seen } = filesReader(
+    { '/cfg/alacritty.toml': 'import = ["/themes/two.toml"]\n' },
+    { alacrittyConfigPaths: () => ['/cfg/alacritty.toml'] },
+  );
+  const got = mirrorLiveThemes([first, second], readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].name, 'two');
+  assert.strictEqual(got[0].palette, second.palette);
+  assert.deepStrictEqual(seen, ['/cfg/alacritty.toml']);
+});
+
+test('Alacritty skips an import that is not cached', () => {
+  const a = theme('alacritty', 'A', '/themes/a.toml', paint('#00ff00'));
+  const stale = theme('alacritty', 'stale', '/themes/stale.toml', paint('#111111'), true);
+  const { readers, seen } = filesReader({
+    '/cfg/alacritty.toml': 'import = ["/themes/a.toml", "/themes/new.toml"]\n',
+  }, { alacrittyConfigPaths: () => ['/cfg/alacritty.toml'] });
+  const got = mirrorLiveThemes([a, stale], readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].name, 'A');
+  assert.deepStrictEqual(seen, ['/cfg/alacritty.toml']);
+});
+
+test('Alacritty import missing from the cache drops the stale theme', () => {
+  const stale = theme('alacritty', 'old', '/themes/old.toml', paint('#111111'), true);
+  const { readers } = filesReader({
+    '/cfg/alacritty.toml': 'import = ["/themes/missing.toml"]\n',
+  }, { alacrittyConfigPaths: () => ['/cfg/alacritty.toml'] });
+  assert.deepStrictEqual(mirrorLiveThemes([stale], readers), []);
+});
+
+test('Alacritty config file that is itself a palette uses the cached palette', () => {
+  const config = theme('alacritty', 'alacritty', '/cfg/alacritty.toml', paint('#00ff00'));
+  const { readers } = filesReader({
+    '/cfg/alacritty.toml': alacrittyPalette('#ff0000'),
+  }, { alacrittyConfigPaths: () => ['/cfg/alacritty.toml'] });
+  const got = mirrorLiveThemes([config], readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].palette, config.palette);
+  assert.strictEqual(got[0].palette.ansi[2], '#00ff00');
+});
+
+test('kitty pick is the fresh current-theme.conf', () => {
+  const cached = theme('kitty', 'kitty current theme', '/kitty/current-theme.conf', paint('#111111'), true);
+  const { readers, seen } = filesReader({
+    '/kitty/current-theme.conf': ansiColors('#00ff00'),
+    '/kitty/themes/other.conf': ansiColors('#ff0000'),
+  }, { kittyCurrentThemePath: () => '/kitty/current-theme.conf' });
+  const got = mirrorLiveThemes([cached], readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].palette.ansi[2], '#00ff00');
+  assert.deepStrictEqual(seen, ['/kitty/current-theme.conf']);
+});
+
+test('MobaXterm pick is the fresh ini and does not read mxtcolors', () => {
+  const cached = theme('mobaxterm', 'MobaXterm', '/docs/MobaXterm/MobaXterm.ini', paint('#111111'), true);
+  const { readers, seen } = filesReader({
+    '/docs/MobaXterm/MobaXterm.ini': mobaColors(255),
+    '/docs/MobaXterm/pack.mxtcolors': mobaColors(1),
+  }, { mobaIniPaths: () => ['/docs/MobaXterm/MobaXterm.ini'] });
+  const got = mirrorLiveThemes([cached], readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].palette.ansi[2], '#00ff00');
+  assert.deepStrictEqual(seen, ['/docs/MobaXterm/MobaXterm.ini']);
+});
+
+test('Xresources pick is the fresh dotfile', () => {
+  const cached = theme('xresources', '.Xresources', '/home/.Xresources', paint('#111111'), true);
+  const { readers } = filesReader({
+    '/home/.Xresources': xColors('#00ff00'),
+  }, { xresourcesPaths: () => ['/home/.Xresources'] });
+  const got = mirrorLiveThemes([cached], readers);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].palette.ansi[2], '#00ff00');
+});
+
+test('WezTerm and iTerm2 stay out of Mirror even when the cache marks them active', () => {
+  const cached = [
+    theme('wezterm', 'Builtin', '/wez/colors/builtin.toml', paint('#00ff00'), true),
+    theme('iterm2', 'Pastel', '/iterm/Pastel.itermcolors', paint('#00ff00'), true),
+  ];
+  assert.deepStrictEqual(mirrorLiveThemes(cached, filesReader({}).readers), []);
+});
+
+test('several emulators can all be live', () => {
+  const imported = theme('alacritty', 'two', '/themes/two.toml', paint('#00aa00'));
+  const { readers } = filesReader({
+    S: wtFile('One Half Dark'),
+    D: wtFile(undefined, wtScheme('One Half Dark', '#00ff00')),
+    '/cfg/alacritty.toml': 'import = ["/themes/two.toml"]\n',
+    '/docs/MobaXterm.ini': mobaColors(255),
+  }, {
+    windowsTerminalInstalls: () => [{ settings: 'S', defaults: 'D' }],
+    alacrittyConfigPaths: () => ['/cfg/alacritty.toml'],
+    mobaIniPaths: () => ['/docs/MobaXterm.ini'],
+  });
+  const got = mirrorLiveThemes([imported], readers);
+  assert.deepStrictEqual(got.map((t) => t.source).sort(), ['alacritty', 'mobaxterm', 'windows-terminal']);
+});
+
+test('empty catalog and no live files yield no themes', () => {
+  assert.deepStrictEqual(mirrorLiveThemes([], filesReader({}).readers), []);
+});
+
+test('sources limits the live read to Ghostty', () => {
+  const b = theme('ghostty', 'B', '/themes/B', paint('#00ff00'));
+  const readers: MirrorLiveReaders = {
+    readText: () => 'theme = B\n',
+    windowsTerminalInstalls: () => { throw new Error('windows terminal was read'); },
+    ghosttyConfigPaths: () => ['/ghostty/config'],
+    alacrittyConfigPaths: () => { throw new Error('alacritty was read'); },
+    kittyCurrentThemePath: () => { throw new Error('kitty was read'); },
+    mobaIniPaths: () => { throw new Error('mobaxterm was read'); },
+    xresourcesPaths: () => { throw new Error('xresources was read'); },
+  };
+  const got = mirrorLiveThemes([b], readers, ['ghostty']);
+  assert.strictEqual(got.length, 1);
+  assert.strictEqual(got[0].name, 'B');
+});
+
+test('mirrorSelection of an empty live read is empty', () => {
+  assert.deepStrictEqual(mirrorSelection([], filesReader({}).readers), []);
+});
+
+test('Mirror home paths follow os.homedir when HOME is unset and USERPROFILE differs', () => {
+  const prevHome = process.env.HOME;
+  const prevProfile = process.env.USERPROFILE;
+  const decoy = fs.mkdtempSync(path.join(os.tmpdir(), 'vtt-decoy-'));
+  delete process.env.HOME;
+  process.env.USERPROFILE = decoy;
+  try {
+    const scanned = os.homedir();
+    assert.notStrictEqual(path.resolve(scanned), path.resolve(decoy));
+    const readers = defaultMirrorLiveReaders([]);
+    assert.deepStrictEqual(readers.xresourcesPaths(), [
+      path.join(scanned, '.Xresources'),
+      path.join(scanned, '.Xdefaults'),
+    ]);
+    const imported = path.join(scanned, 'picked-theme.toml');
+    const config = path.join(scanned, 'alacritty.toml');
+    const got = mirrorLiveThemes(
+      [theme('alacritty', 'Picked', imported, paint('#00ff00'))],
+      {
+        readText: (file) => (file === config ? 'import = ["~/picked-theme.toml"]\n' : undefined),
+        windowsTerminalInstalls: () => [],
+        ghosttyConfigPaths: () => [],
+        alacrittyConfigPaths: () => [config],
+        kittyCurrentThemePath: () => '',
+        mobaIniPaths: () => [],
+        xresourcesPaths: () => [],
+      },
+    );
+    assert.strictEqual(got.length, 1);
+    assert.strictEqual(got[0].name, 'Picked');
+  } finally {
+    restoreEnv('HOME', prevHome);
+    restoreEnv('USERPROFILE', prevProfile);
+    fs.rmSync(decoy, { recursive: true, force: true });
+  }
+});
+
+test('defaultMirrorLiveReaders reports live paths and honors sources', () => {
+  withFixtureHome((_xdg, home) => {
+    const xdg = process.env.XDG_CONFIG_HOME as string;
+    fs.mkdirSync(path.join(xdg, 'alacritty'), { recursive: true });
+    fs.writeFileSync(path.join(xdg, 'alacritty', 'alacritty.toml'), '');
+    fs.mkdirSync(path.join(home, '.alacritty'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.alacritty', 'alacritty.toml'), '');
+    const appdata = path.join(home, 'AppData');
+    fs.mkdirSync(path.join(appdata, 'alacritty'), { recursive: true });
+    fs.writeFileSync(path.join(appdata, 'alacritty', 'alacritty.toml'), '');
+    process.env.APPDATA = appdata;
+    process.env.USERPROFILE = home;
+    fs.mkdirSync(path.join(home, 'Documents', 'MobaXterm'), { recursive: true });
+    fs.writeFileSync(path.join(home, 'Documents', 'MobaXterm', 'MobaXterm.ini'), '[Colors]\n');
+  }, (xdg, home) => {
+    const readers = defaultMirrorLiveReaders([]);
+    assert.deepStrictEqual(readers.ghosttyConfigPaths(), [path.join(xdg, 'ghostty', 'config')]);
+    assert.strictEqual(readers.kittyCurrentThemePath(), path.join(xdg, 'kitty', 'current-theme.conf'));
+    assert.deepStrictEqual(readers.xresourcesPaths(), [
+      path.join(home, '.Xresources'),
+      path.join(home, '.Xdefaults'),
+    ]);
+    const configs = readers.alacrittyConfigPaths();
+    assert.ok(configs.includes(path.join(xdg, 'alacritty', 'alacritty.toml')));
+    assert.ok(configs.includes(path.join(home, '.alacritty', 'alacritty.toml')));
+    assert.ok(configs.includes(path.join(home, 'AppData', 'alacritty', 'alacritty.toml')));
+    assert.ok(readers.mobaIniPaths().includes(path.join(home, 'Documents', 'MobaXterm', 'MobaXterm.ini')));
+
+    const ghosttyOnly = defaultMirrorLiveReaders([], ['ghostty']);
+    assert.deepStrictEqual(ghosttyOnly.mobaIniPaths(), []);
+    assert.deepStrictEqual(ghosttyOnly.windowsTerminalInstalls(), []);
+    assert.strictEqual(ghosttyOnly.kittyCurrentThemePath(), '');
+  });
 });
 
 console.log(`\n${passed} passed\n`);

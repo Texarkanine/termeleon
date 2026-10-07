@@ -176,11 +176,6 @@ function wtProfileList(profiles: unknown): any[] {
   return [];
 }
 
-function wtDefaultsSchemes(profiles: unknown): string[] {
-  if (!profiles || typeof profiles !== 'object' || Array.isArray(profiles)) { return []; }
-  return wtColorSchemesFrom((profiles as any).defaults) ?? [];
-}
-
 /**
  * Windows Terminal keeps every scheme in one settings.json under `schemes`,
  * so this returns many palettes from a single file.
@@ -222,22 +217,17 @@ export function isWindowsTerminalSchemeActive(schemeName: string, activeNames: s
 }
 
 /**
- * Reads the color scheme names Windows Terminal would apply to a new
- * default-profile tab: the default profile's `colorScheme` if set, otherwise
- * `profiles.defaults.colorScheme`. A string yields one name; a `{ dark, light }`
- * object yields both. A present non-string that is not that pair yields none
- * and does not inherit defaults.
+ * Color scheme names from a present `colorScheme` key on the default profile,
+ * otherwise on `profiles.defaults`. `undefined` means neither key was present.
+ * An array, even empty, means a key was present.
  *
  * Per-profile schemes on non-default profiles are ignored. GUID comparison
  * against `defaultProfile` is case-insensitive. `profiles` may be the modern
  * `{ defaults, list }` object or a legacy array.
  */
-export function activeWindowsTerminalScheme(text: string): string[] {
-  const doc = parseWindowsTerminalSettings(text);
-  if (!doc) { return []; }
-
-  const profiles = doc.profiles;
-  const defaultGuid = typeof doc.defaultProfile === 'string'
+function presentColorSchemes(doc: any): string[] | undefined {
+  const profiles = doc?.profiles;
+  const defaultGuid = typeof doc?.defaultProfile === 'string'
     ? doc.defaultProfile.toLowerCase()
     : undefined;
 
@@ -249,5 +239,66 @@ export function activeWindowsTerminalScheme(text: string): string[] {
     if (fromProfile !== undefined) { return fromProfile; }
   }
 
-  return wtDefaultsSchemes(profiles);
+  if (!profiles || typeof profiles !== 'object' || Array.isArray(profiles)) {
+    return undefined;
+  }
+  return wtColorSchemesFrom((profiles as any).defaults);
+}
+
+/**
+ * Scheme name used only when neither the user settings nor `defaults.json`
+ * names a color scheme for the default profile. Change this if Windows
+ * Terminal's own fallback changes and a given `defaults.json` does not say so.
+ */
+export const WINDOWS_TERMINAL_ASSUMED_COLOR_SCHEME = 'Campbell';
+
+/**
+ * Active scheme names for one Windows Terminal install.
+ *
+ * `explicit` means the user file contained a `colorScheme` key (the array may
+ * be empty). `inbox` means that key was absent and `defaults.json` contained
+ * one. `assumed` means neither file contained one, so `names` is the
+ * configured assumption. Unparseable user text yields `explicit` and does not
+ * consult `defaults.json`.
+ */
+export function resolveWindowsTerminalActiveScheme(
+  userSettings: string | undefined,
+  defaultsText: string | undefined,
+  assumedName: string = WINDOWS_TERMINAL_ASSUMED_COLOR_SCHEME,
+): { names: string[]; source: 'explicit' | 'inbox' | 'assumed' } {
+  if (userSettings !== undefined) {
+    const userDoc = parseWindowsTerminalSettings(userSettings);
+    if (!userDoc) { return { names: [], source: 'explicit' }; }
+    const explicit = presentColorSchemes(userDoc);
+    if (explicit !== undefined) { return { names: explicit, source: 'explicit' }; }
+  }
+
+  if (defaultsText !== undefined) {
+    const defaultsDoc = parseWindowsTerminalSettings(defaultsText);
+    if (defaultsDoc) {
+      const inbox = presentColorSchemes(defaultsDoc);
+      if (inbox !== undefined) { return { names: inbox, source: 'inbox' }; }
+    }
+  }
+
+  const name = assumedName.trim();
+  return { names: name ? [name] : [], source: 'assumed' };
+}
+
+/**
+ * Reads the color scheme names Windows Terminal would apply to a new
+ * default-profile tab: the default profile's `colorScheme` if set, otherwise
+ * `profiles.defaults.colorScheme`. A string yields one name; a `{ dark, light }`
+ * object yields both. A present non-string that is not that pair yields none
+ * and does not inherit defaults.
+ *
+ * Per-profile schemes on non-default profiles are ignored. GUID comparison
+ * against `defaultProfile` is case-insensitive. `profiles` may be the modern
+ * `{ defaults, list }` object or a legacy array. An omitted key yields no names;
+ * the inbox-file and assumed-name fallbacks live in `resolveWindowsTerminalActiveScheme`.
+ */
+export function activeWindowsTerminalScheme(text: string): string[] {
+  const doc = parseWindowsTerminalSettings(text);
+  if (!doc) { return []; }
+  return presentColorSchemes(doc) ?? [];
 }

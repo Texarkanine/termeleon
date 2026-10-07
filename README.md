@@ -51,7 +51,7 @@ Prefixed with `Termeleon: `
 | kitty | <ul><li>`~/.config/kitty/themes/*.conf`</li><li>`current-theme.conf`</li><li>`kitty.conf`</li></ul> | yes, via `current-theme.conf` |
 | MobaXterm | <ul><li>Applied `[Colors]` in `MobaXterm.ini` under Known Folder Documents (`My Documents`)</li><li>`%USERPROFILE%\Documents` fallback</li><li>OneDrive</li><li>AppData</li><li>`.mxtcolors` / theme `.ini` via `extraDirectories`</li></ul> | yes, first default-root `MobaXterm.ini` |
 | WezTerm | <ul><li>`~/.config/wezterm/colors/*.toml`</li><li>`~/.config/wezterm/*.toml` (user/addon files only)</li></ul> | no (config is dynamic Lua) |
-| Windows Terminal | <ul><li>entries in `schemes` array of `settings.json` (custom/imported schemes only)</li></ul> | yes, via `profiles.defaults.colorScheme` or the default profile |
+| Windows Terminal | <ul><li>inbox schemes in the install's `defaults.json`</li><li>custom schemes in `settings.json` (same name replaces the inbox palette)</li></ul> | yes, the default profile's color scheme, else the inbox default |
 | Xresources | <ul><li>`~/.Xresources`</li><li>`~/.Xdefaults`</li></ul> | assumed active |
 
 Add anything else (a dotfiles checkout, a downloaded theme pack) via `termeleon.extraDirectories`.
@@ -86,10 +86,11 @@ Emulators disagree about what to call the same pixel:
 
 ## Known limits
 
+- **Mirror uses the theme you just picked.** It does not rescan theme directories, so a theme file added after this window started can stay hidden until reload.
 - **Built-in presets vs addon files.** Termeleon scans theme files and addons on disk; it does not vendor static copies of upstream palettes or inspect binary internals.
   - **iTerm2:** Bundled presets (e.g. Pastel, Solarized, Tango) are scanned from `ColorPresets.plist` in the application bundle. Active profile colors configured dynamically in macOS preferences plist (`com.googlecode.iterm2.plist`) are not scanned.
   - **WezTerm:** Built-in schemes live compiled in Rust inside the binary and config is dynamic Lua, so only user `.toml` scheme files in `~/.config/wezterm/` are found.
-  - **Windows Terminal:** Built-in preset schemes (e.g. Campbell, Vintage) are packaged in internal `defaults.json`. Only custom schemes defined in the `schemes` array of `settings.json` are discovered.
+  - **Windows Terminal:** Inbox schemes come from the install's `defaults.json`. A custom scheme of the same name in `settings.json` replaces that palette.
   - **MobaXterm:** Unused built-in dropdown schemes exist only as a `DefaultColorScheme` index and are not scanned. The applied `[Colors]` RGB in `MobaXterm.ini` is. Per-session colors in `.mxtsessions` are not. A portable INI next to the exe, or `MobaXterm.exe -i <path>`, is found only if you add that folder to `termeleon.extraDirectories`.
 - **Alacritty YAML** (pre-0.13) is not read. The schema moved; supporting both doubles the parser for a deprecated format.
 - **iTerm2 color spaces.** Entries tagged `Calibrated` rather than `sRGB` are read as sRGB. Slightly wrong, and the same approximation every porting tool makes.

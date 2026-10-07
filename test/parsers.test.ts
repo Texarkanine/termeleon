@@ -7,7 +7,7 @@ import { discoverThemes, toGhosttyDiscovered, activeGhosttyPair, mirrorCandidate
 import { parseGhostty, activeGhosttyThemes } from '../src/parsers/ghostty';
 import { parseKitty, parseXresources } from '../src/parsers/kitty';
 import { parseAlacritty, alacrittyImports, resolveAlacrittyImport } from '../src/parsers/toml';
-import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive } from '../src/parsers/iterm2';
+import { parseItermColors, parseItermColorPresets, parseWindowsTerminal, activeWindowsTerminalScheme, isWindowsTerminalSchemeActive, resolveWindowsTerminalActiveScheme, WINDOWS_TERMINAL_ASSUMED_COLOR_SCHEME } from '../src/parsers/iterm2';
 import { parseMobaXterm } from '../src/parsers/mobaxterm';
 
 const fix = (name: string) =>
@@ -566,6 +566,118 @@ test('scheme name match for active is case-insensitive', () => {
   assert.ok(isWindowsTerminalSchemeActive('Campbell', ['campbell']));
   assert.ok(isWindowsTerminalSchemeActive('campbell', ['Campbell']));
   assert.ok(!isWindowsTerminalSchemeActive('Tango Dark', ['Campbell']));
+});
+
+function resolveWt(user: unknown, defaults: unknown, assumedName?: string) {
+  const userText = user === undefined ? undefined : typeof user === 'string' ? user : JSON.stringify(user);
+  const defaultsText = defaults === undefined ? undefined : typeof defaults === 'string' ? defaults : JSON.stringify(defaults);
+  return assumedName === undefined
+    ? resolveWindowsTerminalActiveScheme(userText, defaultsText)
+    : resolveWindowsTerminalActiveScheme(userText, defaultsText, assumedName);
+}
+
+test('user colorScheme wins over the inbox default profile', () => {
+  const got = resolveWt(
+    {
+      defaultProfile: '{aaaa}',
+      profiles: { defaults: {}, list: [{ guid: '{aaaa}', colorScheme: 'Campbell' }] },
+    },
+    { defaultProfile: '{bbbb}', profiles: [{ guid: '{bbbb}', colorScheme: 'Vintage' }] },
+  );
+  assert.deepStrictEqual(got, { names: ['Campbell'], source: 'explicit' });
+});
+
+test('user profiles.defaults colorScheme stays explicit and beats the inbox file', () => {
+  const got = resolveWt(
+    {
+      defaultProfile: '{aaaa}',
+      profiles: {
+        defaults: { colorScheme: 'One Half Dark' },
+        list: [{ guid: '{aaaa}', name: 'PowerShell' }],
+      },
+    },
+    { defaultProfile: '{bbbb}', profiles: [{ guid: '{bbbb}', colorScheme: 'Vintage' }] },
+  );
+  assert.deepStrictEqual(got, { names: ['One Half Dark'], source: 'explicit' });
+});
+
+test('omitted user colorScheme uses the inbox default profile scheme', () => {
+  const got = resolveWt(
+    {
+      defaultProfile: '{bbbb}',
+      profiles: { defaults: {}, list: [{ guid: '{bbbb}', name: 'Ubuntu' }] },
+    },
+    {
+      defaultProfile: '{aaaa}',
+      profiles: [
+        { guid: '{cccc}', colorScheme: 'Tango Dark' },
+        { guid: '{aaaa}', name: 'Windows PowerShell', colorScheme: 'Vintage' },
+      ],
+    },
+  );
+  assert.deepStrictEqual(got, { names: ['Vintage'], source: 'inbox' });
+});
+
+test('missing user settings uses the inbox default profile scheme', () => {
+  const got = resolveWindowsTerminalActiveScheme(undefined, JSON.stringify({
+    defaultProfile: '{aaaa}',
+    profiles: [{ guid: '{aaaa}', colorScheme: 'Campbell' }],
+  }));
+  assert.deepStrictEqual(got, { names: ['Campbell'], source: 'inbox' });
+});
+
+test('omitted colorScheme in both files uses the assumed scheme constant', () => {
+  const got = resolveWt(
+    { defaultProfile: '{aaaa}', profiles: { defaults: {}, list: [{ guid: '{aaaa}' }] } },
+    { defaultProfile: '{bbbb}', profiles: [{ guid: '{bbbb}', name: 'PowerShell' }] },
+  );
+  assert.deepStrictEqual(got, { names: [WINDOWS_TERMINAL_ASSUMED_COLOR_SCHEME], source: 'assumed' });
+  assert.strictEqual(WINDOWS_TERMINAL_ASSUMED_COLOR_SCHEME, 'Campbell');
+});
+
+test('assumedName overrides the constant when neither file names a scheme', () => {
+  const got = resolveWt(
+    { defaultProfile: '{aaaa}', profiles: { list: [{ guid: '{aaaa}' }] } },
+    { profiles: [] },
+    'Vintage',
+  );
+  assert.deepStrictEqual(got, { names: ['Vintage'], source: 'assumed' });
+});
+
+test('a present unusable colorScheme does not fall through to the inbox file', () => {
+  const got = resolveWt(
+    {
+      defaultProfile: '{aaaa}',
+      profiles: {
+        defaults: { colorScheme: 'Campbell' },
+        list: [{ guid: '{aaaa}', colorScheme: {} }],
+      },
+    },
+    { defaultProfile: '{bbbb}', profiles: [{ guid: '{bbbb}', colorScheme: 'Campbell' }] },
+  );
+  assert.deepStrictEqual(got, { names: [], source: 'explicit' });
+});
+
+test('unparseable user settings do not assume an inbox scheme', () => {
+  const got = resolveWindowsTerminalActiveScheme('{', JSON.stringify({
+    defaultProfile: '{aaaa}',
+    profiles: [{ guid: '{aaaa}', colorScheme: 'Campbell' }],
+  }));
+  assert.deepStrictEqual(got, { names: [], source: 'explicit' });
+});
+
+test('a dark/light colorScheme stays explicit and does not inherit', () => {
+  const got = resolveWt(
+    {
+      defaultProfile: '{aaaa}',
+      profiles: {
+        defaults: { colorScheme: 'Campbell' },
+        list: [{ guid: '{aaaa}', colorScheme: { dark: 'One Half Dark', light: 'One Half Light' } }],
+      },
+    },
+    { defaultProfile: '{bbbb}', profiles: [{ guid: '{bbbb}', colorScheme: 'Vintage' }] },
+  );
+  assert.deepStrictEqual(got, { names: ['One Half Dark', 'One Half Light'], source: 'explicit' });
 });
 
 console.log('\nxresources');
