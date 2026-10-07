@@ -1,6 +1,6 @@
 # Progress
 
-Discover the color schemes Windows Terminal offers, including inbox schemes in `defaults.json`, and make Mirror apply the default profile's scheme when `settings.json` never names one. The assumed name for that omitted case lives in one place in the code, and comes from `defaults.json` when that file states it.
+Mirror applies the theme the user just picked in their emulator, using the catalog already scanned for this window. It re-reads the live selection and does not walk theme directories again.
 
 **Complexity:** Level 2
 
@@ -82,4 +82,13 @@ Discover the color schemes Windows Terminal offers, including inbox schemes in `
     - A theme file that was not in that catalog can stay invisible until the window reloads
 * Insights
     - The smoke test failed because `ThemeCache` served the startup scan: Windows Terminal "Set as default" had written `profiles.defaults.colorScheme` `One Half Dark`, and a fresh resolve of that file returned that name, while the same window's Mirror still offered Campbell
+
+## 2026-10-07 - COMPLEXITY-ANALYSIS - COMPLETE
+
+* Work completed
+    - Classified the rework as Level 2
+* Decisions made
+    - Level 2, because the fix is Mirror's selection path over the existing catalog and a few known config files, and the approach is already chosen
+* Insights
+    - Hand-edited color codes are out of scope. A pick stored as a name uses the cached palette. A pick stored by rewriting one known file is re-read
 
