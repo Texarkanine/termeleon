@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-import { discoverThemes, parseGetFolderPathOutput, parseUserShellFoldersPersonal, expandWindowsEnv, windowsDocumentsDir, parseAppxInstallLocations, windowsTerminalDefaultsFiles, mirrorLiveThemes, mirrorSelection, defaultMirrorLiveReaders, activeGhosttyPair, MirrorLiveReaders } from '../src/discover';
+import { discoverThemes, parseGetFolderPathOutput, parseUserShellFoldersPersonal, expandWindowsEnv, windowsDocumentsDir, parseAppxInstallLocations, windowsTerminalDefaultsFiles, resolveWindowsTerminalDefaultsLookup, mirrorLiveThemes, mirrorSelection, defaultMirrorLiveReaders, activeGhosttyPair, MirrorLiveReaders } from '../src/discover';
 import { DiscoveredTheme, Palette, isUsable } from '../src/palette';
 
 const fixtures = path.join(__dirname, 'fixtures');
@@ -935,6 +935,49 @@ test('windowsTerminalDefaultsFiles on non-win32 returns no paths', () => {
   assert.deepStrictEqual(windowsTerminalDefaultsFiles(), []);
 });
 
+test('a failed Windows Terminal install lookup is not memoized', () => {
+  let calls = 0;
+  const lookup = () => {
+    calls += 1;
+    if (calls === 1) { return { status: 1, stdout: '' }; }
+    return { status: 0, stdout: 'C:\\WindowsTerminal\n' };
+  };
+  const failed = resolveWindowsTerminalDefaultsLookup(undefined, lookup);
+  assert.deepStrictEqual(failed.paths, []);
+  assert.strictEqual(failed.memo, undefined);
+  const retried = resolveWindowsTerminalDefaultsLookup(failed.memo, lookup);
+  assert.strictEqual(calls, 2);
+  assert.deepStrictEqual(retried.paths, [path.join('C:\\WindowsTerminal', 'defaults.json')]);
+  const held = resolveWindowsTerminalDefaultsLookup(retried.memo, () => {
+    throw new Error('lookup ran after a successful memo');
+  });
+  assert.deepStrictEqual(held.paths, retried.paths);
+});
+
+test('a Windows Terminal lookup that succeeds with no package is memoized empty', () => {
+  let calls = 0;
+  const lookup = () => {
+    calls += 1;
+    return { status: 0, stdout: '' };
+  };
+  const first = resolveWindowsTerminalDefaultsLookup(undefined, lookup);
+  assert.deepStrictEqual(first.paths, []);
+  assert.ok(first.memo);
+  const second = resolveWindowsTerminalDefaultsLookup(first.memo, lookup);
+  assert.strictEqual(calls, 1);
+  assert.deepStrictEqual(second.paths, []);
+});
+
+test('a Windows Terminal lookup that fails to spawn is not memoized', () => {
+  const failed = resolveWindowsTerminalDefaultsLookup(undefined, () => ({
+    status: null,
+    error: new Error('spawn powershell ENOENT'),
+    stdout: '',
+  }));
+  assert.strictEqual(failed.memo, undefined);
+  assert.deepStrictEqual(failed.paths, []);
+});
+
 function paint(green: string): Palette {
   const ansi = new Array(16).fill('#000000');
   ansi[2] = green;
@@ -1254,6 +1297,43 @@ test('sources limits the live read to Ghostty', () => {
 
 test('mirrorSelection of an empty live read is empty', () => {
   assert.deepStrictEqual(mirrorSelection([], filesReader({}).readers), []);
+});
+
+test('Mirror home paths follow os.homedir when HOME is unset and USERPROFILE differs', () => {
+  const prevHome = process.env.HOME;
+  const prevProfile = process.env.USERPROFILE;
+  const decoy = fs.mkdtempSync(path.join(os.tmpdir(), 'vtt-decoy-'));
+  delete process.env.HOME;
+  process.env.USERPROFILE = decoy;
+  try {
+    const scanned = os.homedir();
+    assert.notStrictEqual(path.resolve(scanned), path.resolve(decoy));
+    const readers = defaultMirrorLiveReaders([]);
+    assert.deepStrictEqual(readers.xresourcesPaths(), [
+      path.join(scanned, '.Xresources'),
+      path.join(scanned, '.Xdefaults'),
+    ]);
+    const imported = path.join(scanned, 'picked-theme.toml');
+    const config = path.join(scanned, 'alacritty.toml');
+    const got = mirrorLiveThemes(
+      [theme('alacritty', 'Picked', imported, paint('#00ff00'))],
+      {
+        readText: (file) => (file === config ? 'import = ["~/picked-theme.toml"]\n' : undefined),
+        windowsTerminalInstalls: () => [],
+        ghosttyConfigPaths: () => [],
+        alacrittyConfigPaths: () => [config],
+        kittyCurrentThemePath: () => '',
+        mobaIniPaths: () => [],
+        xresourcesPaths: () => [],
+      },
+    );
+    assert.strictEqual(got.length, 1);
+    assert.strictEqual(got[0].name, 'Picked');
+  } finally {
+    restoreEnv('HOME', prevHome);
+    restoreEnv('USERPROFILE', prevProfile);
+    fs.rmSync(decoy, { recursive: true, force: true });
+  }
 });
 
 test('defaultMirrorLiveReaders reports live paths and honors sources', () => {

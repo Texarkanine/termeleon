@@ -504,7 +504,7 @@ function resolvedKey(file: string): string {
 }
 
 function liveHome(): string {
-  return process.env.HOME || process.env.USERPROFILE || os.homedir();
+  return homeDir();
 }
 
 function sourceWanted(sources: string[] | undefined, name: string): boolean {
@@ -833,23 +833,48 @@ export function parseAppxInstallLocations(stdout: string): string[] {
 
 let windowsTerminalDefaultsMemo: { value: string[] } | undefined;
 
+interface WindowsTerminalLookup {
+  status: number | null;
+  error?: Error;
+  stdout?: string | null;
+}
+
+/**
+ * Install `defaults.json` paths from one Appx lookup.
+ * A failed lookup leaves `memo` unset so the next call tries again.
+ * A successful lookup that finds no package is memoized as an empty list.
+ */
+export function resolveWindowsTerminalDefaultsLookup(
+  memo: { value: string[] } | undefined,
+  lookup: () => WindowsTerminalLookup,
+): { memo: { value: string[] } | undefined; paths: string[] } {
+  if (memo) { return { memo, paths: memo.value }; }
+  const result = lookup();
+  if (result.error || result.status !== 0) {
+    return { memo: undefined, paths: [] };
+  }
+  const paths = parseAppxInstallLocations(result.stdout ?? '')
+    .map((dir) => path.join(dir, 'defaults.json'));
+  return { memo: { value: paths }, paths };
+}
+
 /**
  * `defaults.json` paths for installed Windows Terminal packages.
  * Empty off win32. Tests inject `windowsTerminalFiles` instead of calling this.
  */
 export function windowsTerminalDefaultsFiles(): string[] {
   if (process.platform !== 'win32') { return []; }
-  if (windowsTerminalDefaultsMemo) { return windowsTerminalDefaultsMemo.value; }
-  const fromPs = spawnSync('powershell', [
-    '-NoProfile',
-    '-NonInteractive',
-    '-Command',
-    'Get-AppxPackage -Name Microsoft.WindowsTerminal | Select-Object -ExpandProperty InstallLocation; Get-AppxPackage -Name Microsoft.WindowsTerminalPreview | Select-Object -ExpandProperty InstallLocation',
-  ], { encoding: 'utf8', windowsHide: true });
-  const value = parseAppxInstallLocations(fromPs.stdout ?? '')
-    .map((dir) => path.join(dir, 'defaults.json'));
-  windowsTerminalDefaultsMemo = { value };
-  return value;
+  const next = resolveWindowsTerminalDefaultsLookup(windowsTerminalDefaultsMemo, () => {
+    const fromPs = spawnSync('powershell', [
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      'Get-AppxPackage -Name Microsoft.WindowsTerminal | Select-Object -ExpandProperty InstallLocation; Get-AppxPackage -Name Microsoft.WindowsTerminalPreview | Select-Object -ExpandProperty InstallLocation',
+    ], { encoding: 'utf8', windowsHide: true });
+    return { status: fromPs.status, error: fromPs.error, stdout: fromPs.stdout };
+  });
+  windowsTerminalDefaultsMemo = next.memo;
+  return next.paths;
 }
 
 let documentsDirMemo: { value: string | undefined } | undefined;

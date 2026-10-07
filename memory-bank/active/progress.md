@@ -213,3 +213,14 @@ A failed Windows Terminal install lookup is retried on the next scan. Mirror use
     - Level 1, because both fixes are corrections inside `src/discover.ts` and the behavior is already specified
 * Insights
     - The partial-scheme overlay and the install-pairing test are not part of this rework
+
+## 2026-10-07 - BUILD - COMPLETE
+
+* Work completed
+    - Failed Appx lookups are not memoized. A successful lookup that finds no package still is
+    - Mirror home paths call `homeDir`, which is `os.homedir()`
+    - Parser, discovery, cache, and host suites passed, and `npm run compile` succeeded
+* Decisions made
+    - The lookup decision is `resolveWindowsTerminalDefaultsLookup`, so the retry behavior is tested without spawning PowerShell
+* Insights
+    - On this Node, `os.homedir()` follows `HOME` when `HOME` is set. The mismatch shows up when `HOME` is unset and `USERPROFILE` points somewhere else, which is the Windows case the review described
