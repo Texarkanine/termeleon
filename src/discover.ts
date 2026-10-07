@@ -499,6 +499,280 @@ export function activeGhosttyPair(
  * Mirror choices: a Ghostty dark/light pair is one candidate, never two.
  * Other emulators' active themes stay as individual candidates.
  */
+function resolvedKey(file: string): string {
+  try { return fs.realpathSync(file); } catch { return path.resolve(file); }
+}
+
+function liveHome(): string {
+  return process.env.HOME || process.env.USERPROFILE || os.homedir();
+}
+
+function sourceWanted(sources: string[] | undefined, name: string): boolean {
+  return !sources || sources.length === 0 || sources.includes(name);
+}
+
+/**
+ * File readers Mirror uses to learn which theme is selected now.
+ * Path functions return the live files only. They do not walk theme directories.
+ */
+export interface MirrorLiveReaders {
+  readText(file: string): string | undefined;
+  windowsTerminalInstalls(): { settings?: string; defaults?: string }[];
+  ghosttyConfigPaths(): string[];
+  alacrittyConfigPaths(): string[];
+  kittyCurrentThemePath(): string;
+  mobaIniPaths(): string[];
+  xresourcesPaths(): string[];
+}
+
+function stampTheme(
+  theme: DiscoveredTheme,
+  active: boolean,
+  appearance?: 'dark' | 'light',
+): DiscoveredTheme {
+  const copy: DiscoveredTheme = { ...theme, active };
+  if (appearance) { copy.appearance = appearance; }
+  else { delete copy.appearance; }
+  return copy;
+}
+
+function liveWindowsTerminal(readers: MirrorLiveReaders): DiscoveredTheme[] {
+  const out: DiscoveredTheme[] = [];
+  for (const install of readers.windowsTerminalInstalls()) {
+    const settingsText = install.settings ? readers.readText(install.settings) : undefined;
+    const defaultsText = install.defaults ? readers.readText(install.defaults) : undefined;
+    const activeNames = resolveWindowsTerminalActiveScheme(settingsText, defaultsText).names;
+    const byName = new Map<string, DiscoveredTheme>();
+    const add = (file: string | undefined, text: string | undefined) => {
+      if (!file || text === undefined) { return; }
+      for (const { name, palette } of parseWindowsTerminal(text)) {
+        if (!isUsable(palette)) { continue; }
+        byName.set(name.toLowerCase(), {
+          name, source: 'windows-terminal', origin: file, active: false, palette,
+        });
+      }
+    };
+    add(install.defaults, defaultsText);
+    add(install.settings, settingsText);
+    for (const theme of byName.values()) {
+      if (isWindowsTerminalSchemeActive(theme.name, activeNames)) {
+        out.push(stampTheme(theme, true));
+      }
+    }
+  }
+  return out;
+}
+
+function liveGhostty(cached: DiscoveredTheme[], readers: MirrorLiveReaders): DiscoveredTheme[] {
+  let names: ReturnType<typeof activeGhosttyThemes> = {};
+  const inlineOrigins = new Set<string>();
+  let sawThemeLine = false;
+  let sawConfig = false;
+  for (const config of readers.ghosttyConfigPaths()) {
+    const text = readers.readText(config);
+    if (text === undefined) { continue; }
+    sawConfig = true;
+    const parsed = activeGhosttyThemes(text);
+    if (parsed.single || parsed.dark || parsed.light) {
+      sawThemeLine = true;
+      names = { ...names, ...parsed };
+    } else {
+      inlineOrigins.add(resolvedKey(config));
+    }
+  }
+  if (!sawConfig) { return []; }
+  if (sawThemeLine) {
+    const wanted = new Set(
+      [names.single, names.dark, names.light].filter((n): n is string => !!n),
+    );
+    return cached
+      .filter((t) => t.source === 'ghostty' && wanted.has(t.name))
+      .map((t) => stampTheme(
+        t,
+        true,
+        t.name === names.dark ? 'dark' : t.name === names.light ? 'light' : undefined,
+      ));
+  }
+  return cached
+    .filter((t) => t.source === 'ghostty' && inlineOrigins.has(resolvedKey(t.origin)))
+    .map((t) => stampTheme(t, true));
+}
+
+function liveAlacritty(cached: DiscoveredTheme[], readers: MirrorLiveReaders): DiscoveredTheme[] {
+  const byKey = new Map<string, DiscoveredTheme>();
+  for (const theme of cached) {
+    if (theme.source === 'alacritty') { byKey.set(resolvedKey(theme.origin), theme); }
+  }
+  const chosen: DiscoveredTheme[] = [];
+  const seen = new Set<string>();
+  for (const config of readers.alacrittyConfigPaths()) {
+    const text = readers.readText(config);
+    if (text === undefined) { continue; }
+    let configPalette: Palette | undefined;
+    try { configPalette = parseAlacritty(text); } catch { configPalette = undefined; }
+    let key: string | undefined;
+    if (configPalette && isUsable(configPalette)) {
+      key = resolvedKey(config);
+    } else {
+      for (const spec of alacrittyImports(text)) {
+        const resolved = resolveAlacrittyImport(spec, config, liveHome());
+        const importKey = resolvedKey(resolved);
+        if (byKey.has(importKey)) { key = importKey; }
+      }
+    }
+    if (!key || seen.has(key)) { continue; }
+    const theme = byKey.get(key);
+    if (!theme) { continue; }
+    seen.add(key);
+    chosen.push(stampTheme(theme, true));
+  }
+  return chosen;
+}
+
+function liveKitty(readers: MirrorLiveReaders): DiscoveredTheme[] {
+  const file = readers.kittyCurrentThemePath();
+  if (!file) { return []; }
+  const text = readers.readText(file);
+  if (text === undefined) { return []; }
+  const palette = parseKitty(text);
+  if (!isUsable(palette)) { return []; }
+  return [{
+    name: 'kitty current theme', source: 'kitty', origin: file, active: true, palette,
+  }];
+}
+
+function liveMoba(readers: MirrorLiveReaders): DiscoveredTheme[] {
+  for (const file of readers.mobaIniPaths()) {
+    const text = readers.readText(file);
+    if (text === undefined) { continue; }
+    const palette = parseMobaXterm(text);
+    if (!isUsable(palette)) { continue; }
+    return [{
+      name: stem(file), source: 'mobaxterm', origin: file, active: true, palette,
+    }];
+  }
+  return [];
+}
+
+function liveXresources(readers: MirrorLiveReaders): DiscoveredTheme[] {
+  const out: DiscoveredTheme[] = [];
+  for (const file of readers.xresourcesPaths()) {
+    const text = readers.readText(file);
+    if (text === undefined) { continue; }
+    const palette = parseXresources(text);
+    if (!isUsable(palette)) { continue; }
+    out.push({
+      name: path.basename(file), source: 'xresources', origin: file, active: true, palette,
+    });
+  }
+  return out;
+}
+
+/**
+ * Themes Mirror should offer for the selection the emulator is using now.
+ *
+ * A non-empty `sources` list limits which emulators are read. Live files are
+ * re-read through `readers.readText` only. Alacritty config paths come from
+ * `alacrittyConfigPaths`, and the active import is the last import whose path
+ * is a cached origin. Named Ghostty and Alacritty picks use cached palettes.
+ * MobaXterm, kitty, Xresources, and Windows Terminal scheme files are parsed
+ * from those reads. A cached `active` flag is not evidence. The cached array
+ * is not modified.
+ */
+export function mirrorLiveThemes(
+  cached: DiscoveredTheme[],
+  readers: MirrorLiveReaders,
+  sources?: string[],
+): DiscoveredTheme[] {
+  const out: DiscoveredTheme[] = [];
+  const take = (name: string, fn: () => DiscoveredTheme[]) => {
+    if (!sourceWanted(sources, name)) { return; }
+    out.push(...fn());
+  };
+  take('ghostty', () => liveGhostty(cached, readers));
+  take('kitty', () => liveKitty(readers));
+  take('alacritty', () => liveAlacritty(cached, readers));
+  take('windows-terminal', () => liveWindowsTerminal(readers));
+  take('xresources', () => liveXresources(readers));
+  take('mobaxterm', () => liveMoba(readers));
+  return out;
+}
+
+/** `mirrorLiveThemes` followed by `mirrorCandidates`. An empty list is no live theme. */
+export function mirrorSelection(
+  cached: DiscoveredTheme[],
+  readers: MirrorLiveReaders,
+  sources?: string[],
+): MirrorCandidate[] {
+  return mirrorCandidates(mirrorLiveThemes(cached, readers, sources));
+}
+
+function alacrittyConfigCandidates(extraDirs: string[]): string[] {
+  const bases = [
+    path.join(xdgConfigDir(), 'alacritty'),
+    path.join(liveHome(), '.alacritty'),
+  ];
+  if (process.env.APPDATA) { bases.push(path.join(process.env.APPDATA, 'alacritty')); }
+  bases.push(...extraDirs);
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const base of bases) {
+    const file = path.join(base, 'alacritty.toml');
+    if (!exists(file)) { continue; }
+    const key = resolvedKey(file);
+    if (seen.has(key)) { continue; }
+    seen.add(key);
+    out.push(file);
+  }
+  return out;
+}
+
+function mobaIniCandidates(): string[] {
+  const user = process.env.USERPROFILE || liveHome();
+  const roots: string[] = [];
+  const documents = windowsDocumentsDir();
+  if (documents) { roots.push(path.join(documents, 'MobaXterm')); }
+  roots.push(path.join(user, 'Documents', 'MobaXterm'));
+  if (process.env.ONEDRIVE) {
+    roots.push(path.join(process.env.ONEDRIVE, 'Documents', 'MobaXterm'));
+  }
+  roots.push(path.join(user, 'OneDrive', 'Documents', 'MobaXterm'));
+  if (process.env.APPDATA) { roots.push(path.join(process.env.APPDATA, 'MobaXterm')); }
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const root of roots) {
+    const file = path.join(root, 'MobaXterm.ini');
+    const key = resolvedKey(file);
+    if (seen.has(key)) { continue; }
+    seen.add(key);
+    if (!exists(file)) { continue; }
+    out.push(file);
+  }
+  return out;
+}
+
+/**
+ * Live-file locations for Mirror. Directories are not walked. A non-empty
+ * `sources` list makes excluded emulators report no paths, and does not call
+ * `windowsDocumentsDir` when MobaXterm is excluded.
+ */
+export function defaultMirrorLiveReaders(extraDirs: string[], sources?: string[]): MirrorLiveReaders {
+  const want = (name: string) => sourceWanted(sources, name);
+  return {
+    readText,
+    windowsTerminalInstalls: () => (want('windows-terminal') ? windowsTerminalInstalls() : []),
+    ghosttyConfigPaths: () => (want('ghostty') ? ghosttyDirs().configs : []),
+    alacrittyConfigPaths: () => (want('alacritty') ? alacrittyConfigCandidates(extraDirs) : []),
+    kittyCurrentThemePath: () => (
+      want('kitty') ? path.join(xdgConfigDir(), 'kitty', 'current-theme.conf') : ''
+    ),
+    mobaIniPaths: () => (want('mobaxterm') ? mobaIniCandidates() : []),
+    xresourcesPaths: () => (want('xresources')
+      ? [path.join(liveHome(), '.Xresources'), path.join(liveHome(), '.Xdefaults')]
+      : []),
+  };
+}
+
 export function mirrorCandidates(themes: DiscoveredTheme[]): MirrorCandidate[] {
   const pair = activeGhosttyPair(themes);
   const out: MirrorCandidate[] = [];

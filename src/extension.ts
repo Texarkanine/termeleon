@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { DiscoveredTheme } from './palette';
-import { discoverThemes, mirrorCandidates, MirrorCandidate } from './discover';
+import { discoverThemes, mirrorSelection, defaultMirrorLiveReaders, MirrorCandidate } from './discover';
 import { cacheKey, ThemeCache } from './cache';
 import {
   Target, ApplyOptions, applyPalette, applyPalettePair, removeApplied, LivePreview,
@@ -279,15 +279,18 @@ async function commandMirror(ctx: vscode.ExtensionContext) {
   const target = await resolveTarget();
   if (!target) { return; }
 
-  const active = (await collect()).filter((t) => t.active);
-  if (active.length === 0) {
+  const prefs = settings();
+  const candidates = mirrorSelection(
+    await collect(),
+    defaultMirrorLiveReaders(prefs.extraDirectories, prefs.sources),
+    prefs.sources,
+  );
+  if (candidates.length === 0) {
     vscode.window.showWarningMessage(
       'Could not determine an active theme from any installed terminal. Use "Import Terminal Theme" to pick one.',
     );
     return;
   }
-
-  const candidates = mirrorCandidates(active);
   let chosen: MirrorCandidate | undefined = candidates[0];
   if (candidates.length > 1) {
     chosen = await pickMirrorCandidate(ctx, candidates, target);

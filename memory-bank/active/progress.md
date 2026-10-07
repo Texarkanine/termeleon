@@ -159,3 +159,15 @@ Mirror applies the theme the user just picked in their emulator, using the catal
     - Advisories: add a test that the cached catalog is not mutated (brief requirement 4), fix the `MirrorLiveReaders` field list in the stub step, and make the `windowsDocumentsDir` and Windows Terminal "no palette" tests observable
 * Insights
     - Several negative behaviors pass against the empty stub, so the red run will show only the positive behaviors failing
+
+## 2026-10-07 - BUILD - COMPLETE
+
+* Work completed
+    - Implemented `mirrorLiveThemes`, `mirrorSelection`, and `defaultMirrorLiveReaders`
+    - Wired `commandMirror` to that selection
+    - Parser, discovery, cache, and host suites passed, and `npm run compile` succeeded
+* Decisions made
+    - Cached theme objects are copied on the way out so Import's checkmarks stay as scanned
+    - Alacritty import files are not read. The last import whose path is already cached is the pick
+* Insights
+    - `os.homedir()` is cached by Node, so Mirror's live paths prefer `HOME` or `USERPROFILE` when set. That matches the process home at runtime and lets the path test use a fixture home

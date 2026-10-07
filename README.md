@@ -86,6 +86,7 @@ Emulators disagree about what to call the same pixel:
 
 ## Known limits
 
+- **Mirror re-reads the current selection.** It does not rescan theme directories. A theme file added after this window started can stay hidden until the window is reloaded. An `alacritty.toml` nested below a config directory or an `extraDirectories` root is not re-read. Hand-editing color codes inside a Ghostty or Alacritty theme file, while the selection still names that file, is not picked up. Windows Terminal scheme colors are read from `settings.json` and `defaults.json`. Mirror still honors **Emulators to scan**.
 - **Built-in presets vs addon files.** Termeleon scans theme files and addons on disk; it does not vendor static copies of upstream palettes or inspect binary internals.
   - **iTerm2:** Bundled presets (e.g. Pastel, Solarized, Tango) are scanned from `ColorPresets.plist` in the application bundle. Active profile colors configured dynamically in macOS preferences plist (`com.googlecode.iterm2.plist`) are not scanned.
   - **WezTerm:** Built-in schemes live compiled in Rust inside the binary and config is dynamic Lua, so only user `.toml` scheme files in `~/.config/wezterm/` are found.
