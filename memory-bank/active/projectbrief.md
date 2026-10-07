@@ -68,3 +68,10 @@ They are choosing a theme the emulator already offered. They are not typing colo
 - WezTerm and iTerm2 do not report a live theme. Mirror does not start reporting one.
 
 Editing the color codes inside a theme file while the emulator's selection still names that same theme is out of scope. A Ghostty theme file keeps the palette from the startup scan until reload. Windows Terminal is the exception: the scheme colors live in the two files Mirror re-reads, so a fresh parse of those files is the palette.
+
+## Rework: review items 1 and 4
+
+Pull request 65 review. Fix these two. Leave the others.
+
+1. A failed PowerShell lookup of Windows Terminal's install location is remembered as "no installs" until the window is reloaded. A failed lookup must be tried again on the next scan. A lookup that succeeds and finds no package stays remembered.
+4. Mirror resolves `~/.alacritty`, Alacritty `~/` imports, and the Xresources dotfiles through `HOME`. Discovery resolves those through `os.homedir()`. When those directories differ, Mirror reads the wrong files. Mirror must use `os.homedir()`, the same directory discovery uses.

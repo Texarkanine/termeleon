@@ -193,3 +193,14 @@ Mirror applies the theme the user just picked in their emulator, using the catal
     - Catalog stays a startup scan. Mirror is the only command that re-reads the live selection
 * Insights
     - The first two preflights each restored a requirement the plan had dropped: `termeleon.sources`, and Alacritty configs that are not themselves cached themes
+
+## 2026-10-07 - REWORK - INITIATED
+
+* Work completed
+    - Operator accepted review items 1 and 4 from pull request 65 and asked for a rework
+* Decisions made
+    - A failed Appx install lookup is not memoized. A successful lookup that finds no package still is
+    - Mirror home paths use `os.homedir()`, matching discovery
+    - The partial-scheme overlay and the stable/Preview pairing test stay out of this rework
+* Insights
+    - Item 1 had been deferred as non-blocking. The operator wants it fixed on this branch anyway
