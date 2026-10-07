@@ -1,7 +1,7 @@
 # Active Context
 
 ## Current Task: Mirror the theme just picked
-**Phase:** PLAN - COMPLETE
+**Phase:** PREFLIGHT - COMPLETE (FAIL (fixable))
 
 ## What Was Done
 - Re-planned after preflight FAIL (fixable). Alacritty config paths come from the known bases (`alacritty.toml` at the root of each), not from cached theme origins. An import-only config is not a cached theme.

@@ -127,3 +127,14 @@ Mirror applies the theme the user just picked in their emulator, using the catal
 * Insights
     - `discoverAlacritty` caches a config only when it parses as a usable palette; imported theme files are the usual cached origins
 
+## 2026-10-07 - PREFLIGHT - COMPLETE
+
+* Work completed
+    - Re-validated the revised Mirror live-pick plan against `src/discover.ts`, `src/extension.ts`, `src/parsers/iterm2.ts`, and `package.json`
+    - Wrote `memory-bank/active/.preflight-status` with first line `FAIL (fixable)`
+* Decisions made
+    - Verdict is FAIL (fixable): the revised plan drops the documented `termeleon.sources` setting, so Mirror would offer emulators the user excluded
+    - The earlier Alacritty finding is fixed in the revision. Advisories: pin the Windows Terminal missing-settings behavior, the Alacritty last-import rule, and route Windows Terminal reads through `readers.readText`
+* Insights
+    - `resolveWindowsTerminalActiveScheme(undefined, defaults)` falls through to the inbox default, so a "settings missing" test only yields no theme when `defaults.json` is also missing
+
