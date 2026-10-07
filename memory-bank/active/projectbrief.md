@@ -59,10 +59,11 @@ They are choosing a theme the emulator already offered. They are not typing colo
 
 ### What a pick looks like
 
-- Windows Terminal and Ghostty store the pick as a theme name. Mirror reads that name from the live config and uses the cached palette for the name.
+- Windows Terminal stores the pick as a scheme name in `settings.json`. Mirror re-reads `settings.json` and `defaults.json` and uses the palette in those files. Those two files are the scheme catalog.
+- Ghostty stores the pick as a theme name. Mirror reads that name from the live config and uses the cached palette for the name.
 - Alacritty stores the pick as the config file or the last usable import. Mirror reads that path and uses the cached palette for the file.
 - MobaXterm and kitty store the pick by writing the chosen theme into one known file (`MobaXterm.ini`, `current-theme.conf`). That write is the emulator recording the pick. Mirror re-reads that file. The cached copy of the file is the previous pick.
 - Xresources is the two known dotfiles. Mirror re-reads them.
 - WezTerm and iTerm2 do not report a live theme. Mirror does not start reporting one.
 
-Editing the color codes inside a theme file while the emulator's selection still names that same theme is out of scope. A Ghostty theme file keeps the palette from the startup scan until reload. A Windows Terminal scheme whose name did not change keeps the cached palette until reload.
+Editing the color codes inside a theme file while the emulator's selection still names that same theme is out of scope. A Ghostty theme file keeps the palette from the startup scan until reload. Windows Terminal is the exception: the scheme colors live in the two files Mirror re-reads, so a fresh parse of those files is the palette.

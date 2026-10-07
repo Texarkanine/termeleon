@@ -1,11 +1,12 @@
 # Active Context
 
 ## Current Task: Mirror the theme just picked
-**Phase:** PREFLIGHT - COMPLETE (FAIL (fixable))
+**Phase:** PLAN - COMPLETE
 
 ## What Was Done
-- Planned `mirrorLiveThemes` over the cached catalog. Mirror re-reads the live selection and does not walk theme directories. Named Ghostty and Alacritty picks use cached palettes. MobaXterm, kitty, Xresources, and the Windows Terminal scheme files are parsed from those reads.
-- Hand-edited color codes inside a theme file whose selection name did not change stay out of scope.
+- Re-planned after preflight FAIL (fixable). Alacritty config paths come from the known bases (`alacritty.toml` at the root of each), not from cached theme origins. An import-only config is not a cached theme.
+- Windows Terminal palettes come from the fresh `settings.json` / `defaults.json` pair. Ghostty and Alacritty imported files still use cached palettes.
+- `commandMirror` will call `mirrorSelection`, the tested composition of `mirrorLiveThemes` and `mirrorCandidates`.
 
 ## Next Step
-- Re-plan with `/niko-plan`: find Alacritty config paths from known locations, not the cache; then re-run preflight. Findings are in `memory-bank/active/.preflight-status`.
+- Re-run preflight on the revised plan.

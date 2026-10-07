@@ -104,6 +104,18 @@ Mirror applies the theme the user just picked in their emulator, using the catal
 * Insights
     - Windows Terminal's scheme list is the two JSON files Mirror already has to open, so that source does not need the cached palette bytes
 
+## 2026-10-07 - PLAN - COMPLETE
+
+* Work completed
+    - Revised the plan after preflight found that an import-only `alacritty.toml` is not a cached theme
+* Decisions made
+    - Alacritty config paths are `alacritty.toml` at the root of each known base, including `extraDirectories`, with no recursive walk
+    - MobaXterm ini paths are `MobaXterm.ini` at the root of the same default roots discovery uses
+    - Windows Terminal palettes come from the fresh install pair. `settings.json` wins over `defaults.json` for the same scheme name
+    - `mirrorSelection` is the function `commandMirror` calls, so the empty result keeps the existing warning
+* Insights
+    - The import-pick test must seed imported themes only. Seeding the config as a cached theme hides the bug
+
 ## 2026-10-07 - PREFLIGHT - COMPLETE
 
 * Work completed
