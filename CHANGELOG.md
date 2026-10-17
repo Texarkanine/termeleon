@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/Texarkanine/termeleon/compare/v0.9.0...v0.9.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **deps:** bump smol-toml ([bb6c599](https://github.com/Texarkanine/termeleon/commit/bb6c59988cd56b0a53b17dd7313bc7eec7773ee7))
+* **deps:** bump smol-toml from 1.9.0 to 1.9.1 in the production-deps group ([#67](https://github.com/Texarkanine/termeleon/issues/67)) ([bb6c599](https://github.com/Texarkanine/termeleon/commit/bb6c59988cd56b0a53b17dd7313bc7eec7773ee7))
+
 ## [0.9.0](https://github.com/Texarkanine/termeleon/compare/v0.8.1...v0.9.0) (2026-10-07)
 
 
